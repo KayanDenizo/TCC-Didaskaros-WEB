@@ -23,19 +23,19 @@ main
 ## 1. Atualizar a main
 
 Antes de começar uma tarefa:
-```git checkout main
-git pull origin main```
+git checkout main
+git pull origin main
 
 ## 2. Criar uma branch para a funcionalidade
 
 Exemplo: implementar login.
 
 ## 3. Fazer commits
-```git add .
-git commit -m "feat: implementa autenticação de usuários"```
+git add .
+git commit -m "feat: implementa autenticação de usuários"
 
 ## 4. Enviar a branch para o GitHub
-```git push origin feature/login```
+git push origin feature/login
 => A branch aparecerá no GitHub.
 
 ## 5. Criar um Pull Request
