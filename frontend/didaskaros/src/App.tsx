@@ -1,7 +1,8 @@
-import { useEffect } from "react";
-import { useState } from "react";
-import { Button } from "./Button";
+import CadastroCoordenador from "./pages/coordenador/CadastroCoordenador";
+import DidaskarosDashboard from "./pages/coordenador/DidaskarosDashboard";
 
-export function App() {
-  return <Button>Teste</Button>
+function App() {
+  return <DidaskarosDashboard />
 }
+
+export default App;
