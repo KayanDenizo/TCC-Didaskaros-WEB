@@ -1,270 +1,9 @@
 import { useState } from "react";
+import type { FormData, FieldError } from "./cadastro/types";
+import { TIPOS_INST, TURNOS, CATEGORIAS, NIVEIS_ACESSO, CURSOS_ETEC, CURSOS_FATEC, INITIAL } from "./cadastro/data";
+import { maskCPF, maskPhone, maskRF, validarCPF, calcStrength } from "./cadastro/helpers";
+import { Label, Input, PasswordInput, Select, CheckboxGroup, SectionTitle } from "./cadastro/fields";
 
-// ── TIPOS ──────────────────────────────────────────────────────────
-interface FormData {
-  nomeCompleto: string;
-  cpf: string;
-  dataNascimento: string;
-  telefone: string;
-  emailInstitucional: string;
-  emailPessoal: string;
-  senha: string;
-  confirmarSenha: string;
-  tipoInstituicao: string;
-  unidade: string;
-  municipio: string;
-  curso: string;
-  turnosResponsavel: string[];
-  registroFuncional: string;
-  categoriaFuncional: string;
-  dataInicio: string;
-  nivelAcesso: string;
-  observacoes: string;
-  foto: string;
-}
-
-interface FieldError {
-  [key: string]: string;
-}
-
-// ── DADOS CPS ──────────────────────────────────────────────────────
-const TIPOS_INST = ["ETEC", "FATEC"];
-const TURNOS = ["Manhã", "Tarde", "Noite", "Integral"];
-const CATEGORIAS = [
-  "Coordenador Pedagógico",
-  "Coordenador de Curso",
-  "Diretor de Serviços",
-  "Assistente de Coordenação",
-];
-const NIVEIS_ACESSO = [
-  { value: "COORDENADOR", label: "Coordenador — acesso padrão" },
-  { value: "ADMIN", label: "Administrador — acesso total" },
-];
-const CURSOS_ETEC = [
-  "Desenvolvimento de Sistemas","Informática para Internet","Informática",
-  "Administração","Contabilidade","Logística","Recursos Humanos",
-  "Enfermagem","Nutrição e Dietética","Eletrotécnica","Mecânica",
-  "Edificações","Design de Interiores","Marketing","Serviços Jurídicos","Outro",
-];
-const CURSOS_FATEC = [
-  "Análise e Desenvolvimento de Sistemas","Banco de Dados",
-  "Gestão da Tecnologia da Informação","Ciência de Dados",
-  "Inteligência Artificial e Cognitiva","Gestão Empresarial",
-  "Logística","Marketing Digital","Mecatrônica Industrial",
-  "Engenharia de Produção","Outro",
-];
-
-// ── HELPERS ────────────────────────────────────────────────────────
-function maskCPF(v: string) {
-  return v.replace(/\D/g,"").slice(0,11)
-    .replace(/(\d{3})(\d)/,"$1.$2")
-    .replace(/(\d{3})(\d)/,"$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/,"$1-$2");
-}
-function maskPhone(v: string) {
-  return v.replace(/\D/g,"").slice(0,11)
-    .replace(/(\d{2})(\d)/,"($1) $2")
-    .replace(/(\d{5})(\d)/,"$1-$2");
-}
-function maskRF(v: string) { return v.replace(/\D/g,"").slice(0,8); }
-
-// -- VALIDAÇÃO DE CPF REAL ------------------------------------------
-function validarCPF(cpf: string): boolean {
-  const nums = cpf.replace(/\D/g,"");
-  if (nums.length !== 11) return false;
-  if (/^(\d)\1+$/.test(nums)) return false; // todos dígitos iguais
-  let soma = 0;
-  for (let i = 0; i < 9; i++) soma += parseInt(nums[i]) * (10 - i);
-  let resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(nums[9])) return false;
-  soma = 0;
-  for (let i = 0; i < 10; i++) soma += parseInt(nums[i]) * (11 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  return resto === parseInt(nums[10]);
-}
-
-// ── FORÇA DA SENHA ─────────────────────────────────────────────────
-function calcStrength(senha: string): number {
-  if (senha.length >= 12 && /[A-Z]/.test(senha) && /\d/.test(senha) && /[^A-Za-z0-9]/.test(senha)) return 4;
-  if (senha.length >= 10 && /[A-Z]/.test(senha) && /\d/.test(senha)) return 3;
-  if (senha.length >= 8) return 2;
-  return 1;
-}
-
-// ── COMPONENTES INTERNOS ───────────────────────────────────────────
-function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
-  return (
-    <label className="block text-[12px] font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-      {children}
-      {required && <span className="text-blue-500 ml-1">*</span>}
-    </label>
-  );
-}
-
-function Input({
-  value, onChange, placeholder, type = "text", error, hint, disabled, maxLength,
-}: {
-  value: string; onChange: (v: string) => void; placeholder?: string;
-  type?: string; error?: string; hint?: string; disabled?: boolean; maxLength?: number;
-}) {
-  return (
-    <div>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        maxLength={maxLength}
-        className={`w-full px-4 py-2.5 rounded-xl border text-[13px] font-medium text-gray-800
-          placeholder-gray-300 outline-none transition-all bg-white
-          ${error
-            ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          }
-          ${disabled ? "bg-gray-50 text-gray-400 cursor-not-allowed" : ""}
-        `}
-      />
-      {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
-      {hint && !error && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
-    </div>
-  );
-}
-
-function PasswordInput({
-  value, onChange, placeholder, error, hint,
-}: {
-  value: string; onChange: (v: string) => void;
-  placeholder?: string; error?: string; hint?: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <div>
-      <div className="relative">
-        <input
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`w-full pl-4 pr-20 py-2.5 rounded-xl border text-[13px] font-medium text-gray-800
-            placeholder-gray-300 outline-none transition-all bg-white
-            ${error
-              ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-              : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            }`}
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-blue-500 hover:text-blue-700 transition-colors"
-        >
-          {show ? "Ocultar" : "Mostrar"}
-        </button>
-      </div>
-      {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
-      {hint && !error && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
-    </div>
-  );
-}
-
-function Select({
-  value, onChange, options, placeholder, error,
-}: {
-  value: string; onChange: (v: string) => void;
-  options: { value: string; label: string }[] | string[];
-  placeholder?: string; error?: string;
-}) {
-  const normalized = options.map((o) =>
-    typeof o === "string" ? { value: o, label: o } : o
-  );
-  return (
-    <div>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-2.5 rounded-xl border text-[13px] font-medium
-          outline-none transition-all bg-white appearance-none cursor-pointer
-          ${value === "" ? "text-gray-300" : "text-gray-800"}
-          ${error
-            ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          }
-        `}
-        style={{
-          backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")`,
-          backgroundRepeat:"no-repeat",
-          backgroundPosition:"right 14px center",
-        }}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {normalized.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
-    </div>
-  );
-}
-
-function CheckboxGroup({
-  options, selected, onChange, error,
-}: {
-  options: string[]; selected: string[];
-  onChange: (v: string[]) => void; error?: string;
-}) {
-  function toggle(opt: string) {
-    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
-  }
-  return (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => {
-          const active = selected.includes(opt);
-          return (
-            <button key={opt} type="button" onClick={() => toggle(opt)}
-              className={`px-3.5 py-2 rounded-xl text-[12px] font-semibold border transition-all
-                ${active
-                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                  : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
-                }`}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-      {error && <p className="text-[11px] text-red-500 mt-1.5 font-medium">{error}</p>}
-    </div>
-  );
-}
-
-function SectionTitle({ step, title, desc }: { step: number; title: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-4 mb-6">
-      <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white text-[13px] font-black shrink-0 mt-0.5">
-        {step}
-      </div>
-      <div>
-        <h2 className="text-[16px] font-bold text-gray-900">{title}</h2>
-        <p className="text-[12px] text-gray-400 mt-0.5">{desc}</p>
-      </div>
-    </div>
-  );
-}
-
-// ── ESTADO INICIAL ─────────────────────────────────────────────────
-const INITIAL: FormData = {
-  nomeCompleto:"", cpf:"", dataNascimento:"", telefone:"",
-  emailInstitucional:"", emailPessoal:"", senha:"", confirmarSenha:"",
-  tipoInstituicao:"", unidade:"", municipio:"", curso:"",
-  turnosResponsavel:[],
-  registroFuncional:"", categoriaFuncional:"", dataInicio:"",
-  nivelAcesso:"COORDENADOR", observacoes:"", foto:"",
-};
-
-// ── PÁGINA PRINCIPAL ───────────────────────────────────────────────
 export default function CadastroCoordenador() {
   const [form, setForm] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FieldError>({});
@@ -284,7 +23,6 @@ export default function CadastroCoordenador() {
   const cursos = form.tipoInstituicao === "ETEC" ? CURSOS_ETEC
     : form.tipoInstituicao === "FATEC" ? CURSOS_FATEC : [];
 
-  // -- VALIDAÇÃO ----------------------------------------------------
   function validate(): boolean {
     const e: FieldError = {};
 
@@ -302,7 +40,7 @@ export default function CadastroCoordenador() {
       if (idade > 80) e.dataNascimento = "Verifique a data de nascimento informada.";
     }
 
-    if (form.telefone.replace(/\D/g,"").length < 10)
+    if (form.telefone.replace(/\D/g, "").length < 10)
       e.telefone = "Telefone inválido — informe DDD + número.";
 
     if (!form.emailInstitucional.trim()) e.emailInstitucional = "E-mail institucional é obrigatório.";
@@ -354,7 +92,6 @@ export default function CadastroCoordenador() {
     setTimeout(() => { setLoading(false); setSubmitted(true); }, 1400);
   }
 
-  // ── TELA DE SUCESSO ──────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -389,7 +126,7 @@ export default function CadastroCoordenador() {
               Novo cadastro
             </button>
             <button className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold text-white transition-all hover:opacity-90"
-              style={{ background:"linear-gradient(135deg,#1E4DA1,#2563EB)" }}>
+              style={{ background: "linear-gradient(135deg,#1E4DA1,#2563EB)" }}>
               Ver coordenadores
             </button>
           </div>
@@ -399,10 +136,9 @@ export default function CadastroCoordenador() {
   }
 
   const strength = form.senha ? calcStrength(form.senha) : 0;
-  const strengthLabel = ["","🔴 Muito curta","🟡 Fraca — adicione maiúsculas e números","🔵 Boa","🟢 Forte"];
-  const strengthColor = ["","bg-red-400","bg-amber-400","bg-blue-500","bg-emerald-500"];
+  const strengthLabel = ["", "🔴 Muito curta", "🟡 Fraca — adicione maiúsculas e números", "🔵 Boa", "🟢 Forte"];
+  const strengthColor = ["", "bg-red-400", "bg-amber-400", "bg-blue-500", "bg-emerald-500"];
 
-  // ── FORMULÁRIO ───────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -533,8 +269,8 @@ export default function CadastroCoordenador() {
                 <Input value={form.unidade} onChange={(v) => set("unidade", v)}
                   placeholder={
                     !form.tipoInstituicao ? "Selecione o tipo de instituição primeiro"
-                    : form.tipoInstituicao === "ETEC" ? "Ex: ETEC Uirapuru"
-                    : "Ex: FATEC São Paulo"
+                      : form.tipoInstituicao === "ETEC" ? "Ex: ETEC Uirapuru"
+                        : "Ex: FATEC São Paulo"
                   }
                   disabled={!form.tipoInstituicao}
                   error={errors.unidade} />
@@ -624,7 +360,7 @@ export default function CadastroCoordenador() {
               {form.senha && (
                 <div className="col-span-2">
                   <div className="flex gap-1.5 mb-1.5">
-                    {[1,2,3,4].map((lvl) => (
+                    {[1, 2, 3, 4].map((lvl) => (
                       <div key={lvl} className={`h-1.5 flex-1 rounded-full transition-all duration-300
                         ${lvl <= strength ? strengthColor[strength] : "bg-gray-100"}`} />
                     ))}
@@ -707,7 +443,7 @@ export default function CadastroCoordenador() {
               </button>
               <button type="submit" disabled={loading}
                 className="px-8 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-60 flex items-center gap-2"
-                style={{ background:"linear-gradient(135deg,#1E4DA1,#2563EB)", boxShadow:"0 2px 12px rgba(37,99,235,0.3)" }}
+                style={{ background: "linear-gradient(135deg,#1E4DA1,#2563EB)", boxShadow: "0 2px 12px rgba(37,99,235,0.3)" }}
               >
                 {loading ? (
                   <>

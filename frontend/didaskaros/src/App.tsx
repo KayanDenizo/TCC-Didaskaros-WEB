@@ -1,7 +1,7 @@
-import DidaskarosDashboard from "./pages/coordenador/DidaskarosDashboard";
+import CadastroCoordenador from "./pages/coordenador/CadastroCoordenador";
 
 function App() {
-  return <DidaskarosDashboard />;
+  return <CadastroCoordenador />;
 }
 
 export default App;
