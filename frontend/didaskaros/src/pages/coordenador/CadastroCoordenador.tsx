@@ -68,7 +68,7 @@ function maskPhone(v: string) {
 }
 function maskRF(v: string) { return v.replace(/\D/g,"").slice(0,8); }
 
-// ── VALIDAÇÃO DE CPF REAL ──────────────────────────────────────────
+// -- VALIDAÇÃO DE CPF REAL ------------------------------------------
 function validarCPF(cpf: string): boolean {
   const nums = cpf.replace(/\D/g,"");
   if (nums.length !== 11) return false;
@@ -284,7 +284,7 @@ export default function CadastroCoordenador() {
   const cursos = form.tipoInstituicao === "ETEC" ? CURSOS_ETEC
     : form.tipoInstituicao === "FATEC" ? CURSOS_FATEC : [];
 
-  // ── VALIDAÇÃO ────────────────────────────────────────────────────
+  // -- VALIDAÇÃO ----------------------------------------------------
   function validate(): boolean {
     const e: FieldError = {};
 
@@ -440,7 +440,7 @@ export default function CadastroCoordenador() {
 
         <form onSubmit={handleSubmit} noValidate>
 
-          {/* ── SEÇÃO 1: DADOS PESSOAIS ─────────────────────────── */}
+          {/* -- SEÇÃO 1: DADOS PESSOAIS --------------------------- */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 mb-5">
             <SectionTitle step={1} title="Dados Pessoais" desc="Informações de identificação do coordenador" />
 
@@ -509,7 +509,7 @@ export default function CadastroCoordenador() {
             </div>
           </div>
 
-          {/* ── SEÇÃO 2: DADOS INSTITUCIONAIS ───────────────────── */}
+          {/* -- SEÇÃO 2: DADOS INSTITUCIONAIS --------------------- */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 mb-5">
             <SectionTitle step={2} title="Dados Institucionais" desc="Unidade Centro Paula Souza onde o coordenador atua" />
 
@@ -558,7 +558,7 @@ export default function CadastroCoordenador() {
             </div>
           </div>
 
-          {/* ── SEÇÃO 3: DADOS FUNCIONAIS ───────────────────────── */}
+          {/* -- SEÇÃO 3: DADOS FUNCIONAIS ------------------------- */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 mb-5">
             <SectionTitle step={3} title="Dados Funcionais" desc="Registro funcional e categoria dentro do CPS" />
 
@@ -603,7 +603,7 @@ export default function CadastroCoordenador() {
             </div>
           </div>
 
-          {/* ── SEÇÃO 4: ACESSO AO SISTEMA ──────────────────────── */}
+          {/* -- SEÇÃO 4: ACESSO AO SISTEMA ------------------------ */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 mb-5">
             <SectionTitle step={4} title="Acesso ao Sistema" desc="Credenciais e nível de permissão no Didáskaros" />
 

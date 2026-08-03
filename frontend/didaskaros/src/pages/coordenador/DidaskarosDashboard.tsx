@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
-// ── ícones simples inline para não precisar de dependência ──
+// -- ícones simples inline para não precisar de dependência --
 const Icons = {
   Grid: () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,6 +79,11 @@ const Icons = {
   ),
 };
 
+type Screen = "painel" | "planejamento";
+type IconName = keyof typeof Icons;
+type SetScreen = (screen: Screen) => void;
+type ProfessorFilter = "todos" | "disponivel" | "ausente";
+
 // ── DADOS ──────────────────────────────────────────────────────────
 const NEXT_CLASSES = [
   { time: "07:30", disc: "Matemática", prof: "Prof. João Silva · 50 min", sala: "Sala 101", color: "bg-violet-500" },
@@ -107,7 +112,10 @@ const ACTIVITIES = [
   { color: "bg-rose-500",    text: <><strong>Conflito resolvido</strong> na grade 2DS — Sala 101 realocada para Quarta.</>,time: "22 Jul, 10:30" },
 ];
 
-const GRADE_DATA = {
+type GradeCell = string | null;
+type DiscColor = { cell: string; dot: string };
+
+const GRADE_DATA: Record<string, GradeCell[]> = {
   "07:30": ["Física / Prof. Carlos / S101",    "Matemática / Prof. João / S102",   "Português / Profa. Maria / S103",  "História / Profa. Ana / S102",     "Geografia / Prof. Roberto / S101"],
   "08:20": ["Matemática / Prof. João / S101",  "Português / Profa. Maria / S102",  "Matemática / Prof. João / S101",   "Física / Prof. Carlos / Lab",      "Português / Profa. Maria / S103"],
   "09:10": [null,                               "História / Profa. Ana / S102",     "Física / Prof. Carlos / Lab",      "Matemática / Prof. João / S101",   "Ciências / Prof. João / Lab"],
@@ -115,7 +123,7 @@ const GRADE_DATA = {
   "11:00": ["Geografia / Prof. Roberto / S101","Física / Prof. Carlos / Lab",       "Ciências / Prof. João / Lab",      "Português / Profa. Maria / S102",  "História / Profa. Ana / S103"],
 };
 
-const DISC_COLORS = {
+const DISC_COLORS: Record<string, DiscColor> = {
   "Física":      { cell: "bg-blue-50 border-l-blue-500 text-blue-800",     dot: "bg-blue-500" },
   "Matemática":  { cell: "bg-violet-50 border-l-violet-500 text-violet-800",dot: "bg-violet-500" },
   "Português":   { cell: "bg-pink-50 border-l-pink-500 text-pink-800",     dot: "bg-pink-500" },
@@ -124,7 +132,7 @@ const DISC_COLORS = {
   "Ciências":    { cell: "bg-purple-50 border-l-purple-500 text-purple-800",dot: "bg-purple-500" },
 };
 
-function getDiscColor(cellStr) {
+function getDiscColor(cellStr: GradeCell): DiscColor | null {
   if (!cellStr) return null;
   const disc = cellStr.split(" / ")[0];
   return DISC_COLORS[disc] || { cell: "bg-gray-50 border-l-gray-400 text-gray-700", dot: "bg-gray-400" };
@@ -137,7 +145,7 @@ const OTHER_GRADES = [
 ];
 
 // ── NAV ITEMS ──────────────────────────────────────────────────────
-const NAV = [
+const NAV: { section: string; items: { label: string; icon: IconName | null; screen: Screen | null; badge?: string }[] }[] = [
   { section: "GERAL", items: [{ label: "Painel Principal", icon: "Grid", screen: "painel" }] },
   {
     section: "PLANEJAMENTO",
@@ -162,7 +170,7 @@ const NAV = [
 // COMPONENTES
 // ══════════════════════════════════════════════════════════════════
 
-function Sidebar({ active, setScreen }) {
+function Sidebar({ active, setScreen }: { active: Screen; setScreen: SetScreen }) {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-60 flex flex-col z-50"
       style={{ background: "linear-gradient(180deg, #0F2456 0%, #1B3A7A 100%)" }}>
@@ -191,7 +199,7 @@ function Sidebar({ active, setScreen }) {
             <p className="text-[9px] font-bold tracking-[1.2px] text-white/35 uppercase px-5 pt-4 pb-1.5">{group.section}</p>
             {group.items.map((item) => {
               const isActive = active === item.screen;
-              const IconEl = Icons[item.icon];
+              const IconEl = item.icon ? Icons[item.icon] : null;
               return (
                 <button
                   key={item.label}
@@ -231,7 +239,7 @@ function Sidebar({ active, setScreen }) {
   );
 }
 
-function Topbar({ title, breadcrumb }) {
+function Topbar({ title, breadcrumb }: { title: string; breadcrumb: string }) {
   return (
     <header className="h-[60px] bg-white border-b border-gray-200 flex items-center px-6 gap-4 sticky top-0 z-40 shadow-sm">
       <div>
@@ -257,7 +265,17 @@ function Topbar({ title, breadcrumb }) {
   );
 }
 
-function StatCard({ label, value, trend, trendColor, sub, emoji, iconBg }) {
+function StatCard({
+  label, value, trend, trendColor, sub, emoji, iconBg,
+}: {
+  label: string;
+  value: string;
+  trend: string;
+  trendColor: string;
+  sub: string;
+  emoji: ReactNode;
+  iconBg: string;
+}) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center text-lg mb-3`}>{emoji}</div>
@@ -271,7 +289,7 @@ function StatCard({ label, value, trend, trendColor, sub, emoji, iconBg }) {
   );
 }
 
-function ProfList({ filter }) {
+function ProfList({ filter }: { filter: ProfessorFilter }) {
   const filtered = filter === "todos"
     ? PROFESSORS
     : filter === "disponivel"
@@ -300,10 +318,10 @@ function ProfList({ filter }) {
 }
 
 // ── TELA PAINEL PRINCIPAL ─────────────────────────────────────────
-function PainelPrincipal({ setScreen }) {
-  const [profFilter, setProfFilter] = useState("todos");
-  const filterTabs = ["todos", "disponivel", "ausente"];
-  const filterLabels = { todos: "Todos (24)", disponivel: "Disponíveis (18)", ausente: "Ausentes (6)" };
+function PainelPrincipal({ setScreen }: { setScreen: SetScreen }) {
+  const [profFilter, setProfFilter] = useState<ProfessorFilter>("todos");
+  const filterTabs: ProfessorFilter[] = ["todos", "disponivel", "ausente"];
+  const filterLabels: Record<ProfessorFilter, string> = { todos: "Todos (24)", disponivel: "Disponíveis (18)", ausente: "Ausentes (6)" };
 
   return (
     <main className="flex-1 ml-60">
@@ -479,7 +497,7 @@ function PainelPrincipal({ setScreen }) {
 function Planejamento() {
   const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
   const times = Object.keys(GRADE_DATA);
-  const [viewMode, setViewMode] = useState("turma");
+  const [viewMode, setViewMode] = useState<"turma" | "professor" | "sala">("turma");
 
   return (
     <main className="flex-1 ml-60">
@@ -522,7 +540,7 @@ function Planejamento() {
               <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
                 {/* view mode tabs */}
                 <div className="flex rounded-xl border border-gray-200 overflow-hidden">
-                  {["turma", "professor", "sala"].map((m) => (
+                  {(["turma", "professor", "sala"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setViewMode(m)}
@@ -567,7 +585,6 @@ function Planejamento() {
                       <tr key={time}>
                         <td className="text-right pr-2 text-[11px] font-bold text-gray-400 tabular-nums pt-1.5 align-top">{time}</td>
                         {GRADE_DATA[time].map((cell, ci) => {
-                          const style = getDiscColor(cell);
                           if (!cell) {
                             return (
                               <td key={ci} className="p-0.5">
@@ -577,6 +594,7 @@ function Planejamento() {
                               </td>
                             );
                           }
+                          const style = getDiscColor(cell) ?? { cell: "bg-gray-50 border-l-gray-400 text-gray-700", dot: "bg-gray-400" };
                           const [disc, prof, sala] = cell.split(" / ");
                           return (
                             <td key={ci} className="p-0.5">
@@ -664,7 +682,7 @@ function Planejamento() {
                       <div>
                         <p className="text-[12px] font-semibold text-gray-800">{g.name}</p>
                         <p className="text-[10px] text-gray-400">{g.sub}</p>
-                      </div>
+                      </  div>
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${g.badge}`}>{g.label}</span>
                     </div>
                   ))}
@@ -683,7 +701,7 @@ function Planejamento() {
 // APP PRINCIPAL
 // ══════════════════════════════════════════════════════════════════
 export default function DidaskarosDashboard() {
-  const [screen, setScreen] = useState("painel");
+  const [screen, setScreen] = useState<Screen>("painel");
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
