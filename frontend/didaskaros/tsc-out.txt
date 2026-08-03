@@ -1,0 +1,30 @@
+src/main.tsx(3,8): error TS2882: Cannot find module or type declarations for side-effect import of './index.css'.
+src/main.tsx(4,10): error TS2614: Module '"./App.tsx"' has no exported member 'App'. Did you mean to use 'import App from "./App.tsx"' instead?
+src/pages/coordenador/DidaskarosDashboard.tsx(127,23): error TS7006: Parameter 'cellStr' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(130,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ Física: { cell: string; dot: string; }; Matemática: { cell: string; dot: string; }; Português: { cell: string; dot: string; }; História: { cell: string; dot: string; }; Geografia: { cell: string; dot: string; }; Ciências: { ...; }; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(165,20): error TS7031: Binding element 'active' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(165,28): error TS7031: Binding element 'setScreen' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(194,36): error TS2538: Type 'null' cannot be used as an index type.
+src/pages/coordenador/DidaskarosDashboard.tsx(211,25): error TS2339: Property 'badge' does not exist on type '{ label: string; icon: string; screen: string; } | { label: string; icon: string; screen: null; } | { label: string; icon: null; screen: null; } | { label: string; icon: string; screen: null; badge?: undefined; } | { ...; }'.
+  Property 'badge' does not exist on type '{ label: string; icon: string; screen: string; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(212,124): error TS2339: Property 'badge' does not exist on type '{ label: string; icon: string; screen: string; } | { label: string; icon: string; screen: null; } | { label: string; icon: null; screen: null; } | { label: string; icon: string; screen: null; badge?: undefined; } | { ...; }'.
+  Property 'badge' does not exist on type '{ label: string; icon: string; screen: string; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(234,19): error TS7031: Binding element 'title' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(234,26): error TS7031: Binding element 'breadcrumb' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,21): error TS7031: Binding element 'label' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,28): error TS7031: Binding element 'value' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,35): error TS7031: Binding element 'trend' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,42): error TS7031: Binding element 'trendColor' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,54): error TS7031: Binding element 'sub' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,59): error TS7031: Binding element 'emoji' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(260,66): error TS7031: Binding element 'iconBg' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(274,21): error TS7031: Binding element 'filter' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(303,28): error TS7031: Binding element 'setScreen' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(453,22): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ todos: string; disponivel: string; ausente: string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ todos: string; disponivel: string; ausente: string; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(455,63): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ todos: string; disponivel: string; ausente: string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ todos: string; disponivel: string; ausente: string; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(569,26): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ "07:30": string[]; "08:20": string[]; "09:10": (string | null)[]; "10:10": string[]; "11:00": string[]; }'.
+  No index signature with a parameter of type 'string' was found on type '{ "07:30": string[]; "08:20": string[]; "09:10": (string | null)[]; "10:10": string[]; "11:00": string[]; }'.
+src/pages/coordenador/DidaskarosDashboard.tsx(569,48): error TS7006: Parameter 'cell' implicitly has an 'any' type.
+src/pages/coordenador/DidaskarosDashboard.tsx(569,54): error TS7006: Parameter 'ci' implicitly has an 'any' type.
