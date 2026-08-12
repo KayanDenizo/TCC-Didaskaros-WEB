@@ -56,12 +56,29 @@ export const OTHER_GRADES = [
   { name: "Grade 3INFO — 2025", sub: "Noite · 16 aulas/sem", badge: "bg-gray-100 text-gray-500", label: "Arquivada" },
 ];
 
+export const TURMAS = [
+  { id: "3ds", nome: "3DS — Desenvolvimento de Sistemas" },
+  { id: "2ds", nome: "2DS — Desenvolvimento de Sistemas" },
+  { id: "1ds", nome: "1DS — Desenvolvimento de Sistemas" },
+  { id: "3info", nome: "3INFO — Informática" },
+];
+
+export const CONSTRAINTS = [
+  { id: "evitar-janelas", label: "Evitar janelas na grade", desc: "Não deixar horários vagos entre aulas de um mesmo dia" },
+  { id: "priorizar-preferencias", label: "Priorizar preferências dos professores", desc: "Respeitar horários preferidos informados pelo docente" },
+  { id: "agrupar-disciplina", label: "Agrupar aulas da mesma disciplina", desc: "Evitar intercalar disciplinas diferentes no mesmo dia" },
+  { id: "limitar-carga-diaria", label: "Limitar carga diária por professor", desc: "No máximo 2 disciplinas distintas por professor ao dia" },
+  { id: "priorizar-salas-fixas", label: "Priorizar salas fixas por turma", desc: "Manter a turma na mesma sala sempre que possível" },
+  { id: "evitar-ultimo-horario", label: "Evitar disciplinas teóricas no último horário", desc: "Reservar o fim do turno para aulas práticas" },
+];
+
 export const NAV: NavGroup[] = [
   { section: "GERAL", items: [{ label: "Painel Principal", icon: "Grid", screen: "painel" }] },
   {
     section: "PLANEJAMENTO",
     items: [
       { label: "Grades Horárias", icon: "Calendar", screen: "planejamento" },
+      { label: "Gerar Grade", icon: "Sparkles", screen: "gerar-grade" },
       { label: "Equipe Docente", icon: "Users", screen: null },
       { label: "Classes", icon: null, screen: null },
       { label: "Disciplinas", icon: null, screen: null },

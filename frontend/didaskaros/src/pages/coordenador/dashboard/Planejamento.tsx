@@ -2,15 +2,16 @@ import { useState } from "react";
 import { Icons } from "./icons";
 import { Topbar } from "./Topbar";
 import { PROFESSORS, GRADE_DATA, DISC_COLORS, OTHER_GRADES, getDiscColor } from "./data";
+import type { SetScreen } from "./types";
 
-export function Planejamento() {
+export function Planejamento({ setScreen }: { setScreen: SetScreen }) {
   const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
   const times = Object.keys(GRADE_DATA);
   const [viewMode, setViewMode] = useState<"turma" | "professor" | "sala">("turma");
 
   return (
     <main className="flex-1 ml-60">
-      <Topbar title="Grades Horárias" breadcrumb="Didáskaros › Planejamento › Grades Horárias" />
+      <Topbar title="Grades Horárias" breadcrumb="Didaskaros › Planejamento › Grades Horárias" />
       <div className="p-7">
 
         {/* Header */}
@@ -23,7 +24,7 @@ export function Planejamento() {
             <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-all">
               <Icons.Download /> Exportar PDF
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-white hover:opacity-90 transition-all"
+            <button onClick={() => setScreen("gerar-grade")} className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-white hover:opacity-90 transition-all"
               style={{ background: "linear-gradient(135deg, #1E4DA1, #2563EB)", boxShadow: "0 2px 12px rgba(37,99,235,0.3)" }}>
               ✨ Gerar Nova Grade
             </button>

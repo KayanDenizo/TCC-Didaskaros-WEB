@@ -146,7 +146,7 @@ export default function CadastroCoordenador() {
       <header className="h-[60px] bg-white border-b border-gray-200 flex items-center px-8 shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xs">D</div>
-          <span className="font-extrabold text-[13px] text-gray-900 tracking-tight">DIDÁSKAROS</span>
+          <span className="font-extrabold text-[13px] text-gray-900 tracking-tight">DIDASKAROS</span>
         </div>
         <div className="flex items-center gap-1.5 ml-8 text-[12px] text-gray-400">
           <span className="hover:text-blue-600 cursor-pointer">Usuários</span>
@@ -169,7 +169,7 @@ export default function CadastroCoordenador() {
           </div>
           <h1 className="text-[26px] font-extrabold text-gray-900 tracking-tight">Cadastrar Coordenador</h1>
           <p className="text-[13px] text-gray-500 mt-1.5">
-            Preencha os dados do coordenador que terá acesso à plataforma Didáskaros.
+            Preencha os dados do coordenador que terá acesso à plataforma Didaskaros.
             Campos com <span className="text-blue-500 font-bold">*</span> são obrigatórios.
           </p>
         </div>
@@ -341,7 +341,7 @@ export default function CadastroCoordenador() {
 
           {/* -- SEÇÃO 4: ACESSO AO SISTEMA ------------------------ */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 mb-5">
-            <SectionTitle step={4} title="Acesso ao Sistema" desc="Credenciais e nível de permissão no Didáskaros" />
+            <SectionTitle step={4} title="Acesso ao Sistema" desc="Credenciais e nível de permissão no Didaskaros" />
 
             <div className="grid grid-cols-2 gap-4">
               <div data-error={!!errors.senha}>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Didaskaros — Gerar Grade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue-50: #EFF6FF; --blue-100: #DBEAFE; --blue-400: #60A5FA; --blue-500: #3B82F6; --blue-600: #2563EB; --blue-700: #1D4ED8; --blue-800: #1E40AF;
+    --emerald-50: #ECFDF5; --emerald-100: #D1FAE5; --emerald-400: #34D399; --emerald-500: #10B981; --emerald-600: #059669; --emerald-700: #047857;
+    --amber-50: #FFFBEB; --amber-100: #FDE68A; --amber-400: #FBBF24; --amber-500: #F59E0B; --amber-700: #B45309;
+    --violet-50: #F5F3FF; --violet-400: #A78BFA; --violet-500: #8B5CF6; --violet-800: #5B21B6;
+    --pink-50: #FDF2F8; --pink-500: #EC4899; --pink-800: #9D174D;
+    --purple-50: #FAF5FF; --purple-500: #A855F7; --purple-800: #6B21A8;
+    --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--gray-50); }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: var(--gray-900);
+    display: flex;
+    min-height: 100vh;
+  }
+  button, select, input { font: inherit; }
+  button { cursor: pointer; }
+
+  /* ---------- animations ---------- */
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(.5); } 60% { transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulseSoft { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+  @keyframes slideInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .fade-in-up { animation: fadeInUp .35s ease-out both; }
+  .scale-in { animation: scaleIn .3s ease-out both; }
+  .pop-in { animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
+  .pulse { animation: pulseSoft 2s ease-in-out infinite; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+    display: flex; flex-direction: column; z-index: 50;
+    background: linear-gradient(180deg, #0F2456 0%, #1B3A7A 100%);
+  }
+  .sidebar-logo { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .sidebar-logo-row { display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo-badge { width: 32px; height: 32px; border-radius: 9px; background: var(--blue-500); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 14px; }
+  .sidebar-logo-text { color: #fff; font-weight: 800; font-size: 14px; letter-spacing: .01em; }
+
+  .sidebar-user { padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); }
+  .sidebar-avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--blue-600); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .sidebar-user-name { color: #fff; font-size: 12px; font-weight: 600; line-height: 1.2; }
+  .sidebar-user-role { color: rgba(255,255,255,.5); font-size: 10px; line-height: 1.2; }
+
+  nav.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .nav-section-title { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.35); padding: 16px 20px 6px; }
+  .nav-item {
+    width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; text-align: left;
+    background: transparent; border: none; color: rgba(255,255,255,.6); position: relative; transition: all .15s ease;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,.07); }
+  .nav-item.active { color: #fff; font-weight: 600; background: rgba(37,99,235,.2); }
+  .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 24px; border-radius: 0 4px 4px 0; background: var(--blue-400); }
+  .nav-item svg { width: 16px; height: 16px; color: rgba(255,255,255,.4); flex-shrink: 0; }
+  .nav-item.active svg { color: #93C5FD; }
+  .nav-dot { width: 4px; height: 4px; border-radius: 999px; background: rgba(255,255,255,.25); flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: #EF4444; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; }
+
+  .sidebar-footer { border-top: 1px solid rgba(255,255,255,.1); padding: 8px 0; }
+  .sidebar-footer button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: rgba(255,255,255,.5); background: transparent; border: none; transition: color .15s ease; }
+  .sidebar-footer button:hover { color: #fff; }
+  .sidebar-footer svg { width: 16px; height: 16px; }
+
+  /* ---------- main / topbar ---------- */
+  main { flex: 1; margin-left: 240px; }
+  .topbar {
+    height: 60px; background: #fff; border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px;
+    position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 3px rgba(15,36,86,.05);
+  }
+  .topbar-title { font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .topbar-breadcrumb { font-size: 11px; color: var(--gray-400); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topbar-search { position: relative; }
+  .topbar-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gray-400); }
+  .topbar-search input {
+    background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 12px;
+    padding: 8px 16px 8px 34px; font-size: 13px; color: var(--gray-700); outline: none; width: 224px; transition: all .15s ease;
+  }
+  .topbar-search input:focus { border-color: var(--blue-400); background: #fff; }
+  .topbar-date { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+  .topbar-bell { position: relative; width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--gray-200); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--gray-500); transition: all .15s ease; }
+  .topbar-bell:hover { border-color: var(--blue-400); color: var(--blue-600); }
+  .topbar-bell svg { width: 16px; height: 16px; }
+  .topbar-bell-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 999px; background: #EF4444; border: 2px solid #fff; }
+  .topbar-avatar { width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, var(--blue-600), var(--blue-400)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
+
+  .page { padding: 28px; max-width: 1040px; }
+
+  /* ---------- header ---------- */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+  .page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+  .page-header p { font-size: 13px; color: var(--gray-500); margin: 4px 0 0; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-700);
+    transition: all .15s ease; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--blue-400); color: var(--blue-600); transform: scale(1.02); }
+  .btn:active { transform: scale(.97); }
+  .btn svg { width: 15px; height: 15px; }
+  .btn-primary {
+    border: none; color: #fff; background: linear-gradient(135deg, #1E4DA1, #2563EB);
+    box-shadow: 0 2px 12px rgba(37,99,235,.3);
+  }
+  .btn-primary:hover { opacity: .92; color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+  /* ---------- stepper ---------- */
+  .stepper { display: flex; align-items: center; background: #fff; border: 1px solid var(--gray-200); border-radius: 16px; padding: 16px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+  .step-item { display: flex; align-items: center; flex: 1; }
+  .step-item:last-child { flex: none; }
+  .step-dot-wrap { display: flex; align-items: center; gap: 10px; }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; background: var(--gray-100); color: var(--gray-400); transition: all .3s ease; flex-shrink: 0;
+  }
+  .step-dot.current { background: var(--blue-700); color: #fff; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+  .step-dot.done { background: var(--emerald-500); color: #fff; }
+  .step-label { font-size: 13px; font-weight: 600; color: var(--gray-400); white-space: nowrap; transition: color .3s ease; }
+  .step-label.active { color: var(--gray-900); }
+  .step-connector { flex: 1; height: 2px; margin: 0 16px; border-radius: 999px; background: var(--gray-100); overflow: hidden; }
+  .step-connector-fill { height: 100%; width: 0; background: var(--emerald-400); transition: width .5s ease-out; }
+  .step-connector-fill.filled { width: 100%; }
+
+  /* ---------- cards ---------- */
+  .card { background: #fff; border: 1px solid var(--gray-200); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+  .card-pad { padding: 24px; }
+  .card-title { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
+  .card-sub { font-size: 12px; color: var(--gray-400); margin: 0 0 20px; }
+
+  .grid-2col { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--gray-600); display: block; margin-bottom: 6px; }
+  .field select, .field input[type=number] {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 12px; font-size: 13px; color: var(--gray-700);
+    background: #fff; outline: none; transition: border-color .15s ease;
+  }
+  .field select:focus, .field input:focus { border-color: var(--blue-400); }
+  .col-span-2 { grid-column: 1 / -1; }
+  .turno-row { display: flex; gap: 8px; }
+  .turno-btn { flex: 1; padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 600; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); transition: all .15s ease; }
+  .turno-btn:hover { border-color: #BFD3F7; }
+  .turno-btn.selected { background: var(--blue-700); border-color: var(--blue-700); color: #fff; }
+
+  .disc-list { display: flex; flex-direction: column; gap: 10px; }
+  .disc-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray-600); }
+  .disc-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
+
+  /* ---------- constraints (step 2) ---------- */
+  .constraint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .constraint-card {
+    display: flex; align-items: flex-start; gap: 12px; text-align: left; padding: 16px; border-radius: 12px;
+    border: 1px solid var(--gray-200); background: #fff; transition: all .15s ease;
+  }
+  .constraint-card:hover { border-color: var(--gray-300); }
+  .constraint-card.active { border-color: var(--blue-400); background: rgba(239,246,255,.5); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .constraint-check {
+    width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--gray-300); flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center; transition: all .15s ease;
+  }
+  .constraint-card.active .constraint-check { background: var(--blue-600); border-color: var(--blue-600); }
+  .constraint-check span { color: #fff; font-size: 10px; font-weight: 700; display: none; }
+  .constraint-card.active .constraint-check span { display: block; }
+  .constraint-text-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin: 0; }
+  .constraint-text-desc { font-size: 11px; color: var(--gray-400); margin: 4px 0 0; }
+
+  /* ---------- review (step 3) ---------- */
+  .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .review-box { padding: 16px; border-radius: 12px; background: var(--gray-50); border: 1px solid var(--gray-100); }
+  .review-box .lbl { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; margin: 0 0 4px; }
+  .review-box .val { font-size: 13px; font-weight: 700; margin: 0; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 11px; font-weight: 600; background: var(--blue-50); color: var(--blue-700); padding: 5px 10px; border-radius: 999px; }
+
+  /* ---------- result (step 4) ---------- */
+  .result-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gray-100); background: rgba(236,253,245,.5); }
+  .result-header-left { display: flex; align-items: center; gap: 10px; }
+  .result-check { width: 32px; height: 32px; border-radius: 10px; background: var(--emerald-100); color: var(--emerald-600); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .result-title { font-size: 14px; font-weight: 700; margin: 0; }
+  .result-sub { font-size: 11px; color: var(--gray-400); margin: 0; }
+  .badge-draft { font-size: 10px; font-weight: 700; background: var(--amber-50); color: var(--amber-700); padding: 4px 12px; border-radius: 999px; }
+
+  .loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; }
+  .spinner-wrap { position: relative; width: 56px; height: 56px; }
+  .spinner-track { position: absolute; inset: 0; border-radius: 999px; border: 4px solid var(--blue-100); }
+  .spinner-arc { position: absolute; inset: 0; border-radius: 999px; border: 4px solid transparent; border-top-color: var(--blue-600); animation: spin .8s linear infinite; }
+  .loading-title { font-size: 14px; font-weight: 700; margin: 0; }
+  .loading-sub { font-size: 12px; color: var(--gray-400); margin: 0; }
+
+  table.grade-table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+  table.grade-table th { font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; padding-bottom: 8px; }
+  table.grade-table th:first-child { width: 64px; text-align: right; padding-right: 8px; color: var(--gray-400); }
+  table.grade-table td { padding: 2px; vertical-align: top; }
+  table.grade-table td.time-cell { text-align: right; padding-right: 8px; font-size: 11px; font-weight: 700; color: var(--gray-400); padding-top: 6px; }
+  .cell-empty { height: 52px; border-radius: 8px; background: var(--gray-50); border: 1px dashed var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray-300); }
+  .cell-filled { height: 52px; border-radius: 8px; padding: 8px 10px; border-left: 3px solid; }
+  .cell-filled .disc { font-size: 11px; font-weight: 700; line-height: 1.2; }
+  .cell-filled .prof { font-size: 10px; opacity: .7; margin-top: 2px; line-height: 1.2; }
+  .cell-filled .sala { font-size: 10px; opacity: .6; margin-top: 2px; line-height: 1.2; }
+
+  .result-footer { padding: 16px 20px; border-top: 1px solid var(--gray-100); background: var(--gray-50); display: flex; align-items: center; justify-content: space-between; }
+  .result-footer-right { display: flex; gap: 10px; }
+
+  .nav-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-row">
+      <div class="sidebar-logo-badge">D</div>
+      <span class="sidebar-logo-text">DIDASKAROS</span>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">MC</div>
+    <div>
+      <div class="sidebar-user-name">Maria Costa</div>
+      <div class="sidebar-user-role">Coordenadora · ETEC Uirapuru</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div>
+      <div class="nav-section-title">Geral</div>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Painel Principal
+      </button>
+    </div>
+    <div>
+      <div class="nav-section-title">Planejamento</div>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Grades Horárias
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l1.5 4.5L11 9l-4.5 1.5L5 15l-1.5-4.5L-1 9l4.5-1.5L5 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 12l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z"/></svg>
+        Gerar Grade
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Equipe Docente
+      </button>
+      <button class="nav-item"><span class="nav-dot"></span>Classes</button>
+      <button class="nav-item"><span class="nav-dot"></span>Disciplinas</button>
+      <button class="nav-item"><span class="nav-dot"></span>Salas</button>
+    </div>
+    <div>
+      <div class="nav-section-title">Comunicação</div>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Postar Avisos
+      </button>
+      <button class="nav-item"><span class="nav-dot"></span>Aprovações<span class="nav-badge">3</span></button>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Configurações
+    </button>
+    <button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div>
+      <div class="topbar-title">Gerar Grade</div>
+      <div class="topbar-breadcrumb">Didaskaros › Planejamento › Gerar Grade</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+        <input placeholder="Buscar professores, turmas..." />
+      </div>
+      <span class="topbar-date">Ter, 21 Jul 2026</span>
+      <button class="topbar-bell">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="topbar-bell-dot"></span>
+      </button>
+      <div class="topbar-avatar">MC</div>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <div class="page-header fade-in-up">
+      <div>
+        <h1>Gerar Grade com IA</h1>
+        <p>Configure os parâmetros e deixe a IA montar a grade horária automaticamente.</p>
+      </div>
+      <button class="btn" id="btn-back-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar às Grades
+      </button>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step-item">
+        <div class="step-dot-wrap"><div class="step-dot" data-step="1"><span>1</span></div><span class="step-label" data-label="1">Parâmetros</span></div>
+        <div class="step-connector"><div class="step-connector-fill" data-fill="1"></div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap"><div class="step-dot" data-step="2"><span>2</span></div><span class="step-label" data-label="2">Restrições</span></div>
+        <div class="step-connector"><div class="step-connector-fill" data-fill="2"></div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap"><div class="step-dot" data-step="3"><span>3</span></div><span class="step-label" data-label="3">Revisão</span></div>
+        <div class="step-connector"><div class="step-connector-fill" data-fill="3"></div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot-wrap"><div class="step-dot" data-step="4"><span>4</span></div><span class="step-label" data-label="4">Resultado</span></div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <section class="grid-2col fade-in-up" data-panel="1">
+      <div class="card card-pad">
+        <p class="card-title">Parâmetros da Grade</p>
+        <p class="card-sub">Defina turma, turno e período letivo</p>
+        <div class="field-grid">
+          <div class="field">
+            <label for="turma">Turma</label>
+            <select id="turma">
+              <option value="3ds">3DS — Desenvolvimento de Sistemas</option>
+              <option value="2ds">2DS — Desenvolvimento de Sistemas</option>
+              <option value="1ds">1DS — Desenvolvimento de Sistemas</option>
+              <option value="3info">3INFO — Informática</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ano">Ano Letivo</label>
+            <select id="ano"><option>2026</option><option>2027</option></select>
+          </div>
+          <div class="field col-span-2">
+            <label>Turno</label>
+            <div class="turno-row">
+              <button type="button" class="turno-btn selected" data-turno="manha">Manhã</button>
+              <button type="button" class="turno-btn" data-turno="tarde">Tarde</button>
+              <button type="button" class="turno-btn" data-turno="noite">Noite</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="aulas">Aulas por dia</label>
+            <input id="aulas" type="number" min="1" max="10" value="5" />
+          </div>
+          <div class="field">
+            <label for="duracao">Duração da aula</label>
+            <select id="duracao"><option>50 minutos</option><option>45 minutos</option><option>60 minutos</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-pad" style="height: fit-content;">
+        <p class="card-title" style="margin-bottom: 12px;">Disciplinas na turma</p>
+        <div class="disc-list">
+          <div class="disc-item"><span class="disc-dot" style="background:var(--blue-500)"></span>Física</div>
+          <div class="disc-item"><span class="disc-dot" style="background:var(--violet-500)"></span>Matemática</div>
+          <div class="disc-item"><span class="disc-dot" style="background:var(--pink-500)"></span>Português</div>
+          <div class="disc-item"><span class="disc-dot" style="background:var(--amber-500)"></span>História</div>
+          <div class="disc-item"><span class="disc-dot" style="background:var(--emerald-500)"></span>Geografia</div>
+          <div class="disc-item"><span class="disc-dot" style="background:var(--purple-500)"></span>Ciências</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="card card-pad fade-in-up hidden" data-panel="2">
+      <p class="card-title">Restrições e Preferências</p>
+      <p class="card-sub">Escolha as regras que a IA deve respeitar ao montar a grade</p>
+      <div class="constraint-grid" id="constraint-grid"></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="card card-pad fade-in-up hidden" data-panel="3">
+      <p class="card-title">Revisar Configurações</p>
+      <p class="card-sub">Confira os parâmetros antes de gerar a grade</p>
+      <div class="review-grid">
+        <div class="review-box"><p class="lbl">Turma</p><p class="val" id="review-turma">—</p></div>
+        <div class="review-box"><p class="lbl">Turno</p><p class="val" id="review-turno">—</p></div>
+        <div class="review-box"><p class="lbl">Aulas/dia</p><p class="val" id="review-aulas">—</p></div>
+      </div>
+      <p style="font-size:12px; font-weight:700; color:var(--gray-700); margin: 0 0 8px;">Restrições ativas (<span id="review-count">0</span>)</p>
+      <div class="chip-row" id="review-chips"></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="card fade-in-up hidden" data-panel="4" style="overflow:hidden;">
+      <div class="loading-box" id="loading-box">
+        <div class="spinner-wrap"><div class="spinner-track"></div><div class="spinner-arc"></div></div>
+        <p class="loading-title">Gerando grade com IA...</p>
+        <p class="loading-sub pulse">Analisando disponibilidade de professores e restrições</p>
+      </div>
+
+      <div class="hidden scale-in" id="result-box">
+        <div class="result-header">
+          <div class="result-header-left">
+            <span class="result-check pop-in">✓</span>
+            <div>
+              <p class="result-title">Grade gerada com sucesso</p>
+              <p class="result-sub"><span id="result-turma">—</span> · 0 conflitos encontrados</p>
+            </div>
+          </div>
+          <span class="badge-draft">Rascunho</span>
+        </div>
+
+        <div style="overflow-x:auto; padding: 16px;">
+          <table class="grade-table" style="min-width:560px;">
+            <thead><tr><th>Horário</th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th></tr></thead>
+            <tbody id="grade-body"></tbody>
+          </table>
+        </div>
+
+        <div class="result-footer">
+          <button class="btn" id="btn-regenerate">↻ Gerar Novamente</button>
+          <div class="result-footer-right">
+            <button class="btn">Salvar Rascunho</button>
+            <button class="btn btn-primary" id="btn-publish">Publicar Grade</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nav footer -->
+    <div class="nav-footer" id="nav-footer">
+      <button class="btn" id="btn-prev">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar
+      </button>
+      <button class="btn btn-primary" id="btn-next">
+        Próximo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const TURMAS = {
+    "3ds": "3DS — Desenvolvimento de Sistemas",
+    "2ds": "2DS — Desenvolvimento de Sistemas",
+    "1ds": "1DS — Desenvolvimento de Sistemas",
+    "3info": "3INFO — Informática",
+  };
+  const TURNO_LABEL = { manha: "Manhã", tarde: "Tarde", noite: "Noite" };
+  const CONSTRAINTS = [
+    { id: "evitar-janelas", label: "Evitar janelas na grade", desc: "Não deixar horários vagos entre aulas de um mesmo dia" },
+    { id: "priorizar-preferencias", label: "Priorizar preferências dos professores", desc: "Respeitar horários preferidos informados pelo docente" },
+    { id: "agrupar-disciplina", label: "Agrupar aulas da mesma disciplina", desc: "Evitar intercalar disciplinas diferentes no mesmo dia" },
+    { id: "limitar-carga-diaria", label: "Limitar carga diária por professor", desc: "No máximo 2 disciplinas distintas por professor ao dia" },
+    { id: "priorizar-salas-fixas", label: "Priorizar salas fixas por turma", desc: "Manter a turma na mesma sala sempre que possível" },
+    { id: "evitar-ultimo-horario", label: "Evitar disciplinas teóricas no último horário", desc: "Reservar o fim do turno para aulas práticas" },
+  ];
+  const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+  const GRADE_DATA = {
+    "07:30": ["Física / Prof. Carlos / S101", "Matemática / Prof. João / S102", "Português / Profa. Maria / S103", "História / Profa. Ana / S102", "Geografia / Prof. Roberto / S101"],
+    "08:20": ["Matemática / Prof. João / S101", "Português / Profa. Maria / S102", "Matemática / Prof. João / S101", "Física / Prof. Carlos / Lab", "Português / Profa. Maria / S103"],
+    "09:10": [null, "História / Profa. Ana / S102", "Física / Prof. Carlos / Lab", "Matemática / Prof. João / S101", "Ciências / Prof. João / Lab"],
+    "10:10": ["Ciências / Prof. João / Lab", "Geografia / Prof. Roberto / S101", "História / Profa. Ana / S103", "Geografia / Prof. Roberto / S102", "Matemática / Prof. João / S101"],
+    "11:00": ["Geografia / Prof. Roberto / S101", "Física / Prof. Carlos / Lab", "Ciências / Prof. João / Lab", "Português / Profa. Maria / S102", "História / Profa. Ana / S103"],
+  };
+  const DISC_COLORS = {
+    "Física": { bg: "#EFF6FF", border: "#3B82F6", text: "#1E40AF", dot: "#3B82F6" },
+    "Matemática": { bg: "#F5F3FF", border: "#8B5CF6", text: "#5B21B6", dot: "#8B5CF6" },
+    "Português": { bg: "#FDF2F8", border: "#EC4899", text: "#9D174D", dot: "#EC4899" },
+    "História": { bg: "#FFFBEB", border: "#F59E0B", text: "#92400E", dot: "#F59E0B" },
+    "Geografia": { bg: "#ECFDF5", border: "#10B981", text: "#065F46", dot: "#10B981" },
+    "Ciências": { bg: "#FAF5FF", border: "#A855F7", text: "#6B21A8", dot: "#A855F7" },
+  };
+
+  const state = {
+    step: 1,
+    turma: "3ds",
+    turno: "manha",
+    aulasPorDia: 5,
+    constraints: new Set(["evitar-janelas", "priorizar-preferencias"]),
+    generating: false,
+    done: false,
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  // ---- build constraint cards ----
+  const constraintGrid = $("#constraint-grid");
+  CONSTRAINTS.forEach((c) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "constraint-card";
+    btn.dataset.id = c.id;
+    btn.innerHTML = `
+      <span class="constraint-check"><span>✓</span></span>
+      <span>
+        <p class="constraint-text-title">${c.label}</p>
+        <p class="constraint-text-desc">${c.desc}</p>
+      </span>`;
+    btn.addEventListener("click", () => {
+      if (state.constraints.has(c.id)) state.constraints.delete(c.id);
+      else state.constraints.add(c.id);
+      renderConstraints();
+    });
+    constraintGrid.appendChild(btn);
+  });
+
+  function renderConstraints() {
+    $$("#constraint-grid .constraint-card").forEach((btn) => {
+      btn.classList.toggle("active", state.constraints.has(btn.dataset.id));
+    });
+  }
+  renderConstraints();
+
+  // ---- turno buttons ----
+  $$(".turno-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.turno = btn.dataset.turno;
+      $$(".turno-btn").forEach((b) => b.classList.toggle("selected", b === btn));
+    });
+  });
+
+  $("#turma").addEventListener("change", (e) => { state.turma = e.target.value; });
+  $("#aulas").addEventListener("input", (e) => { state.aulasPorDia = Number(e.target.value) || 1; });
+
+  // ---- stepper / panels ----
+  function renderStep() {
+    $$(".step-dot").forEach((dot) => {
+      const n = Number(dot.dataset.step);
+      dot.classList.toggle("current", n === state.step);
+      dot.classList.toggle("done", n < state.step);
+      dot.querySelector("span").textContent = n < state.step ? "✓" : n;
+      if (n < state.step) dot.querySelector("span").classList.add("pop-in");
+    });
+    $$(".step-label").forEach((lbl) => {
+      lbl.classList.toggle("active", Number(lbl.dataset.label) <= state.step);
+    });
+    $$(".step-connector-fill").forEach((fill) => {
+      const n = Number(fill.dataset.fill);
+      fill.classList.toggle("filled", n < state.step);
+    });
+
+    $$("[data-panel]").forEach((panel) => {
+      const n = Number(panel.dataset.panel);
+      panel.classList.toggle("hidden", n !== state.step);
+      if (n === state.step) {
+        panel.classList.remove("fade-in-up");
+        void panel.offsetWidth;
+        panel.classList.add("fade-in-up");
+      }
+    });
+
+    $("#nav-footer").classList.toggle("hidden", state.step === 4);
+    $("#btn-prev").disabled = state.step === 1;
+    $("#btn-next").innerHTML = state.step < 3
+      ? `Próximo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l1.5 4.5L11 9l-4.5 1.5L5 15l-1.5-4.5L-1 9l4.5-1.5L5 3z"/></svg> Gerar Grade`;
+
+    if (state.step === 3) renderReview();
+  }
+
+  function renderReview() {
+    $("#review-turma").textContent = TURMAS[state.turma];
+    $("#review-turno").textContent = TURNO_LABEL[state.turno];
+    $("#review-aulas").textContent = state.aulasPorDia;
+    $("#review-count").textContent = state.constraints.size;
+    const chipRow = $("#review-chips");
+    chipRow.innerHTML = "";
+    if (state.constraints.size === 0) {
+      chipRow.innerHTML = `<span style="font-size:12px;color:var(--gray-400);">Nenhuma restrição selecionada</span>`;
+    } else {
+      CONSTRAINTS.filter((c) => state.constraints.has(c.id)).forEach((c) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = c.label;
+        chipRow.appendChild(chip);
+      });
+    }
+  }
+
+  $("#btn-prev").addEventListener("click", () => {
+    if (state.step > 1) { state.step -= 1; renderStep(); }
+  });
+  $("#btn-next").addEventListener("click", () => {
+    if (state.step < 3) { state.step += 1; renderStep(); }
+    else generateGrade();
+  });
+  $("#btn-back-top").addEventListener("click", () => {
+    state.step = 1; state.done = false; state.generating = false; renderStep();
+  });
+  $("#btn-regenerate").addEventListener("click", generateGrade);
+  $("#btn-publish").addEventListener("click", () => {
+    state.step = 1; renderStep();
+  });
+
+  function buildGradeTable() {
+    const tbody = $("#grade-body");
+    tbody.innerHTML = "";
+    Object.entries(GRADE_DATA).forEach(([time, cells]) => {
+      const tr = document.createElement("tr");
+      const timeTd = document.createElement("td");
+      timeTd.className = "time-cell";
+      timeTd.textContent = time;
+      tr.appendChild(timeTd);
+
+      cells.forEach((cell) => {
+        const td = document.createElement("td");
+        if (!cell) {
+          td.innerHTML = `<div class="cell-empty">—</div>`;
+        } else {
+          const [disc, prof, sala] = cell.split(" / ");
+          const style = DISC_COLORS[disc] || { bg: "#F9FAFB", border: "#9CA3AF", text: "#374151" };
+          td.innerHTML = `
+            <div class="cell-filled" style="background:${style.bg}; border-left-color:${style.border}; color:${style.text};">
+              <div class="disc">${disc}</div>
+              <div class="prof">${prof}</div>
+              <div class="sala">${sala}</div>
+            </div>`;
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function generateGrade() {
+    state.step = 4;
+    state.done = false;
+    state.generating = true;
+    renderStep();
+
+    $("#result-turma").textContent = TURMAS[state.turma];
+    $("#loading-box").classList.remove("hidden");
+    $("#result-box").classList.add("hidden");
+
+    setTimeout(() => {
+      state.generating = false;
+      state.done = true;
+      $("#loading-box").classList.add("hidden");
+      const resultBox = $("#result-box");
+      resultBox.classList.remove("hidden");
+      resultBox.classList.remove("scale-in");
+      void resultBox.offsetWidth;
+      resultBox.classList.add("scale-in");
+      buildGradeTable();
+    }, 2000);
+  }
+
+  renderStep();
+</script>
+</body>
+</html>

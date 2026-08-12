@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sidebar } from "./dashboard/Sidebar";
 import { PainelPrincipal } from "./dashboard/PainelPrincipal";
 import { Planejamento } from "./dashboard/Planejamento";
+import { GerarGrade } from "./dashboard/GerarGrade";
 import type { Screen } from "./dashboard/types";
 
 export default function DidaskarosDashboard() {
@@ -10,10 +11,9 @@ export default function DidaskarosDashboard() {
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
       <Sidebar active={screen} setScreen={setScreen} />
-      {screen === "painel"
-        ? <PainelPrincipal setScreen={setScreen} />
-        : <Planejamento />
-      }
+      {screen === "painel" && <PainelPrincipal setScreen={setScreen} />}
+      {screen === "planejamento" && <Planejamento setScreen={setScreen} />}
+      {screen === "gerar-grade" && <GerarGrade setScreen={setScreen} />}
     </div>
   );
 }

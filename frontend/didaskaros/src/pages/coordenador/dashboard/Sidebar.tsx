@@ -11,7 +11,7 @@ export function Sidebar({ active, setScreen }: { active: Screen; setScreen: SetS
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white font-black text-sm">D</div>
-          <span className="text-white font-extrabold text-sm tracking-tight">DIDÁSKAROS</span>
+          <span className="text-white font-extrabold text-sm tracking-tight">DIDASKAROS</span>
         </div>
       </div>
 
