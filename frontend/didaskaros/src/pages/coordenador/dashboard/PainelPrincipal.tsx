@@ -23,7 +23,7 @@ export function PainelPrincipal({ setScreen }: { setScreen: SetScreen }) {
             <p className="text-[13px] text-gray-500 mt-0.5">Bem-vinda, Maria! Aqui está o resumo do dia — Terça-feira, 21 de julho de 2026.</p>
           </div>
           <div className="flex gap-2.5">
-            <button onClick={() => setScreen("planejamento")} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 hover:scale-[1.02] active:scale-[0.97] transition-all">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 hover:scale-[1.02] active:scale-[0.97] transition-all">
               <Icons.Calendar /> Ver Grades
             </button>
             <button onClick={() => setScreen("gerar-grade")} className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.97]"
@@ -54,7 +54,7 @@ export function PainelPrincipal({ setScreen }: { setScreen: SetScreen }) {
                   <p className="text-[14px] font-bold text-gray-900">Próximas Aulas — Hoje</p>
                   <p className="text-[11px] text-gray-400 mt-0.5">Turma 3DS · Turno Manhã</p>
                 </div>
-                <button onClick={() => setScreen("planejamento")} className="text-[12px] font-semibold text-blue-600 hover:underline">
+                <button className="text-[12px] font-semibold text-blue-600 hover:underline">
                   Ver grade completa →
                 </button>
               </div>

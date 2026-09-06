@@ -50,12 +50,6 @@ export function getDiscColor(cellStr: GradeCell): DiscColor | null {
   return DISC_COLORS[disc] || { cell: "bg-gray-50 border-l-gray-400 text-gray-700", dot: "bg-gray-400" };
 }
 
-export const OTHER_GRADES = [
-  { name: "Grade 2DS — 2025", sub: "Manhã · 20 aulas/sem", badge: "bg-amber-50 text-amber-700", label: "Rascunho" },
-  { name: "Grade 1DS — 2025", sub: "Tarde · 18 aulas/sem", badge: "bg-emerald-50 text-emerald-700", label: "Publicada" },
-  { name: "Grade 3INFO — 2025", sub: "Noite · 16 aulas/sem", badge: "bg-gray-100 text-gray-500", label: "Arquivada" },
-];
-
 export const TURMAS = [
   { id: "3ds", nome: "3DS — Desenvolvimento de Sistemas" },
   { id: "2ds", nome: "2DS — Desenvolvimento de Sistemas" },
@@ -77,7 +71,6 @@ export const NAV: NavGroup[] = [
   {
     section: "PLANEJAMENTO",
     items: [
-      { label: "Grades Horárias", icon: "Calendar", screen: "planejamento" },
       { label: "Gerar Grade", icon: "Sparkles", screen: "gerar-grade" },
       { label: "Equipe Docente", icon: "Users", screen: null },
       { label: "Classes", icon: null, screen: null },

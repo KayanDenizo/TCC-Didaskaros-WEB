@@ -53,10 +53,10 @@ export function GerarGrade({ setScreen }: { setScreen: SetScreen }) {
             <p className="text-[13px] text-gray-500 mt-0.5">Configure os parâmetros e deixe a IA montar a grade horária automaticamente.</p>
           </div>
           <button
-            onClick={() => setScreen("planejamento")}
+            onClick={() => setScreen("painel")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-all"
           >
-            <Icons.ChevronLeft /> Voltar às Grades
+            <Icons.ChevronLeft /> Voltar ao Painel
           </button>
         </div>
 
@@ -311,7 +311,7 @@ export function GerarGrade({ setScreen }: { setScreen: SetScreen }) {
                       Salvar Rascunho
                     </button>
                     <button
-                      onClick={() => setScreen("planejamento")}
+                      onClick={() => setScreen("painel")}
                       className="text-[13px] font-semibold text-white px-4 py-2 rounded-xl hover:opacity-90 hover:scale-[1.02] active:scale-[0.97] transition-all"
                       style={{ background: "linear-gradient(135deg, #1E4DA1, #2563EB)", boxShadow: "0 2px 12px rgba(37,99,235,0.3)" }}
                     >
