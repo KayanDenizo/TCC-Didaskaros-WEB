@@ -3,6 +3,7 @@ module.exports = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: { archivo: ["Archivo", "sans-serif"] },
       keyframes: {
         fadeInUp: {
           "0%": { opacity: 0, transform: "translateY(8px)" },
