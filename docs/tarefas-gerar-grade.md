@@ -3,13 +3,20 @@
 Plano de trabalho para o núcleo do Didáskaros: gerar a grade horária de uma unidade
 ETEC inteira, com múltiplos cursos, respeitando as regras do Centro Paula Souza.
 
-**Estado atual:** só o `frontend/` existe. Não há backend, banco nem solver — a tela
-`GerarGrade.tsx` é maquete com dados falsos e `setTimeout` de 2s. Tudo abaixo é do zero.
+**Estado atual:** backend (Express + MySQL), banco (`database/schema.sql`) e frontend
+ligados. A geração por turno funciona com a API da Claude + validador independente.
 
-**Decisão de arquitetura:** a grade é montada por um **solver de restrições**
-(OR-Tools CP-SAT ou Timefold), não por um LLM. IA generativa entra só nas pontas —
-ver Fase 8. Motivo: nessa escala (~1.000 aulas semanais) um LLM não consegue garantir
-viabilidade, e "zero conflitos" é a promessa central do produto.
+**Decisão de arquitetura (revisada):** a grade é montada pela **Claude** (API da Anthropic,
+saída JSON estruturada), e toda saída passa por um **validador independente** escrito em
+código (`backend/src/grade/validador.ts`) que confere cada restrição dura. As violações
+encontradas voltam para o modelo corrigir (até 3 tentativas); grade com conflito não pode
+ser publicada. Assim o "zero conflitos" é garantido pelo validador, não pela palavra do modelo.
+
+Risco conhecido: em escala real (~1.000 aulas semanais, ~40 turmas) o LLM pode não fechar
+uma grade sem conflitos em 3 tentativas. Se isso acontecer nos testes da Fase 7, a opção
+original continua válida: trocar o gerador por um **solver de restrições** (OR-Tools CP-SAT
+ou Timefold) mantendo o mesmo validador e o mesmo contrato de entrada/saída — a Claude
+passaria a atuar só nas pontas (Fase 8). Registrar essa comparação no TCC.
 
 ---
 
@@ -38,13 +45,13 @@ unidade antes de qualquer tabela.
 
 ## Fase 1 — Modelo de dados
 
-- [ ] Criar o projeto `backend/` (Node + Express + TypeScript) e `database/`.
-- [ ] Modelar e migrar as tabelas base:
+- [x] Criar o projeto `backend/` (Node + Express + TypeScript) e `database/`.
+- [x] Modelar e migrar as tabelas base:
       `unidade`, `curso`, `turma`, `disciplina`, `professor`, `sala`, `turno`,
       `horario` (os slots da semana).
-- [ ] `carga_horaria`: quantas aulas semanais cada disciplina tem em cada turma.
+- [x] `carga_horaria`: quantas aulas semanais cada disciplina tem em cada turma.
       É o que define quantos blocos o solver precisa colocar.
-- [ ] `habilitacao`: quais disciplinas cada professor pode lecionar.
+- [x] `habilitacao`: quais disciplinas cada professor pode lecionar.
 - [ ] `pontuacao_cps` do professor, com a data-base da pontuação (ela muda por semestre).
 - [ ] **`compromisso_externo`**: horários em que o professor está ocupado *fora desta
       unidade*. Tratar como entidade de primeira classe desde o começo, mesmo que no TCC
@@ -53,7 +60,7 @@ unidade antes de qualquer tabela.
 - [ ] `disponibilidade` e `preferencia` do professor (o que ele *não pode* vs. o que ele
       *prefere* — vão para baldes diferentes de restrição).
 - [ ] `requisito_sala`: disciplina que exige laboratório específico.
-- [ ] `grade` e `grade_aula`: a grade gerada, com status (rascunho / publicada /
+- [x] `grade` e `grade_aula`: a grade gerada, com status (rascunho / publicada /
       arquivada) e versionamento, para permitir regerar sem perder a anterior.
 - [ ] Seed com dados fictícios **em escala real** (~40 turmas, ~100 professores).
       Testar solver com 4 turmas não prova nada.
@@ -98,22 +105,22 @@ Documento antes de código: é o coração do TCC e o que a banca vai cobrar.
 
 ## Fase 4 — Backend
 
-- [ ] Endpoints CRUD do que a Fase 1 modelou.
-- [ ] `POST /grades/gerar` — dispara a geração; responde na hora com um id de job,
+- [x] Endpoints CRUD do que a Fase 1 modelou.
+- [x] `POST /grades/gerar` — dispara a geração; responde na hora com um id de job,
       nunca segura a requisição até o solver terminar.
-- [ ] Fila de jobs + `GET /grades/jobs/:id` com status e progresso.
-- [ ] Montar o payload do solver a partir do banco e persistir o resultado em
+- [x] Fila de jobs + `GET /grades/jobs/:id` com status e progresso.
+- [x] Montar o payload do solver a partir do banco e persistir o resultado em
       `grade` / `grade_aula`.
-- [ ] Publicar / arquivar grade, mantendo o histórico de versões.
-- [ ] Autenticação: só coordenador acessa (JWT + bcrypt, como já previsto no README).
+- [x] Publicar / arquivar grade, mantendo o histórico de versões.
+- [x] Autenticação: só coordenador acessa (JWT + bcrypt, como já previsto no README).
 
 ---
 
 ## Fase 5 — Validador independente
 
-- [ ] Escrever um verificador **separado do solver** que recebe uma grade pronta e aponta
+- [x] Escrever um verificador **separado do solver** que recebe uma grade pronta e aponta
       toda violação de restrição dura.
-- [ ] Rodar o validador em cima de toda saída do solver, sempre.
+- [x] Rodar o validador em cima de toda saída do solver, sempre.
       Solver e validador escritos separadamente é o que garante que um bug de modelagem
       não passe silencioso — e é o número que você mostra na defesa.
 - [ ] Usar o validador também para conferir grades editadas à mão pelo coordenador.
@@ -122,20 +129,20 @@ Documento antes de código: é o coração do TCC e o que a banca vai cobrar.
 
 ## Fase 6 — Frontend
 
-- [ ] **Trocar o wizard de "por turma" para "por turno / unidade".** Hoje o passo 1 pede
+- [x] **Trocar o wizard de "por turma" para "por turno / unidade".** Hoje o passo 1 pede
       uma turma, e isso não funciona: turmas disputam os mesmos professores e laboratórios,
       então gerar uma de cada vez faz a ordem de geração decidir quem fica com os horários
       ruins. Gera-se o turno inteiro de uma vez e navega-se turma a turma depois.
-- [ ] Substituir o `setTimeout` de 2s por acompanhamento real do job, com progresso —
+- [x] Substituir o `setTimeout` de 2s por acompanhamento real do job, com progresso —
       o solve leva de segundos a minutos.
-- [ ] Trazer de volta a tela de visualização das grades (o HTML está preservado em
+- [x] Trazer de volta a tela de visualização das grades (o HTML está preservado em
       `design/ver-grades/VerGrades.html`), agora ligada à API.
-- [ ] Fazer os filtros **Por Turma / Por Professor / Por Sala** funcionarem de verdade:
+- [x] Fazer os filtros **Por Turma / Por Professor / Por Sala** funcionarem de verdade:
       com 40+ turmas eles deixam de ser enfeite e viram a navegação principal.
 - [ ] Tela de conflitos e inviabilidade: mostrar o que impediu a grade de fechar e
       o que dá para afrouxar.
 - [ ] Edição manual de célula, com o validador rodando a cada alteração.
-- [ ] Ligar os botões "Ver Grades" e "Ver grade completa" do Painel Principal, que hoje
+- [x] Ligar os botões "Ver Grades" e "Ver grade completa" do Painel Principal, que hoje
       estão inertes.
 
 ---

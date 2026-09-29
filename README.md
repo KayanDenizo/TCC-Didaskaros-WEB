@@ -23,6 +23,42 @@ Repositório do TCC Didaskaros para WEB
 ![CORS](https://img.shields.io/badge/CORS-00599C?style=for-the-badge&logo=corsair&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
 ![MySQL_8](https://img.shields.io/badge/MySQL_8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Claude API](https://img.shields.io/badge/Claude_API-D97757?style=for-the-badge&logo=anthropic&logoColor=white)
+
+# Como rodar
+
+Pré-requisitos: **Node.js 20.19+** e **MySQL 8** (ou o MariaDB do XAMPP).
+
+```bash
+# 1. Backend
+cd backend
+npm install
+cp .env.example .env      # ajuste DB_*, JWT_SECRET e ANTHROPIC_API_KEY
+npm run db:setup          # cria o banco "didaskaros" com dados de exemplo (APAGA o banco existente)
+npm run dev               # API em http://localhost:3333/api
+
+# 2. Frontend (outro terminal)
+cd frontend/didaskaros
+npm install
+npm run dev               # http://localhost:5173 (encaminha /api para o backend)
+```
+
+Login de exemplo: `maria.costa@etec.sp.gov.br` / `didaskaros123`.
+
+A geração de grade usa a API da Claude: crie uma chave em https://console.anthropic.com e coloque em
+`ANTHROPIC_API_KEY` no `backend/.env`. O modelo e o esforço são configuráveis em `CLAUDE_MODEL` e `CLAUDE_EFFORT`.
+
+Testes do validador de conflitos: `cd backend && npm test`.
+
+## Como a grade é gerada
+
+1. O coordenador escolhe o **turno** — todas as turmas do turno são geradas juntas, porque disputam os mesmos professores e salas.
+2. O backend lê do banco turmas, carga horária, professores (habilitações, pontuação CPS, indisponibilidades) e salas,
+   e confere se o problema é possível (ex.: turma com mais aulas que horários).
+3. A **Claude** recebe esses dados e devolve a grade em JSON estruturado.
+4. Um **validador independente** (`backend/src/grade/validador.ts`) confere todas as restrições duras: conflito de
+   professor/sala/turma, carga horária, habilitação, laboratório, capacidade e indisponibilidade.
+5. Se houver violações, elas são devolvidas à Claude para corrigir (até 3 tentativas). A grade só pode ser publicada com zero conflitos.
 
 # Organização do Repositório Didaskaros
 
