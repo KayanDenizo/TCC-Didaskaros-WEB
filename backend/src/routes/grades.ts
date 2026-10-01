@@ -11,31 +11,31 @@ import { TURNOS } from "./cadastros.js";
 /** Lê do banco tudo o que a geração de um turno precisa. */
 async function carregarDados(unidadeId: number, turno: Turno, aulasPorDia: number, preferencias: string[]): Promise<DadosGeracao> {
   const turmas = await select<{ id: number; codigo: string; qtdAlunos: number }>(
-    "SELECT id, codigo, qtd_alunos AS qtdAlunos FROM turma WHERE unidade_id = ? AND turno = ? ORDER BY codigo",
+    "SELECT id, codigo, qtd_alunos AS qtdAlunos FROM turma WHERE escola_id = ? AND turno = ? ORDER BY codigo",
     [unidadeId, turno],
   );
   const cargas = await select<{ turmaId: number; disciplinaId: number; aulasSemanais: number; professorId: number | null }>(
     `SELECT c.turma_id AS turmaId, c.disciplina_id AS disciplinaId, c.aulas_semanais AS aulasSemanais, c.professor_id AS professorId
-     FROM carga_horaria c JOIN turma t ON t.id = c.turma_id WHERE t.unidade_id = ? AND t.turno = ?`,
+     FROM carga_horaria c JOIN turma t ON t.id = c.turma_id WHERE t.escola_id = ? AND t.turno = ?`,
     [unidadeId, turno],
   );
   const disciplinas = await select<{ id: number; nome: string; exigeLaboratorio: boolean }>(
-    "SELECT id, nome, exige_laboratorio AS exigeLaboratorio FROM disciplina WHERE unidade_id = ?", [unidadeId],
+    "SELECT id, nome, exige_laboratorio AS exigeLaboratorio FROM disciplina WHERE escola_id = ?", [unidadeId],
   );
   const professores = await select<{ id: number; nome: string; pontuacaoCps: number }>(
-    "SELECT id, nome, pontuacao_cps AS pontuacaoCps FROM professor WHERE unidade_id = ?", [unidadeId],
+    "SELECT id, nome, pontuacao_cps AS pontuacaoCps FROM professor WHERE escola_id = ?", [unidadeId],
   );
   const habs = await select<{ professorId: number; disciplinaId: number }>(
     `SELECT h.professor_id AS professorId, h.disciplina_id AS disciplinaId
-     FROM habilitacao h JOIN professor p ON p.id = h.professor_id WHERE p.unidade_id = ?`, [unidadeId],
+     FROM habilitacao h JOIN professor p ON p.id = h.professor_id WHERE p.escola_id = ?`, [unidadeId],
   );
   const indisp = await select<{ professorId: number; dia: number; ordem: number }>(
     `SELECT i.professor_id AS professorId, i.dia, i.ordem
-     FROM indisponibilidade i JOIN professor p ON p.id = i.professor_id WHERE p.unidade_id = ? AND i.turno = ?`,
+     FROM indisponibilidade i JOIN professor p ON p.id = i.professor_id WHERE p.escola_id = ? AND i.turno = ?`,
     [unidadeId, turno],
   );
   const salas = await select<{ id: number; nome: string; tipo: "SALA" | "LABORATORIO"; capacidade: number }>(
-    "SELECT id, nome, tipo, capacidade FROM sala WHERE unidade_id = ?", [unidadeId],
+    "SELECT id, nome, tipo, capacidade FROM sala WHERE escola_id = ?", [unidadeId],
   );
 
   return {
@@ -89,7 +89,7 @@ async function salvarGrade(
 ) {
   return transaction(async (conn) => {
     const { insertId } = await exec(
-      `INSERT INTO grade (unidade_id, turno, ano, semestre, aulas_por_dia, restricoes, observacoes, violacoes, modelo, tentativas, criado_por)
+      `INSERT INTO grade (escola_id, turno, ano, semestre, aulas_por_dia, restricoes, observacoes, violacoes, modelo, tentativas, criado_por)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [unidadeId, params.turno, params.ano, params.semestre, params.aulasPorDia, JSON.stringify(params.preferencias),
         r.observacoes, JSON.stringify(r.violacoes), r.modelo, r.tentativas, coordenadorId],
@@ -149,7 +149,7 @@ gradesRouter.get("/", async (req, res) => {
             g.modelo, g.violacoes,
             COUNT(a.id) AS totalAulas, COUNT(DISTINCT a.turma_id) AS totalTurmas
      FROM grade g LEFT JOIN grade_aula a ON a.grade_id = g.id
-     WHERE g.unidade_id = ? GROUP BY g.id ORDER BY g.criado_em DESC, g.id DESC`,
+     WHERE g.escola_id = ? GROUP BY g.id ORDER BY g.criado_em DESC, g.id DESC`,
     [req.sessao.unidadeId],
   );
   res.json(grades.map(({ violacoes, ...g }) => ({ ...g, conflitos: jsonArray(violacoes).length })));
@@ -167,7 +167,7 @@ gradesRouter.get("/:id", async (req, res) => {
   const [grade] = await select<{ turno: Turno; aulasPorDia: number; restricoes: unknown; violacoes: unknown }>(
     `SELECT id, turno, ano, semestre, status, aulas_por_dia AS aulasPorDia, restricoes, observacoes, violacoes,
             modelo, tentativas, criado_em AS criadoEm
-     FROM grade WHERE id = ? AND unidade_id = ?`,
+     FROM grade WHERE id = ? AND escola_id = ?`,
     [id, unidadeId],
   );
   if (!grade) throw new HttpError(404, "Grade não encontrada.");
@@ -187,7 +187,7 @@ gradesRouter.get("/:id", async (req, res) => {
     horarios: horarios(grade.turno, grade.aulasPorDia),
     metricas: metricas(aulas),
     aulas,
-    turmas: await buscar("SELECT id, codigo, curso FROM turma WHERE id IN (?) ORDER BY codigo", ids("turmaId")),
+    turmas: await buscar("SELECT t.id, t.codigo, c.nome AS curso FROM turma t JOIN curso c ON c.id = t.curso_id WHERE t.id IN (?) ORDER BY t.codigo", ids("turmaId")),
     disciplinas: await buscar("SELECT id, nome, sigla FROM disciplina WHERE id IN (?) ORDER BY nome", ids("disciplinaId")),
     professores: await buscar("SELECT id, nome FROM professor WHERE id IN (?) ORDER BY nome", ids("professorId")),
     salas: await buscar("SELECT id, nome FROM sala WHERE id IN (?) ORDER BY nome", ids("salaId")),
@@ -201,7 +201,7 @@ gradesRouter.patch("/:id/status", async (req, res) => {
 
   await transaction(async (conn) => {
     const [grade] = await select<{ turno: string; ano: number; semestre: number; violacoes: unknown }>(
-      "SELECT turno, ano, semestre, violacoes FROM grade WHERE id = ? AND unidade_id = ?", [id, unidadeId], conn,
+      "SELECT turno, ano, semestre, violacoes FROM grade WHERE id = ? AND escola_id = ?", [id, unidadeId], conn,
     );
     if (!grade) throw new HttpError(404, "Grade não encontrada.");
     if (status === "PUBLICADA") {
@@ -209,7 +209,7 @@ gradesRouter.patch("/:id/status", async (req, res) => {
       // Só uma grade publicada por turno/semestre: a anterior vai para o arquivo.
       await exec(
         `UPDATE grade SET status = 'ARQUIVADA'
-         WHERE unidade_id = ? AND turno = ? AND ano = ? AND semestre = ? AND status = 'PUBLICADA' AND id <> ?`,
+         WHERE escola_id = ? AND turno = ? AND ano = ? AND semestre = ? AND status = 'PUBLICADA' AND id <> ?`,
         [unidadeId, grade.turno, grade.ano, grade.semestre, id], conn,
       );
     }
@@ -220,7 +220,7 @@ gradesRouter.patch("/:id/status", async (req, res) => {
 
 gradesRouter.delete("/:id", async (req, res) => {
   const { id } = parse(idParam, req.params);
-  const { affectedRows } = await exec("DELETE FROM grade WHERE id = ? AND unidade_id = ?", [id, req.sessao.unidadeId]);
+  const { affectedRows } = await exec("DELETE FROM grade WHERE id = ? AND escola_id = ?", [id, req.sessao.unidadeId]);
   if (!affectedRows) throw new HttpError(404, "Grade não encontrada.");
   res.status(204).end();
 });
@@ -230,7 +230,7 @@ gradesRouter.post("/:id/validar", async (req, res) => {
   const { id } = parse(idParam, req.params);
   const unidadeId = req.sessao.unidadeId;
   const [grade] = await select<{ turno: Turno; aulasPorDia: number }>(
-    "SELECT turno, aulas_por_dia AS aulasPorDia FROM grade WHERE id = ? AND unidade_id = ?", [id, unidadeId],
+    "SELECT turno, aulas_por_dia AS aulasPorDia FROM grade WHERE id = ? AND escola_id = ?", [id, unidadeId],
   );
   if (!grade) throw new HttpError(404, "Grade não encontrada.");
   const aulas = await select<Aula>(

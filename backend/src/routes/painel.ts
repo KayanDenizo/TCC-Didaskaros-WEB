@@ -9,17 +9,17 @@ painelRouter.get("/", async (req, res) => {
 
   const [totais] = await select<Record<string, number>>(
     `SELECT
-       (SELECT COUNT(*) FROM professor  WHERE unidade_id = ?) AS professores,
-       (SELECT COUNT(*) FROM turma      WHERE unidade_id = ?) AS turmas,
-       (SELECT COUNT(*) FROM disciplina WHERE unidade_id = ?) AS disciplinas,
-       (SELECT COUNT(*) FROM sala       WHERE unidade_id = ?) AS salas`,
+       (SELECT COUNT(*) FROM professor  WHERE escola_id = ?) AS professores,
+       (SELECT COUNT(*) FROM turma      WHERE escola_id = ?) AS turmas,
+       (SELECT COUNT(*) FROM disciplina WHERE escola_id = ?) AS disciplinas,
+       (SELECT COUNT(*) FROM sala       WHERE escola_id = ?) AS salas`,
     [unidade, unidade, unidade, unidade],
   );
 
   const grades = await select<{ id: number; turno: Turno; ano: number; semestre: number; status: string; aulasPorDia: number; criadoEm: string; conflitos: number }>(
     `SELECT id, turno, ano, semestre, status, aulas_por_dia AS aulasPorDia, criado_em AS criadoEm,
             COALESCE(JSON_LENGTH(violacoes), 0) AS conflitos
-     FROM grade WHERE unidade_id = ? ORDER BY criado_em DESC, id DESC`,
+     FROM grade WHERE escola_id = ? ORDER BY criado_em DESC, id DESC`,
     [unidade],
   );
 
@@ -42,7 +42,7 @@ painelRouter.get("/", async (req, res) => {
                FROM habilitacao h JOIN disciplina d ON d.id = h.disciplina_id WHERE h.professor_id = p.id) AS disciplinas,
             (SELECT COUNT(*) FROM grade_aula a JOIN grade g ON g.id = a.grade_id
                WHERE a.professor_id = p.id AND g.status = 'PUBLICADA') AS aulasSemana
-     FROM professor p WHERE p.unidade_id = ? ORDER BY aulasSemana DESC, p.nome`,
+     FROM professor p WHERE p.escola_id = ? ORDER BY aulasSemana DESC, p.nome`,
     [unidade],
   );
 

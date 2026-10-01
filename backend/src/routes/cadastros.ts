@@ -15,13 +15,13 @@ function crudSimples<S extends z.ZodObject>(tabela: string, colunas: Record<keyo
   const selectSql = `SELECT id, ${campos.map(([api, col]) => `${col} AS ${api}`).join(", ")} FROM ${tabela}`;
 
   r.get("/", async (req, res) => {
-    res.json(await select(`${selectSql} WHERE unidade_id = ? ORDER BY ${ordem}`, [req.sessao.unidadeId]));
+    res.json(await select(`${selectSql} WHERE escola_id = ? ORDER BY ${ordem}`, [req.sessao.unidadeId]));
   });
 
   r.post("/", async (req, res) => {
     const d = parse(schema, req.body) as Record<string, unknown>;
     const { insertId } = await exec(
-      `INSERT INTO ${tabela} (unidade_id, ${campos.map(([, c]) => c).join(", ")}) VALUES (?${", ?".repeat(campos.length)})`,
+      `INSERT INTO ${tabela} (escola_id, ${campos.map(([, c]) => c).join(", ")}) VALUES (?${", ?".repeat(campos.length)})`,
       [req.sessao.unidadeId, ...campos.map(([api]) => d[api])],
     );
     res.status(201).json({ id: insertId, ...d });
@@ -31,7 +31,7 @@ function crudSimples<S extends z.ZodObject>(tabela: string, colunas: Record<keyo
     const { id } = parse(idParam, req.params);
     const d = parse(schema, req.body) as Record<string, unknown>;
     const { affectedRows } = await exec(
-      `UPDATE ${tabela} SET ${campos.map(([, c]) => `${c} = ?`).join(", ")} WHERE id = ? AND unidade_id = ?`,
+      `UPDATE ${tabela} SET ${campos.map(([, c]) => `${c} = ?`).join(", ")} WHERE id = ? AND escola_id = ?`,
       [...campos.map(([api]) => d[api]), id, req.sessao.unidadeId],
     );
     if (!affectedRows) throw new HttpError(404, "Registro não encontrado.");
@@ -40,7 +40,7 @@ function crudSimples<S extends z.ZodObject>(tabela: string, colunas: Record<keyo
 
   r.delete("/:id", async (req, res) => {
     const { id } = parse(idParam, req.params);
-    const { affectedRows } = await exec(`DELETE FROM ${tabela} WHERE id = ? AND unidade_id = ?`, [id, req.sessao.unidadeId]);
+    const { affectedRows } = await exec(`DELETE FROM ${tabela} WHERE id = ? AND escola_id = ?`, [id, req.sessao.unidadeId]);
     if (!affectedRows) throw new HttpError(404, "Registro não encontrado.");
     res.status(204).end();
   });
@@ -85,7 +85,7 @@ const professorSchema = z.object({
 
 async function garantirDaUnidade(tabela: string, ids: number[], unidadeId: number, conn: Conn) {
   if (!ids.length) return;
-  const rows = await select<{ id: number }>(`SELECT id FROM ${tabela} WHERE unidade_id = ? AND id IN (?)`, [unidadeId, ids], conn);
+  const rows = await select<{ id: number }>(`SELECT id FROM ${tabela} WHERE escola_id = ? AND id IN (?)`, [unidadeId, ids], conn);
   if (rows.length !== new Set(ids).size) throw new HttpError(400, `Há ${tabela}s inválidas na requisição.`);
 }
 
@@ -109,15 +109,15 @@ export const professoresRouter = Router();
 professoresRouter.get("/", async (req, res) => {
   const unidade = req.sessao.unidadeId;
   const profs = await select<{ id: number }>(
-    `SELECT id, nome, email, telefone, pontuacao_cps AS pontuacaoCps FROM professor WHERE unidade_id = ? ORDER BY nome`, [unidade],
+    `SELECT id, nome, email, telefone, pontuacao_cps AS pontuacaoCps FROM professor WHERE escola_id = ? ORDER BY nome`, [unidade],
   );
   const habs = await select<{ professorId: number; disciplinaId: number }>(
     `SELECT h.professor_id AS professorId, h.disciplina_id AS disciplinaId
-     FROM habilitacao h JOIN professor p ON p.id = h.professor_id WHERE p.unidade_id = ?`, [unidade],
+     FROM habilitacao h JOIN professor p ON p.id = h.professor_id WHERE p.escola_id = ?`, [unidade],
   );
   const indisp = await select<{ professorId: number; turno: string; dia: number; ordem: number }>(
     `SELECT i.professor_id AS professorId, i.turno, i.dia, i.ordem
-     FROM indisponibilidade i JOIN professor p ON p.id = i.professor_id WHERE p.unidade_id = ?`, [unidade],
+     FROM indisponibilidade i JOIN professor p ON p.id = i.professor_id WHERE p.escola_id = ?`, [unidade],
   );
   res.json(profs.map((p) => ({
     ...p,
@@ -130,7 +130,7 @@ professoresRouter.post("/", async (req, res) => {
   const d = parse(professorSchema, req.body);
   const id = await transaction(async (conn) => {
     const { insertId } = await exec(
-      "INSERT INTO professor (unidade_id, nome, email, telefone, pontuacao_cps) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO professor (escola_id, nome, email, telefone, pontuacao_cps) VALUES (?, ?, ?, ?, ?)",
       [req.sessao.unidadeId, d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps], conn,
     );
     await salvarVinculosProfessor(insertId, d, req.sessao.unidadeId, conn);
@@ -144,7 +144,7 @@ professoresRouter.put("/:id", async (req, res) => {
   const d = parse(professorSchema, req.body);
   await transaction(async (conn) => {
     const { affectedRows } = await exec(
-      "UPDATE professor SET nome = ?, email = ?, telefone = ?, pontuacao_cps = ? WHERE id = ? AND unidade_id = ?",
+      "UPDATE professor SET nome = ?, email = ?, telefone = ?, pontuacao_cps = ? WHERE id = ? AND escola_id = ?",
       [d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps, id, req.sessao.unidadeId], conn,
     );
     if (!affectedRows) throw new HttpError(404, "Professor não encontrado.");
@@ -155,7 +155,7 @@ professoresRouter.put("/:id", async (req, res) => {
 
 professoresRouter.delete("/:id", async (req, res) => {
   const { id } = parse(idParam, req.params);
-  const { affectedRows } = await exec("DELETE FROM professor WHERE id = ? AND unidade_id = ?", [id, req.sessao.unidadeId]);
+  const { affectedRows } = await exec("DELETE FROM professor WHERE id = ? AND escola_id = ?", [id, req.sessao.unidadeId]);
   if (!affectedRows) throw new HttpError(404, "Professor não encontrado.");
   res.status(204).end();
 });
@@ -174,6 +174,13 @@ const turmaSchema = z.object({
   })).default([]),
 });
 
+/** Id do curso da escola com esse nome; cria o curso se ainda não existir. */
+export async function idCurso(escolaId: number, nome: string, conn: Conn) {
+  await exec("INSERT IGNORE INTO curso (escola_id, nome) VALUES (?, ?)", [escolaId, nome], conn);
+  const [curso] = await select<{ id: number }>("SELECT id FROM curso WHERE escola_id = ? AND nome = ?", [escolaId, nome], conn);
+  return curso.id;
+}
+
 async function salvarCargas(turmaId: number, d: z.infer<typeof turmaSchema>, unidadeId: number, conn: Conn) {
   await garantirDaUnidade("disciplina", d.cargas.map((c) => c.disciplinaId), unidadeId, conn);
   await garantirDaUnidade("professor", d.cargas.flatMap((c) => (c.professorId ? [c.professorId] : [])), unidadeId, conn);
@@ -191,12 +198,14 @@ export const turmasRouter = Router();
 turmasRouter.get("/", async (req, res) => {
   const unidade = req.sessao.unidadeId;
   const turmas = await select<{ id: number }>(
-    "SELECT id, codigo, curso, turno, qtd_alunos AS qtdAlunos FROM turma WHERE unidade_id = ? ORDER BY FIELD(turno,'MANHA','TARDE','NOITE'), codigo",
+    `SELECT t.id, t.codigo, c.nome AS curso, t.turno, t.qtd_alunos AS qtdAlunos
+     FROM turma t JOIN curso c ON c.id = t.curso_id
+     WHERE t.escola_id = ? ORDER BY FIELD(t.turno,'MANHA','TARDE','NOITE'), t.codigo`,
     [unidade],
   );
   const cargas = await select<{ turmaId: number; disciplinaId: number; aulasSemanais: number; professorId: number | null }>(
     `SELECT c.turma_id AS turmaId, c.disciplina_id AS disciplinaId, c.aulas_semanais AS aulasSemanais, c.professor_id AS professorId
-     FROM carga_horaria c JOIN turma t ON t.id = c.turma_id WHERE t.unidade_id = ?`, [unidade],
+     FROM carga_horaria c JOIN turma t ON t.id = c.turma_id WHERE t.escola_id = ?`, [unidade],
   );
   res.json(turmas.map((t) => ({
     ...t,
@@ -208,8 +217,8 @@ turmasRouter.post("/", async (req, res) => {
   const d = parse(turmaSchema, req.body);
   const id = await transaction(async (conn) => {
     const { insertId } = await exec(
-      "INSERT INTO turma (unidade_id, codigo, curso, turno, qtd_alunos) VALUES (?, ?, ?, ?, ?)",
-      [req.sessao.unidadeId, d.codigo.toUpperCase(), d.curso, d.turno, d.qtdAlunos], conn,
+      "INSERT INTO turma (escola_id, codigo, curso_id, turno, qtd_alunos) VALUES (?, ?, ?, ?, ?)",
+      [req.sessao.unidadeId, d.codigo.toUpperCase(), await idCurso(req.sessao.unidadeId, d.curso, conn), d.turno, d.qtdAlunos], conn,
     );
     await salvarCargas(insertId, d, req.sessao.unidadeId, conn);
     return insertId;
@@ -222,8 +231,8 @@ turmasRouter.put("/:id", async (req, res) => {
   const d = parse(turmaSchema, req.body);
   await transaction(async (conn) => {
     const { affectedRows } = await exec(
-      "UPDATE turma SET codigo = ?, curso = ?, turno = ?, qtd_alunos = ? WHERE id = ? AND unidade_id = ?",
-      [d.codigo.toUpperCase(), d.curso, d.turno, d.qtdAlunos, id, req.sessao.unidadeId], conn,
+      "UPDATE turma SET codigo = ?, curso_id = ?, turno = ?, qtd_alunos = ? WHERE id = ? AND escola_id = ?",
+      [d.codigo.toUpperCase(), await idCurso(req.sessao.unidadeId, d.curso, conn), d.turno, d.qtdAlunos, id, req.sessao.unidadeId], conn,
     );
     if (!affectedRows) throw new HttpError(404, "Turma não encontrada.");
     await salvarCargas(id, d, req.sessao.unidadeId, conn);
@@ -233,7 +242,7 @@ turmasRouter.put("/:id", async (req, res) => {
 
 turmasRouter.delete("/:id", async (req, res) => {
   const { id } = parse(idParam, req.params);
-  const { affectedRows } = await exec("DELETE FROM turma WHERE id = ? AND unidade_id = ?", [id, req.sessao.unidadeId]);
+  const { affectedRows } = await exec("DELETE FROM turma WHERE id = ? AND escola_id = ?", [id, req.sessao.unidadeId]);
   if (!affectedRows) throw new HttpError(404, "Turma não encontrada.");
   res.status(204).end();
 });
