@@ -11,11 +11,8 @@ import { TURNOS } from "./cadastros.js";
 const TURNO_NOME: Record<Turno, string> = { MANHA: "manhã", TARDE: "tarde", NOITE: "noite" };
 const minutos = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5));
 
-/**
- * Aulas que os professores já têm nos OUTROS turnos do mesmo semestre — de cada turno,
- * a grade publicada ou, se não houver, o rascunho mais recente. Entram nas regras de
- * jornada (interjornada, 8h/dia, refeição, limite semanal).
- */
+// Aulas que os professores já têm nos outros turnos do semestre (a grade publicada ou,
+// se não tiver, o rascunho mais novo). Usadas nas regras de jornada.
 async function aulasDeOutrosTurnos(unidadeId: number, turno: Turno, ano: number, semestre: number) {
   const grades = await select<{ id: number; turno: Turno }>(
     `SELECT id, turno FROM grade
@@ -113,9 +110,8 @@ async function carregarDados(
   };
 }
 
-// ── Jobs de geração (em memória) ───────────────────────────────────────────
-// A geração leva de segundos a minutos: o POST responde na hora com um id e o
-// front acompanha o progresso por GET /grades/jobs/:id.
+// Jobs em memória: o POST responde na hora com um id e o front consulta
+// GET /grades/jobs/:id até terminar, porque a IA pode levar alguns minutos.
 
 interface Job {
   id: string;
@@ -160,10 +156,7 @@ function exigirChave() {
   }
 }
 
-/**
- * Avisos que não impedem a geração, mas indicam cadastro incompleto.
- * Complementam verificarViabilidade (que lista o que impede).
- */
+// Avisos de cadastro incompleto que não impedem a geração.
 function avisosDeCadastro(dados: DadosGeracao): string[] {
   const avisos: string[] = [];
   const usadas = new Set(dados.turmas.flatMap((t) => t.cargas.map((c) => c.disciplinaId)));

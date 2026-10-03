@@ -17,11 +17,7 @@ const SUGESTOES = [
   "Evite aulas no último horário de sexta",
 ];
 
-/**
- * Conversa com a IA sobre uma grade: o coordenador pede ajustes ou tira dúvidas.
- * Quando a IA altera a grade, o backend salva uma nova versão (rascunho) e ela
- * passa a ser a grade exibida, via onNovaVersao.
- */
+// Chat com a IA sobre a grade. Quando ela altera a grade, a nova versão chega por onNovaVersao.
 export function ChatAjuste({ grade, onNovaVersao }: { grade: GradeDetalhe; onNovaVersao: (g: GradeDetalhe) => void }) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState("");

@@ -17,10 +17,7 @@ const PINCEIS: { id: Pincel; label: string; cor: string }[] = [
   { id: "EVITAR", label: "Evitar", cor: "bg-amber-300 border-amber-300" },
 ];
 
-/**
- * Quadro semanal do professor. Escolha um "pincel" e clique nos horários:
- * indisponível é regra dura (a IA nunca aloca); prefere/evitar são desejos que a IA tenta atender.
- */
+// Quadro semanal: indisponível a IA nunca usa; prefere/evitar ela tenta respeitar.
 function QuadroHorarios({ valor, onChange }: { valor: Quadro; onChange: (v: Quadro) => void }) {
   const [turno, setTurno] = useState<Turno>("MANHA");
   const [pincel, setPincel] = useState<Pincel>("INDISPONIVEL");
@@ -84,7 +81,7 @@ function QuadroHorarios({ valor, onChange }: { valor: Quadro; onChange: (v: Quad
   );
 }
 
-/** Horários em que o professor trabalha em outra unidade — contam para interjornada, refeição e 8h/dia. */
+// Horários em que o professor trabalha em outra unidade (contam na jornada).
 function CompromissosExternos({ valor, onChange }: { valor: CompromissoExterno[]; onChange: (v: CompromissoExterno[]) => void }) {
   const alterar = (i: number, mudanca: Partial<CompromissoExterno>) => onChange(valor.map((c, j) => (j === i ? { ...c, ...mudanca } : c)));
   return (

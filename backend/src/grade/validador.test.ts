@@ -99,7 +99,7 @@ test("horários do turno da manhã seguem o padrão da ETEC", () => {
   assert.deepEqual(horarios("MANHA", 5), ["07:30", "08:20", "09:10", "10:10", "11:00"]);
 });
 
-// ── Regras de jornada do CPS ───────────────────────────────────────────────
+// Regras de jornada do CPS
 // Na grade "valida", João (100) dá aula na segunda das 07:30 às 09:10 e na terça das 07:30 às 08:20.
 
 const h = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3));

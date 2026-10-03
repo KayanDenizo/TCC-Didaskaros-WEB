@@ -1,10 +1,6 @@
 import { DIAS, REGRAS_CPS, hhmm, intervaloAula, type Aula, type DadosGeracao, type Violacao } from "./tipos.js";
 
-/**
- * Validador independente da IA: recebe uma grade pronta e aponta toda violação
- * de restrição dura. Escrito separado do gerador de propósito — é ele que garante
- * que "zero conflitos" é verdade, e não uma afirmação do modelo.
- */
+// Confere a grade sem depender da IA e lista toda restrição dura que foi quebrada.
 export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   const v: Violacao[] = [];
   const add = (regra: string, mensagem: string) => v.push({ regra, mensagem });
@@ -89,11 +85,8 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   return v;
 }
 
-/**
- * Regras de jornada do CPS, somando esta grade com o que o professor já tem
- * em outros turnos e em outras unidades: sobreposição, limite diário de 8h,
- * refeição de 1h, interjornada de 11h e limite semanal de aulas.
- */
+// Jornada do CPS (choque de horário, 8h/dia, refeição, interjornada e limite semanal),
+// contando também as aulas de outros turnos e de outras unidades.
 function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string, mensagem: string) => void) {
   const R = REGRAS_CPS;
   for (const prof of dados.professores) {
@@ -152,10 +145,7 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
   }
 }
 
-/**
- * Problemas que tornam a grade impossível antes mesmo de chamar a IA
- * (ex.: turma com mais aulas do que horários disponíveis).
- */
+// O que impede a geração antes de chamar a IA (ex.: turma com mais aulas que horários).
 export function verificarViabilidade(dados: DadosGeracao): string[] {
   const erros: string[] = [];
   const slots = 5 * dados.aulasPorDia;

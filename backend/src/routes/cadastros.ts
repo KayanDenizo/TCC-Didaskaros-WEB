@@ -70,7 +70,7 @@ export const salasRouter = crudSimples(
   "tipo, nome",
 );
 
-// ── Professores (com habilitações e indisponibilidades) ────────────────────
+// Professores (com habilitações e indisponibilidades)
 
 const slot = z.object({ turno: z.enum(TURNOS), dia: z.number().int().min(0).max(4), ordem: z.number().int().min(0).max(9) });
 const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida (use HH:MM).");
@@ -197,7 +197,7 @@ professoresRouter.delete("/:id", async (req, res) => {
   res.status(204).end();
 });
 
-// ── Turmas (com carga horária) ─────────────────────────────────────────────
+// Turmas (com carga horária)
 
 const turmaSchema = z.object({
   codigo: z.string().trim().min(1).max(12),

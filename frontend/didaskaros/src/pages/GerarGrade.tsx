@@ -52,7 +52,7 @@ function Stepper({ step }: { step: Step }) {
   );
 }
 
-// ── Estimativa de tempo da geração ─────────────────────────────────────────
+// Estimativa de tempo da geração
 // Começa com um palpite por turma e aprende com as gerações anteriores
 // (segundos por turma, guardado no navegador).
 const CHAVE_DURACAO = "didaskaros.segundosPorTurma";

@@ -107,11 +107,8 @@ function descreverViolacoes(violacoes: Violacao[]) {
     "Corrija todas e devolva a grade completa novamente (todas as turmas, não só as aulas alteradas).";
 }
 
-/**
- * Gera a grade com a Claude e confere com o validador independente.
- * Se houver violações, devolve os erros para o modelo corrigir (até MAX_TENTATIVAS).
- * Retorna a melhor grade encontrada — com as violações que sobraram, se houver.
- */
+// Gera a grade e passa no validador. Se tiver conflito, manda os erros de volta pra IA
+// corrigir (até MAX_TENTATIVAS) e fica com a tentativa que teve menos conflitos.
 export async function gerarComClaude(
   dados: DadosGeracao,
   onProgresso: (etapa: string, tentativa: number) => void,
@@ -171,10 +168,8 @@ export async function gerarComClaude(
   return melhor;
 }
 
-// ── Ajuste conversacional ──────────────────────────────────────────────────
-// O coordenador conversa com a IA sobre uma grade já gerada. A IA responde e,
-// quando o pedido muda a grade, devolve a grade completa alterada, que passa
-// pelo mesmo validador. O resultado vira uma nova versão (rascunho).
+// Ajuste pelo chat: se o pedido mudar a grade, a IA devolve ela inteira, que passa
+// pelo mesmo validador e vira uma nova versão (rascunho).
 
 const AjusteSchema = z.object({
   resposta: z.string(),

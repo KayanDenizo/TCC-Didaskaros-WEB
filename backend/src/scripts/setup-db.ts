@@ -20,7 +20,7 @@ async function inserir(sql: string, params: unknown[]) {
   return r.insertId;
 }
 
-// ── Escola, cursos e coordenadora ──────────────────────────────────────────
+// Escola, cursos e coordenadora
 const unidade = await inserir(
   `INSERT INTO escola (cod_escola, tipo, nome, municipio, email, telefone)
    VALUES ('263', 'ETEC', 'Uirapuru', 'São Paulo', 'e263dir@cps.sp.gov.br', '(11) 3743-0000')`, [],
@@ -37,7 +37,7 @@ await inserir(
   [unidade, curso["Desenvolvimento de Sistemas"], await bcrypt.hash("didaskaros123", 10)],
 );
 
-// ── Disciplinas ────────────────────────────────────────────────────────────
+// Disciplinas
 const disc: Record<string, number> = {};
 for (const [sigla, nome, lab] of [
   ["MAT", "Matemática", false], ["POR", "Português", false], ["FIS", "Física", false],
@@ -48,7 +48,7 @@ for (const [sigla, nome, lab] of [
   disc[sigla] = await inserir("INSERT INTO disciplina (escola_id, nome, sigla, exige_laboratorio) VALUES (?, ?, ?, ?)", [unidade, nome, sigla, lab]);
 }
 
-// ── Salas ──────────────────────────────────────────────────────────────────
+// Salas
 for (const [nome, tipo, cap] of [
   ["Sala 101", "SALA", 40], ["Sala 102", "SALA", 40], ["Sala 103", "SALA", 40], ["Sala 104", "SALA", 35],
   ["Lab. Informática 1", "LABORATORIO", 40], ["Lab. Informática 2", "LABORATORIO", 40],
@@ -56,7 +56,7 @@ for (const [nome, tipo, cap] of [
   await inserir("INSERT INTO sala (escola_id, nome, tipo, capacidade) VALUES (?, ?, ?, ?)", [unidade, nome, tipo, cap]);
 }
 
-// ── Professores, habilitações e indisponibilidades ─────────────────────────
+// Professores, habilitações e indisponibilidades
 const prof: Record<string, number> = {};
 const professores: [string, string, number, string[], ("INDETERMINADO" | "DETERMINADO")?][] = [
   ["João Silva", "joao.silva", 92.5, ["MAT", "FIS"]],
@@ -96,7 +96,7 @@ const externo = (nome: string, dia: number, inicio: string, fim: string, descric
 await externo("João Silva", 0, "07:30", "12:30", "aulas na ETEC Vila Nova");
 await externo("Fernanda Castro", 3, "19:00", "22:40", "aulas na FATEC Zona Sul");
 
-// ── Turmas e carga horária ─────────────────────────────────────────────────
+// Turmas e carga horária
 const turmas: [string, string, number, [string, number, string?][]][] = [
   ["1DS", "MANHA", 40, [["MAT", 4], ["POR", 4], ["FIS", 2], ["QUI", 2], ["BIO", 2], ["HIS", 2], ["GEO", 2], ["ING", 2], ["PW", 3]]],
   ["2DS", "MANHA", 38, [["MAT", 4], ["POR", 3], ["FIS", 2], ["QUI", 2], ["HIS", 2], ["ING", 2], ["BD", 4], ["APS", 3]]],
@@ -113,7 +113,7 @@ for (const [codigo, turno, alunos, cargas] of turmas) {
   }
 }
 
-// ── Alunos ─────────────────────────────────────────────────────────────────
+// Alunos
 for (const [rm, cpf, nome, codigo] of [
   ["24001", "11144477735", "Gabriel Souza", "1DS"],
   ["24002", "39053344705", "Larissa Pereira", "1DS"],
