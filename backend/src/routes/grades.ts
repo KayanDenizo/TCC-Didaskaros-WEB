@@ -3,13 +3,42 @@ import { Router } from "express";
 import { z } from "zod";
 import { exec, select, transaction } from "../db.js";
 import { HttpError, idParam, parse } from "../http.js";
-import { GeracaoError, gerarComClaude } from "../grade/claude.js";
-import { horarios, type Aula, type DadosGeracao, type Turno } from "../grade/tipos.js";
+import { GeracaoError, ajustarComClaude, gerarComClaude } from "../grade/claude.js";
+import { REGRAS_CPS, horarios, intervaloAula, type Aula, type DadosGeracao, type Turno } from "../grade/tipos.js";
 import { metricas, validarGrade, verificarViabilidade } from "../grade/validador.js";
 import { TURNOS } from "./cadastros.js";
 
+const TURNO_NOME: Record<Turno, string> = { MANHA: "manhã", TARDE: "tarde", NOITE: "noite" };
+const minutos = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5));
+
+/**
+ * Aulas que os professores já têm nos OUTROS turnos do mesmo semestre — de cada turno,
+ * a grade publicada ou, se não houver, o rascunho mais recente. Entram nas regras de
+ * jornada (interjornada, 8h/dia, refeição, limite semanal).
+ */
+async function aulasDeOutrosTurnos(unidadeId: number, turno: Turno, ano: number, semestre: number) {
+  const grades = await select<{ id: number; turno: Turno }>(
+    `SELECT id, turno FROM grade
+     WHERE escola_id = ? AND ano = ? AND semestre = ? AND turno <> ? AND status <> 'ARQUIVADA'
+     ORDER BY status = 'PUBLICADA' DESC, criado_em DESC, id DESC`,
+    [unidadeId, ano, semestre, turno],
+  );
+  const escolhidas = new Map<Turno, number>();
+  for (const g of grades) if (!escolhidas.has(g.turno)) escolhidas.set(g.turno, g.id);
+  if (!escolhidas.size) return [];
+
+  const aulas = await select<{ gradeId: number; professorId: number; dia: number; ordem: number }>(
+    "SELECT grade_id AS gradeId, professor_id AS professorId, dia, ordem FROM grade_aula WHERE grade_id IN (?)",
+    [[...escolhidas.values()]],
+  );
+  const turnoDaGrade = new Map([...escolhidas].map(([t, id]) => [id, t]));
+  return aulas.map((a) => ({ ...a, turno: turnoDaGrade.get(a.gradeId)! }));
+}
+
 /** Lê do banco tudo o que a geração de um turno precisa. */
-async function carregarDados(unidadeId: number, turno: Turno, aulasPorDia: number, preferencias: string[]): Promise<DadosGeracao> {
+async function carregarDados(
+  unidadeId: number, turno: Turno, aulasPorDia: number, ano: number, semestre: number, preferencias: string[],
+): Promise<DadosGeracao> {
   const turmas = await select<{ id: number; codigo: string; qtdAlunos: number }>(
     "SELECT id, codigo, qtd_alunos AS qtdAlunos FROM turma WHERE escola_id = ? AND turno = ? ORDER BY codigo",
     [unidadeId, turno],
@@ -22,9 +51,21 @@ async function carregarDados(unidadeId: number, turno: Turno, aulasPorDia: numbe
   const disciplinas = await select<{ id: number; nome: string; exigeLaboratorio: boolean }>(
     "SELECT id, nome, exige_laboratorio AS exigeLaboratorio FROM disciplina WHERE escola_id = ?", [unidadeId],
   );
-  const professores = await select<{ id: number; nome: string; pontuacaoCps: number }>(
-    "SELECT id, nome, pontuacao_cps AS pontuacaoCps FROM professor WHERE escola_id = ?", [unidadeId],
+  const professores = await select<{ id: number; nome: string; pontuacaoCps: number; contrato: "INDETERMINADO" | "DETERMINADO" }>(
+    "SELECT id, nome, pontuacao_cps AS pontuacaoCps, contrato FROM professor WHERE escola_id = ?", [unidadeId],
   );
+  const prefs = await select<{ professorId: number; dia: number; ordem: number; tipo: "PREFERE" | "EVITAR" }>(
+    `SELECT f.professor_id AS professorId, f.dia, f.ordem, f.tipo
+     FROM preferencia f JOIN professor p ON p.id = f.professor_id WHERE p.escola_id = ? AND f.turno = ?`,
+    [unidadeId, turno],
+  );
+  const externos = await select<{ professorId: number; dia: number; inicio: string; fim: string; descricao: string }>(
+    `SELECT c.professor_id AS professorId, c.dia, TIME_FORMAT(c.hora_inicio, '%H:%i') AS inicio,
+            TIME_FORMAT(c.hora_fim, '%H:%i') AS fim, c.descricao
+     FROM compromisso_externo c JOIN professor p ON p.id = c.professor_id WHERE p.escola_id = ?`,
+    [unidadeId],
+  );
+  const outrosTurnos = await aulasDeOutrosTurnos(unidadeId, turno, ano, semestre);
   const habs = await select<{ professorId: number; disciplinaId: number }>(
     `SELECT h.professor_id AS professorId, h.disciplina_id AS disciplinaId
      FROM habilitacao h JOIN professor p ON p.id = h.professor_id WHERE p.escola_id = ?`, [unidadeId],
@@ -43,11 +84,30 @@ async function carregarDados(unidadeId: number, turno: Turno, aulasPorDia: numbe
     aulasPorDia,
     turmas: turmas.map((t) => ({ ...t, cargas: cargas.filter((c) => c.turmaId === t.id).map(({ turmaId: _, ...c }) => c) })),
     disciplinas,
-    professores: professores.map((p) => ({
-      ...p,
-      disciplinaIds: habs.filter((h) => h.professorId === p.id).map((h) => h.disciplinaId),
-      indisponiveis: indisp.filter((i) => i.professorId === p.id).map(({ dia, ordem }) => ({ dia, ordem })),
-    })),
+    professores: professores.map((p) => {
+      const meusOutrosTurnos = outrosTurnos.filter((a) => a.professorId === p.id);
+      const slots = (tipo: "PREFERE" | "EVITAR") =>
+        prefs.filter((f) => f.professorId === p.id && f.tipo === tipo).map(({ dia, ordem }) => ({ dia, ordem }));
+      return {
+        ...p,
+        pontuacaoCps: Number(p.pontuacaoCps),
+        disciplinaIds: habs.filter((h) => h.professorId === p.id).map((h) => h.disciplinaId),
+        indisponiveis: indisp.filter((i) => i.professorId === p.id).map(({ dia, ordem }) => ({ dia, ordem })),
+        preferidos: slots("PREFERE"),
+        evitar: slots("EVITAR"),
+        ocupacoes: [
+          ...meusOutrosTurnos.map((a) => ({
+            dia: a.dia, ...intervaloAula(a.turno, a.ordem), minutosContados: REGRAS_CPS.minutosPorAula,
+            origem: `aula no turno da ${TURNO_NOME[a.turno]}`,
+          })),
+          ...externos.filter((c) => c.professorId === p.id).map((c) => ({
+            dia: c.dia, inicio: minutos(c.inicio), fim: minutos(c.fim), minutosContados: minutos(c.fim) - minutos(c.inicio),
+            origem: c.descricao || "compromisso externo",
+          })),
+        ],
+        aulasEmOutrosTurnos: meusOutrosTurnos.length,
+      };
+    }),
     salas,
     preferencias,
   };
@@ -64,6 +124,7 @@ interface Job {
   etapa: string;
   tentativa: number;
   gradeId?: number;
+  resposta?: string; // texto da IA (ajuste conversacional)
   erro?: string;
   iniciadoEm: number;
 }
@@ -73,6 +134,54 @@ const UMA_HORA = 60 * 60 * 1000;
 
 function limparJobsAntigos() {
   for (const [id, job] of jobs) if (Date.now() - job.iniciadoEm > UMA_HORA) jobs.delete(id);
+}
+
+/** Cria um job, responde 202 com o id e roda a tarefa em segundo plano. */
+function iniciarJob(
+  res: import("express").Response, unidadeId: number,
+  tarefa: (progresso: (etapa: string, tentativa: number) => void) => Promise<{ gradeId?: number; resposta?: string }>,
+) {
+  limparJobsAntigos();
+  const job: Job = { id: randomUUID(), unidadeId, status: "executando", etapa: "Preparando dados", tentativa: 0, iniciadoEm: Date.now() };
+  jobs.set(job.id, job);
+  res.status(202).json({ jobId: job.id });
+
+  tarefa((etapa, tentativa) => Object.assign(job, { etapa, tentativa }))
+    .then((r) => Object.assign(job, { status: "concluido", etapa: "Concluído", ...r }))
+    .catch((err) => {
+      if (!(err instanceof GeracaoError)) console.error("Falha na tarefa de IA:", err);
+      Object.assign(job, { status: "erro", erro: err instanceof GeracaoError ? err.message : "Erro inesperado na Didáskaros IA." });
+    });
+}
+
+function exigirChave() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new HttpError(503, "Configure a ANTHROPIC_API_KEY no arquivo backend/.env para usar a Didáskaros IA.");
+  }
+}
+
+/**
+ * Avisos que não impedem a geração, mas indicam cadastro incompleto.
+ * Complementam verificarViabilidade (que lista o que impede).
+ */
+function avisosDeCadastro(dados: DadosGeracao): string[] {
+  const avisos: string[] = [];
+  const usadas = new Set(dados.turmas.flatMap((t) => t.cargas.map((c) => c.disciplinaId)));
+  for (const p of dados.professores) {
+    if (!p.disciplinaIds.length) avisos.push(`${p.nome} não tem nenhuma disciplina habilitada.`);
+  }
+  for (const d of dados.disciplinas) {
+    if (usadas.has(d.id) && dados.professores.filter((p) => p.disciplinaIds.includes(d.id)).length === 1) {
+      avisos.push(`Só um professor pode dar ${d.nome}: se ele faltar ou ficar sem horário, não há substituto.`);
+    }
+  }
+  for (const t of dados.turmas) {
+    const total = t.cargas.reduce((s, c) => s + c.aulasSemanais, 0);
+    if (t.cargas.length && total < 5 * dados.aulasPorDia * 0.5) {
+      avisos.push(`${t.codigo} tem só ${total} aulas semanais cadastradas. Confira se falta alguma disciplina na carga horária.`);
+    }
+  }
+  return avisos;
 }
 
 const gerarSchema = z.object({
@@ -112,28 +221,29 @@ gradesRouter.post("/gerar", async (req, res) => {
   const params = parse(gerarSchema, req.body);
   const { unidadeId, coordenadorId } = req.sessao;
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new HttpError(503, "Configure a ANTHROPIC_API_KEY no arquivo backend/.env para gerar grades com a Claude.");
-  }
-  const dados = await carregarDados(unidadeId, params.turno, params.aulasPorDia, params.preferencias);
+  exigirChave();
+  const dados = await carregarDados(unidadeId, params.turno, params.aulasPorDia, params.ano, params.semestre, params.preferencias);
   const problemas = verificarViabilidade(dados);
   if (problemas.length) {
     res.status(422).json({ erro: "Não é possível gerar a grade com os dados atuais.", problemas });
     return;
   }
 
-  limparJobsAntigos();
-  const job: Job = { id: randomUUID(), unidadeId, status: "executando", etapa: "Preparando dados", tentativa: 0, iniciadoEm: Date.now() };
-  jobs.set(job.id, job);
-  res.status(202).json({ jobId: job.id });
+  iniciarJob(res, unidadeId, async (progresso) => {
+    const resultado = await gerarComClaude(dados, progresso);
+    return { gradeId: await salvarGrade(unidadeId, coordenadorId, params, resultado) };
+  });
+});
 
-  gerarComClaude(dados, (etapa, tentativa) => Object.assign(job, { etapa, tentativa }))
-    .then((resultado) => salvarGrade(unidadeId, coordenadorId, params, resultado))
-    .then((gradeId) => Object.assign(job, { status: "concluido", etapa: "Concluído", gradeId }))
-    .catch((err) => {
-      if (!(err instanceof GeracaoError)) console.error("Falha ao gerar grade:", err);
-      Object.assign(job, { status: "erro", erro: err instanceof GeracaoError ? err.message : "Erro inesperado ao gerar a grade." });
-    });
+// O que falta ou está inconsistente nos cadastros de um turno, antes de gerar.
+gradesRouter.get("/diagnostico", async (req, res) => {
+  const { turno, aulasPorDia } = parse(
+    z.object({ turno: z.enum(TURNOS), aulasPorDia: z.coerce.number().int().min(1).max(8).default(5) }), req.query,
+  );
+  const ano = new Date().getFullYear();
+  const semestre = new Date().getMonth() < 6 ? 1 : 2;
+  const dados = await carregarDados(req.sessao.unidadeId, turno, aulasPorDia, ano, semestre, []);
+  res.json({ problemas: verificarViabilidade(dados), avisos: avisosDeCadastro(dados) });
 });
 
 gradesRouter.get("/jobs/:jobId", (req, res) => {
@@ -229,15 +339,50 @@ gradesRouter.delete("/:id", async (req, res) => {
 gradesRouter.post("/:id/validar", async (req, res) => {
   const { id } = parse(idParam, req.params);
   const unidadeId = req.sessao.unidadeId;
-  const [grade] = await select<{ turno: Turno; aulasPorDia: number }>(
-    "SELECT turno, aulas_por_dia AS aulasPorDia FROM grade WHERE id = ? AND escola_id = ?", [id, unidadeId],
+  const [grade] = await select<{ turno: Turno; aulasPorDia: number; ano: number; semestre: number }>(
+    "SELECT turno, aulas_por_dia AS aulasPorDia, ano, semestre FROM grade WHERE id = ? AND escola_id = ?", [id, unidadeId],
   );
   if (!grade) throw new HttpError(404, "Grade não encontrada.");
   const aulas = await select<Aula>(
     `SELECT turma_id AS turmaId, disciplina_id AS disciplinaId, professor_id AS professorId, sala_id AS salaId, dia, ordem
      FROM grade_aula WHERE grade_id = ?`, [id],
   );
-  const violacoes = validarGrade(await carregarDados(unidadeId, grade.turno, grade.aulasPorDia, []), aulas);
+  const dados = await carregarDados(unidadeId, grade.turno, grade.aulasPorDia, grade.ano, grade.semestre, []);
+  const violacoes = validarGrade(dados, aulas);
   await exec("UPDATE grade SET violacoes = ? WHERE id = ?", [JSON.stringify(violacoes), id]);
   res.json({ violacoes });
+});
+
+// Conversa com a IA sobre uma grade. Se o pedido muda a grade, salva uma nova versão (rascunho).
+const ajusteSchema = z.object({
+  mensagem: z.string().trim().min(1).max(2000),
+  historico: z.array(z.object({ papel: z.enum(["coordenador", "ia"]), texto: z.string().max(4000) })).max(40).default([]),
+});
+
+gradesRouter.post("/:id/ajustar", async (req, res) => {
+  const { id } = parse(idParam, req.params);
+  const { mensagem, historico } = parse(ajusteSchema, req.body);
+  const { unidadeId, coordenadorId } = req.sessao;
+  exigirChave();
+
+  const [grade] = await select<{ turno: Turno; aulasPorDia: number; ano: number; semestre: 1 | 2; restricoes: unknown }>(
+    "SELECT turno, aulas_por_dia AS aulasPorDia, ano, semestre, restricoes FROM grade WHERE id = ? AND escola_id = ?",
+    [id, unidadeId],
+  );
+  if (!grade) throw new HttpError(404, "Grade não encontrada.");
+  const aulas = await select<Aula>(
+    `SELECT turma_id AS turmaId, disciplina_id AS disciplinaId, professor_id AS professorId, sala_id AS salaId, dia, ordem
+     FROM grade_aula WHERE grade_id = ?`, [id],
+  );
+  const preferencias = jsonArray(grade.restricoes).map(String);
+  const dados = await carregarDados(unidadeId, grade.turno, grade.aulasPorDia, grade.ano, grade.semestre, preferencias);
+  const problemas = [...verificarViabilidade(dados), ...avisosDeCadastro(dados)];
+
+  iniciarJob(res, unidadeId, async (progresso) => {
+    const r = await ajustarComClaude(dados, aulas, historico, mensagem, problemas, progresso);
+    if (!r.alterou) return { resposta: r.resposta };
+    const params = { turno: grade.turno, ano: grade.ano, semestre: grade.semestre, aulasPorDia: grade.aulasPorDia, preferencias: [...preferencias, mensagem] };
+    const gradeId = await salvarGrade(unidadeId, coordenadorId, params, { ...r, observacoes: r.resposta });
+    return { gradeId, resposta: r.resposta };
+  });
 });

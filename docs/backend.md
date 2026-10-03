@@ -19,7 +19,7 @@ backend/src/
 ├── auth.ts               → login, cadastro de coordenador e middleware de autenticação
 ├── routes/
 │   ├── cadastros.ts      → disciplinas, salas, professores e turmas
-│   ├── grades.ts         → gerar, listar, publicar, revalidar e excluir grades
+│   ├── grades.ts         → gerar, diagnosticar, ajustar com a IA, listar, publicar, revalidar e excluir grades
 │   └── painel.ts         → números do Painel Principal
 ├── grade/
 │   ├── claude.ts         → integração com a API da Claude
@@ -28,26 +28,31 @@ backend/src/
 │   └── tipos.ts          → tipos compartilhados e cálculo dos horários do turno
 └── scripts/setup-db.ts   → cria o banco e insere dados de exemplo
 
-database/schema.sql       → modelo de dados (DDL)
+database/db.sql           → modelo de dados (DDL)
 ```
 
 ---
 
 ## 1. Banco de dados
 
-Arquivo: `database/schema.sql`. São 11 tabelas:
+Arquivo: `database/db.sql`. Segue o modelo entidade-relacionamento do projeto
+(Escola, Curso, Aluno, Professor, Turma, Disciplina e o relacionamento Leciona). São 13 tabelas:
 
 | Tabela | O que guarda |
 |---|---|
-| `unidade` | A ETEC ou FATEC. Todo dado do sistema pertence a uma unidade. |
-| `coordenador` | Quem faz login (senha armazenada com hash bcrypt), dados pessoais e funcionais. |
+| `escola` | A ETEC ou FATEC (código, nome, município, e-mail, telefone). Todo dado do sistema pertence a uma escola. |
+| `curso` | Cursos oferecidos pela escola. |
+| `aluno` | RM, CPF, nome, e-mail e a turma do aluno. |
+| `coordenador` | Quem faz login na web (senha armazenada com hash bcrypt), curso, dados pessoais e funcionais. |
 | `disciplina` | Nome, sigla e se exige laboratório. |
 | `sala` | Sala comum ou laboratório, e a capacidade de alunos. |
-| `professor` | Nome, contato e pontuação CPS (prioridade na atribuição de aulas). |
+| `professor` | Código, nome, CPF, contato, pontuação CPS e tipo de contrato (indeterminado/determinado) — juntos definem a ordem na atribuição de aulas. |
 | `habilitacao` | Quais disciplinas cada professor pode lecionar. |
 | `indisponibilidade` | Horários (turno, dia, aula) em que o professor **não pode** dar aula. |
+| `preferencia` | Horários que o professor **prefere** ou prefere **evitar** (restrição mole). |
+| `compromisso_externo` | Dia e hora em que o professor trabalha em outra unidade — entra nas regras de jornada. |
 | `turma` | Código (ex.: 3DS), curso, turno e quantidade de alunos. |
-| `carga_horaria` | Quantas aulas semanais cada disciplina tem em cada turma, e o professor (opcional, se já estiver definido). |
+| `carga_horaria` | Relacionamento Leciona: quantas aulas semanais cada disciplina tem em cada turma, e o professor (opcional, se já estiver definido). |
 | `grade` | A grade gerada: turno, ano, semestre, status (rascunho / publicada / arquivada), preferências usadas, explicação da IA, conflitos encontrados, modelo e número de tentativas. |
 | `grade_aula` | Cada aula da grade: turma, disciplina, professor, sala, dia e horário. |
 
@@ -63,12 +68,12 @@ Convenções:
 | Método | Rota | Descrição |
 |---|---|---|
 | POST | `/api/auth/login` | Confere e-mail e senha e devolve um token JWT (8 horas, ou 30 dias com "manter conectado"). |
-| POST | `/api/auth/cadastro` | Cadastra um coordenador. Cria a unidade se ela ainda não existir. |
+| POST | `/api/auth/cadastro` | Cadastra um coordenador. Cria a escola e o curso se ainda não existirem. |
 | GET | `/api/auth/me` | Devolve os dados de quem está logado. |
 
 - Todas as demais rotas exigem o cabeçalho `Authorization: Bearer <token>`.
-- O token carrega o id do coordenador e da unidade; cada coordenador só enxerga os dados
-  da própria unidade.
+- O token carrega o id do coordenador e da escola; cada coordenador só enxerga os dados
+  da própria escola.
 
 ---
 
@@ -81,7 +86,7 @@ e `DELETE /:id` (excluir).
 |---|---|
 | `/api/disciplinas` | CRUD simples. |
 | `/api/salas` | CRUD simples. |
-| `/api/professores` | Habilitações e indisponibilidades são salvas junto, numa transação (grava tudo ou nada). |
+| `/api/professores` | Habilitações, indisponibilidades, preferências e compromissos externos são salvos junto, numa transação (grava tudo ou nada). |
 | `/api/turmas` | A carga horária é salva junto, numa transação. |
 
 - Os dados de entrada são validados com Zod; erros voltam com mensagem legível (HTTP 400).
@@ -152,12 +157,33 @@ Restrições duras verificadas:
 | `capacidade` | A sala comporta a quantidade de alunos da turma. |
 | `horario` | A aula está dentro da grade de horários do turno. |
 | `referencia` | Turma, disciplina, professor e sala existem. |
+| `compromisso-externo` | A aula não coincide com compromisso do professor em outra unidade. |
+| `interjornada` | No mínimo 11h entre o fim de um dia de trabalho e o início do seguinte. |
+| `jornada-diaria` | No máximo 8h de trabalho por dia. |
+| `refeicao` | Dia acima de 6h tem pausa de pelo menos 1h. |
+| `limite-semanal` | No máximo 30 aulas na semana. |
+
+### Regras de jornada do CPS
+
+As cinco últimas regras somam as aulas desta grade com o que o professor já tem nos
+**outros turnos** (a grade publicada de cada turno do mesmo semestre ou, se não houver, o
+rascunho mais recente) e nos **compromissos externos**. Cada hora-aula conta como 60 min,
+porque é assim que o CPS remunera (LC 1.044/2008, art. 20). Os valores ficam em
+`REGRAS_CPS` (`grade/tipos.ts`).
+
+| Regra | Fonte |
+|---|---|
+| 11h entre jornadas, 1h de refeição, 8h por dia | Memorandos de atribuição de aulas das ETECs (com base na Portaria CETEC 1.263/2017 e na CLT) |
+| Indeterminado antes de determinado, depois maior pontuação | Deliberação CEETEPS 23/2015 e Portaria CETEC 1.263/2017 |
+| 30 aulas por semana (40h com 30% de hora-atividade) | Fonte secundária: **confirmar com a unidade** |
+
+Janelas na grade do professor não têm regra oficial: são tratadas como restrição mole.
 
 Além disso, calcula **métricas de qualidade** (restrições moles): número de janelas nas
 grades das turmas e dos professores.
 
-**Testes:** `validador.test.ts` tem 13 testes automatizados (um caso válido e um caso para
-cada tipo de violação, além de viabilidade, métricas e horários). Rodar com `npm test`.
+**Testes:** `validador.test.ts` tem 20 testes automatizados (um caso válido e um caso para
+cada tipo de violação, incluindo as regras de jornada, além de viabilidade, métricas e horários). Rodar com `npm test`.
 
 ---
 
@@ -170,6 +196,8 @@ cada tipo de violação, além de viabilidade, métricas e horários). Rodar com
 | PATCH | `/api/grades/:id/status` | Publica, arquiva ou volta para rascunho. |
 | POST | `/api/grades/:id/validar` | Revalida a grade contra os cadastros atuais. |
 | DELETE | `/api/grades/:id` | Exclui a grade. |
+| GET | `/api/grades/diagnostico?turno=&aulasPorDia=` | O que falta nos cadastros do turno: `problemas` (impedem gerar) e `avisos`. |
+| POST | `/api/grades/:id/ajustar` | Conversa com a Didáskaros IA sobre a grade (`mensagem`, `historico`). Responde com um job; se a IA alterar a grade, o job traz `gradeId` da nova versão (rascunho) e `resposta`. |
 
 Regras de publicação:
 - **Grade com conflito não pode ser publicada** (HTTP 409).
@@ -191,8 +219,8 @@ Regras de publicação:
 
 ## 8. Horários do turno
 
-Calculados em `grade/tipos.ts`: aulas de 50 minutos com intervalo de 10 minutos após a
-3ª aula. Início: manhã 07:30, tarde 13:00, noite 19:00.
+Calculados em `grade/tipos.ts`: aulas de 50 minutos no diurno e 45 minutos à noite, com
+intervalo de 10 minutos após a 3ª aula. Início: manhã 07:30, tarde 13:00, noite 19:00.
 Exemplo (manhã, 5 aulas): 07:30, 08:20, 09:10, 10:10, 11:00.
 
 ---
@@ -202,7 +230,8 @@ Exemplo (manhã, 5 aulas): 07:30, 08:20, 09:10, 10:10, 11:00.
 Recria o banco (**apaga o existente**) e insere a ETEC Uirapuru com:
 - Coordenadora Maria Costa — login `maria.costa@etec.sp.gov.br` / senha `didaskaros123`
 - 12 disciplinas (3 exigem laboratório), 6 salas (2 laboratórios)
-- 10 professores com habilitações, pontuação CPS e algumas indisponibilidades
+- 10 professores com habilitações, pontuação CPS, contrato, algumas indisponibilidades,
+  preferências de horário e dois compromissos em outras unidades
 - 4 turmas (1DS, 2DS e 3DS de manhã; 2INFO à noite) com carga horária
 
 ---

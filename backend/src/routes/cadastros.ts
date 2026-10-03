@@ -73,14 +73,23 @@ export const salasRouter = crudSimples(
 // ── Professores (com habilitações e indisponibilidades) ────────────────────
 
 const slot = z.object({ turno: z.enum(TURNOS), dia: z.number().int().min(0).max(4), ordem: z.number().int().min(0).max(9) });
+const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida (use HH:MM).");
 
 const professorSchema = z.object({
   nome: z.string().trim().min(3),
   email: z.string().email(),
   telefone: z.string().optional().default(""),
   pontuacaoCps: z.number().min(0).default(0),
+  contrato: z.enum(["INDETERMINADO", "DETERMINADO"]).default("INDETERMINADO"),
   disciplinaIds: z.array(z.number().int()).default([]),
   indisponibilidades: z.array(slot).default([]),
+  preferencias: z.array(slot.extend({ tipo: z.enum(["PREFERE", "EVITAR"]) })).default([]),
+  compromissosExternos: z.array(z.object({
+    dia: z.number().int().min(0).max(4),
+    inicio: hora,
+    fim: hora,
+    descricao: z.string().trim().max(120).default(""),
+  }).refine((c) => c.inicio < c.fim, "O compromisso precisa terminar depois de começar.")).default([]),
 });
 
 async function garantirDaUnidade(tabela: string, ids: number[], unidadeId: number, conn: Conn) {
@@ -93,6 +102,8 @@ async function salvarVinculosProfessor(id: number, d: z.infer<typeof professorSc
   await garantirDaUnidade("disciplina", d.disciplinaIds, unidadeId, conn);
   await exec("DELETE FROM habilitacao WHERE professor_id = ?", [id], conn);
   await exec("DELETE FROM indisponibilidade WHERE professor_id = ?", [id], conn);
+  await exec("DELETE FROM preferencia WHERE professor_id = ?", [id], conn);
+  await exec("DELETE FROM compromisso_externo WHERE professor_id = ?", [id], conn);
   if (d.disciplinaIds.length) {
     await exec("INSERT INTO habilitacao (professor_id, disciplina_id) VALUES ?", [d.disciplinaIds.map((did) => [id, did])], conn);
   }
@@ -102,6 +113,21 @@ async function salvarVinculosProfessor(id: number, d: z.infer<typeof professorSc
       [d.indisponibilidades.map((s) => [id, s.turno, s.dia, s.ordem])], conn,
     );
   }
+  // Horário indisponível não pode ser também "preferido": a indisponibilidade vence.
+  const indisp = new Set(d.indisponibilidades.map((s) => `${s.turno}:${s.dia}:${s.ordem}`));
+  const prefs = d.preferencias.filter((s) => !indisp.has(`${s.turno}:${s.dia}:${s.ordem}`));
+  if (prefs.length) {
+    await exec(
+      "INSERT IGNORE INTO preferencia (professor_id, turno, dia, ordem, tipo) VALUES ?",
+      [prefs.map((s) => [id, s.turno, s.dia, s.ordem, s.tipo])], conn,
+    );
+  }
+  if (d.compromissosExternos.length) {
+    await exec(
+      "INSERT INTO compromisso_externo (professor_id, dia, hora_inicio, hora_fim, descricao) VALUES ?",
+      [d.compromissosExternos.map((c) => [id, c.dia, c.inicio, c.fim, c.descricao])], conn,
+    );
+  }
 }
 
 export const professoresRouter = Router();
@@ -109,7 +135,7 @@ export const professoresRouter = Router();
 professoresRouter.get("/", async (req, res) => {
   const unidade = req.sessao.unidadeId;
   const profs = await select<{ id: number }>(
-    `SELECT id, nome, email, telefone, pontuacao_cps AS pontuacaoCps FROM professor WHERE escola_id = ? ORDER BY nome`, [unidade],
+    `SELECT id, nome, email, telefone, pontuacao_cps AS pontuacaoCps, contrato FROM professor WHERE escola_id = ? ORDER BY nome`, [unidade],
   );
   const habs = await select<{ professorId: number; disciplinaId: number }>(
     `SELECT h.professor_id AS professorId, h.disciplina_id AS disciplinaId
@@ -119,10 +145,21 @@ professoresRouter.get("/", async (req, res) => {
     `SELECT i.professor_id AS professorId, i.turno, i.dia, i.ordem
      FROM indisponibilidade i JOIN professor p ON p.id = i.professor_id WHERE p.escola_id = ?`, [unidade],
   );
+  const prefs = await select<{ professorId: number; turno: string; dia: number; ordem: number; tipo: string }>(
+    `SELECT f.professor_id AS professorId, f.turno, f.dia, f.ordem, f.tipo
+     FROM preferencia f JOIN professor p ON p.id = f.professor_id WHERE p.escola_id = ?`, [unidade],
+  );
+  const externos = await select<{ professorId: number; dia: number; inicio: string; fim: string; descricao: string }>(
+    `SELECT c.professor_id AS professorId, c.dia, TIME_FORMAT(c.hora_inicio, '%H:%i') AS inicio,
+            TIME_FORMAT(c.hora_fim, '%H:%i') AS fim, c.descricao
+     FROM compromisso_externo c JOIN professor p ON p.id = c.professor_id WHERE p.escola_id = ? ORDER BY c.dia, c.hora_inicio`, [unidade],
+  );
   res.json(profs.map((p) => ({
     ...p,
     disciplinaIds: habs.filter((h) => h.professorId === p.id).map((h) => h.disciplinaId),
     indisponibilidades: indisp.filter((i) => i.professorId === p.id).map(({ turno, dia, ordem }) => ({ turno, dia, ordem })),
+    preferencias: prefs.filter((f) => f.professorId === p.id).map(({ professorId: _, ...f }) => f),
+    compromissosExternos: externos.filter((c) => c.professorId === p.id).map(({ professorId: _, ...c }) => c),
   })));
 });
 
@@ -130,8 +167,8 @@ professoresRouter.post("/", async (req, res) => {
   const d = parse(professorSchema, req.body);
   const id = await transaction(async (conn) => {
     const { insertId } = await exec(
-      "INSERT INTO professor (escola_id, nome, email, telefone, pontuacao_cps) VALUES (?, ?, ?, ?, ?)",
-      [req.sessao.unidadeId, d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps], conn,
+      "INSERT INTO professor (escola_id, nome, email, telefone, pontuacao_cps, contrato) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.sessao.unidadeId, d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps, d.contrato], conn,
     );
     await salvarVinculosProfessor(insertId, d, req.sessao.unidadeId, conn);
     return insertId;
@@ -144,8 +181,8 @@ professoresRouter.put("/:id", async (req, res) => {
   const d = parse(professorSchema, req.body);
   await transaction(async (conn) => {
     const { affectedRows } = await exec(
-      "UPDATE professor SET nome = ?, email = ?, telefone = ?, pontuacao_cps = ? WHERE id = ? AND escola_id = ?",
-      [d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps, id, req.sessao.unidadeId], conn,
+      "UPDATE professor SET nome = ?, email = ?, telefone = ?, pontuacao_cps = ?, contrato = ? WHERE id = ? AND escola_id = ?",
+      [d.nome, d.email.toLowerCase(), d.telefone, d.pontuacaoCps, d.contrato, id, req.sessao.unidadeId], conn,
     );
     if (!affectedRows) throw new HttpError(404, "Professor não encontrado.");
     await salvarVinculosProfessor(id, d, req.sessao.unidadeId, conn);

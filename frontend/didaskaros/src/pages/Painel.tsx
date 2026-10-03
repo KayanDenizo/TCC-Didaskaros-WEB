@@ -43,7 +43,7 @@ export default function Painel() {
         <div className="flex flex-col gap-5">
           <Card className="overflow-hidden">
             <CardHeader title="Aulas de Hoje" subtitle="Das grades publicadas">
-              <Link to="/grades" className="text-[12px] font-semibold text-blue-600 hover:underline">Ver grade completa →</Link>
+              <Link to="/grades" className="group text-[12px] font-semibold text-blue-600 hover:underline">Ver grade completa <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span></Link>
             </CardHeader>
             {aulasHoje.length ? (
               <div className="divide-y divide-gray-50 max-h-[380px] overflow-y-auto">
@@ -69,8 +69,8 @@ export default function Painel() {
             {gradesRecentes.length ? (
               <div className="divide-y divide-gray-50">
                 {gradesRecentes.map((g) => (
-                  <Link key={g.id} to={`/grades?id=${g.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
+                  <Link key={g.id} to={`/grades?id=${g.id}`} className="group flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                    <div className="flex-1 transition-transform duration-200 group-hover:translate-x-1">
                       <p className="text-[13px] font-semibold text-gray-900">Grade #{g.id} — {nomeGrade(g)}</p>
                       <p className="text-[11px] text-gray-400">{dataCurta(g.criadoEm)}</p>
                     </div>
@@ -80,7 +80,7 @@ export default function Painel() {
                 ))}
               </div>
             ) : (
-              <Empty>Nenhuma grade gerada. <Link to="/gerar-grade" className="text-blue-600 font-semibold">Gerar a primeira →</Link></Empty>
+              <Empty>Nenhuma grade gerada. <Link to="/gerar-grade" className="group text-blue-600 font-semibold">Gerar a primeira <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span></Link></Empty>
             )}
           </Card>
         </div>

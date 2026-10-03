@@ -1,6 +1,5 @@
 import { useMatches } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
-import { iniciais } from "../lib/format";
+import { MenuPerfil } from "./MenuPerfil";
 
 export interface RouteHandle {
   title: string;
@@ -8,7 +7,6 @@ export interface RouteHandle {
 }
 
 export function Topbar() {
-  const { usuario } = useAuth();
   const handle = useMatches().map((m) => m.handle as RouteHandle | undefined).reverse().find(Boolean);
   const hoje = new Date().toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
     .replace(/^./, (c) => c.toUpperCase());
@@ -21,9 +19,7 @@ export function Topbar() {
       </div>
       <div className="ml-auto flex items-center gap-3">
         <span className="text-[12px] text-gray-400 font-medium">{hoje}</span>
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xs font-bold">
-          {iniciais(usuario?.nome ?? "")}
-        </div>
+        <MenuPerfil />
       </div>
     </header>
   );

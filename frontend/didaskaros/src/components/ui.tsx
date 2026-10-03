@@ -4,14 +4,14 @@ import type { StatusGrade } from "../api/types";
 import { STATUS_LABEL } from "../lib/format";
 
 const VARIANTES = {
-  primary: "text-white bg-gradient-to-br from-[#1E4DA1] to-blue-600 shadow-[0_2px_12px_rgba(37,99,235,0.3)] hover:opacity-90",
-  secondary: "text-gray-700 bg-white border border-gray-200 hover:border-blue-400 hover:text-blue-600",
+  primary: "text-white bg-gradient-to-br from-[#1E4DA1] to-blue-600 shadow-[0_2px_12px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] disabled:hover:translate-y-0",
+  secondary: "text-gray-700 bg-white border border-gray-200 hover:border-blue-400 hover:text-blue-600 hover:-translate-y-0.5 hover:shadow-sm disabled:hover:translate-y-0",
   danger: "text-red-600 bg-white border border-red-200 hover:bg-red-50",
 };
 
 type Variante = keyof typeof VARIANTES;
 const buttonClass = (variant: Variante, className: string) =>
-  `inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all
+  `inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200
    active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANTES[variant]} ${className}`;
 
 export function Button({ variant = "secondary", loading, className = "", children, ...props }:

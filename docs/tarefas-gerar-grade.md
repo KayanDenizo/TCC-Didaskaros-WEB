@@ -3,7 +3,7 @@
 Plano de trabalho para o núcleo do Didáskaros: gerar a grade horária de uma unidade
 ETEC inteira, com múltiplos cursos, respeitando as regras do Centro Paula Souza.
 
-**Estado atual:** backend (Express + MySQL), banco (`database/schema.sql`) e frontend
+**Estado atual:** backend (Express + MySQL), banco (`database/db.sql`) e frontend
 ligados. A geração por turno funciona com a API da Claude + validador independente.
 
 **Decisão de arquitetura (revisada):** a grade é montada pela **Claude** (API da Anthropic,
@@ -25,7 +25,9 @@ passaria a atuar só nas pontas (Fase 8). Registrar essa comparação no TCC.
 Estas respostas mudam o modelo inteiro. Vale gastar uma conversa com a coordenação da
 unidade antes de qualquer tabela.
 
-- [ ] **A atribuição por pontuação CPS acontece antes ou junto com a grade?**
+- [x] **A atribuição por pontuação CPS acontece antes ou junto com a grade?**
+      **Antes** (Deliberação CEETEPS 23/2015): manutenção → recomposição → ampliação, cada
+      etapa por classificação (indeterminado antes de determinado, depois pontuação).
       Se o professor já recebe as aulas dele por ordem de pontuação e só depois se monta o
       horário, então a alocação professor↔disciplina é *entrada*, não variável do solver —
       o problema fica bem menor. Se for junto, a pontuação vira restrição de prioridade
@@ -53,11 +55,11 @@ unidade antes de qualquer tabela.
       É o que define quantos blocos o solver precisa colocar.
 - [x] `habilitacao`: quais disciplinas cada professor pode lecionar.
 - [ ] `pontuacao_cps` do professor, com a data-base da pontuação (ela muda por semestre).
-- [ ] **`compromisso_externo`**: horários em que o professor está ocupado *fora desta
+- [x] **`compromisso_externo`**: horários em que o professor está ocupado *fora desta
       unidade*. Tratar como entidade de primeira classe desde o começo, mesmo que no TCC
       só uma unidade seja resolvida — é o que impede o mesmo professor de ser alocado às
       09:10 em duas ETECs.
-- [ ] `disponibilidade` e `preferencia` do professor (o que ele *não pode* vs. o que ele
+- [x] `disponibilidade` e `preferencia` do professor (o que ele *não pode* vs. o que ele
       *prefere* — vão para baldes diferentes de restrição).
 - [ ] `requisito_sala`: disciplina que exige laboratório específico.
 - [x] `grade` e `grade_aula`: a grade gerada, com status (rascunho / publicada /

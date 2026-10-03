@@ -24,7 +24,7 @@ api.interceptors.response.use(undefined, (err) => {
   // Sessão expirada: limpa e volta para o login
   if (err.response?.status === 401 && token.get()) {
     token.clear();
-    window.location.assign("/login");
+    window.location.assign("/painel");
   }
   return Promise.reject(err);
 });

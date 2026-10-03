@@ -58,7 +58,7 @@ for (const [nome, tipo, cap] of [
 
 // ── Professores, habilitações e indisponibilidades ─────────────────────────
 const prof: Record<string, number> = {};
-const professores: [string, string, number, string[]][] = [
+const professores: [string, string, number, string[], ("INDETERMINADO" | "DETERMINADO")?][] = [
   ["João Silva", "joao.silva", 92.5, ["MAT", "FIS"]],
   ["Maria Santos", "maria.santos", 88, ["POR", "ING"]],
   ["Carlos Oliveira", "carlos.oliveira", 75, ["FIS", "QUI"]],
@@ -68,21 +68,33 @@ const professores: [string, string, number, string[]][] = [
   ["Fernanda Castro", "fernanda.castro", 79, ["ING", "POR"]],
   ["Lucas Ramos", "lucas.ramos", 85, ["PW", "DS"]],
   ["Beatriz Nunes", "beatriz.nunes", 90, ["BD", "APS", "DS"]],
-  ["Ricardo Alves", "ricardo.alves", 60, ["MAT", "PW"]],
+  ["Ricardo Alves", "ricardo.alves", 60, ["MAT", "PW"], "DETERMINADO"],
 ];
-for (const [i, [nome, email, pontos, habs]] of professores.entries()) {
+for (const [i, [nome, email, pontos, habs, contrato = "INDETERMINADO"]] of professores.entries()) {
   const id = await inserir(
-    "INSERT INTO professor (escola_id, cod_professor, nome, email, telefone, pontuacao_cps) VALUES (?, ?, ?, ?, '', ?)",
-    [unidade, `P${String(i + 1).padStart(3, "0")}`, nome, `${email}@etec.sp.gov.br`, pontos],
+    "INSERT INTO professor (escola_id, cod_professor, nome, email, telefone, pontuacao_cps, contrato) VALUES (?, ?, ?, ?, '', ?, ?)",
+    [unidade, `P${String(i + 1).padStart(3, "0")}`, nome, `${email}@etec.sp.gov.br`, pontos, contrato],
   );
   prof[nome] = id;
   for (const h of habs) await inserir("INSERT INTO habilitacao (professor_id, disciplina_id) VALUES (?, ?)", [id, disc[h]]);
 }
 const indisponivel = (nome: string, turno: string, dia: number, ordens: number[]) =>
   Promise.all(ordens.map((o) => inserir("INSERT INTO indisponibilidade VALUES (?, ?, ?, ?)", [prof[nome], turno, dia, o])));
-await indisponivel("João Silva", "MANHA", 0, [0, 1, 2, 3, 4]);   // leciona em outra unidade às segundas
 await indisponivel("Ana Lima", "MANHA", 4, [3, 4]);
 await indisponivel("Lucas Ramos", "MANHA", 2, [0, 1, 2, 3, 4]);
+
+const preferencia = (nome: string, turno: string, dia: number, ordens: number[], tipo: "PREFERE" | "EVITAR") =>
+  Promise.all(ordens.map((o) => inserir("INSERT INTO preferencia VALUES (?, ?, ?, ?, ?)", [prof[nome], turno, dia, o, tipo])));
+await preferencia("Maria Santos", "MANHA", 1, [0, 1, 2, 3, 4], "PREFERE");
+await preferencia("Maria Santos", "MANHA", 3, [0, 1, 2, 3, 4], "PREFERE");
+await preferencia("Beatriz Nunes", "MANHA", 0, [0, 1], "EVITAR");
+
+// Compromissos em outras unidades: contam para conflito, interjornada, refeição e 8h/dia.
+const externo = (nome: string, dia: number, inicio: string, fim: string, descricao: string) =>
+  inserir("INSERT INTO compromisso_externo (professor_id, dia, hora_inicio, hora_fim, descricao) VALUES (?, ?, ?, ?, ?)",
+    [prof[nome], dia, inicio, fim, descricao]);
+await externo("João Silva", 0, "07:30", "12:30", "aulas na ETEC Vila Nova");
+await externo("Fernanda Castro", 3, "19:00", "22:40", "aulas na FATEC Zona Sul");
 
 // ── Turmas e carga horária ─────────────────────────────────────────────────
 const turmas: [string, string, number, [string, number, string?][]][] = [

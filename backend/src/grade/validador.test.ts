@@ -1,7 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { metricas, validarGrade, verificarViabilidade } from "./validador.js";
-import { horarios, type Aula, type DadosGeracao } from "./tipos.js";
+import { horarios, type Aula, type DadosGeracao, type Ocupacao } from "./tipos.js";
+
+const semExtras = { contrato: "INDETERMINADO" as const, preferidos: [], evitar: [], ocupacoes: [], aulasEmOutrosTurnos: 0 };
 
 // Duas turmas, duas disciplinas (uma de laboratório), dois professores, uma sala e um laboratório.
 const dados: DadosGeracao = {
@@ -16,8 +18,8 @@ const dados: DadosGeracao = {
     { id: 20, nome: "Banco de Dados", exigeLaboratorio: true },
   ],
   professores: [
-    { id: 100, nome: "João", pontuacaoCps: 10, disciplinaIds: [10], indisponiveis: [{ dia: 4, ordem: 0 }] },
-    { id: 200, nome: "Bia", pontuacaoCps: 10, disciplinaIds: [20, 10], indisponiveis: [] },
+    { id: 100, nome: "João", pontuacaoCps: 10, disciplinaIds: [10], indisponiveis: [{ dia: 4, ordem: 0 }], ...semExtras },
+    { id: 200, nome: "Bia", pontuacaoCps: 10, disciplinaIds: [20, 10], indisponiveis: [], ...semExtras },
   ],
   salas: [
     { id: 1000, nome: "Sala 101", tipo: "SALA", capacidade: 40 },
@@ -95,4 +97,46 @@ test("métricas contam janelas", () => {
 
 test("horários do turno da manhã seguem o padrão da ETEC", () => {
   assert.deepEqual(horarios("MANHA", 5), ["07:30", "08:20", "09:10", "10:10", "11:00"]);
+});
+
+// ── Regras de jornada do CPS ───────────────────────────────────────────────
+// Na grade "valida", João (100) dá aula na segunda das 07:30 às 09:10 e na terça das 07:30 às 08:20.
+
+const h = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3));
+const ocupacao = (dia: number, inicio: string, fim: string, origem = "aula no turno da noite"): Ocupacao =>
+  ({ dia, inicio: h(inicio), fim: h(fim), minutosContados: h(fim) - h(inicio), origem });
+const comJoao = (extra: Partial<DadosGeracao["professores"][number]>): DadosGeracao =>
+  ({ ...dados, professores: dados.professores.map((p) => (p.id === 100 ? { ...p, ...extra } : p)) });
+const regrasCom = (extra: Partial<DadosGeracao["professores"][number]>) => validarGrade(comJoao(extra), valida).map((v) => v.regra);
+
+test("detecta aula em horário de compromisso em outra unidade", () => {
+  assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "07:00", "08:00", "aulas na ETEC Vila Nova")] }), ["compromisso-externo"]);
+});
+
+test("detecta interjornada menor que 11 horas", () => {
+  // Termina 23:00 na segunda e volta 07:30 na terça: 8h30 de descanso.
+  assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "22:00", "23:00")] }), ["interjornada"]);
+});
+
+test("detecta mais de 8 horas de trabalho no dia", () => {
+  assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "13:00", "20:00")] }), ["jornada-diaria"]);
+});
+
+test("detecta dia acima de 6 horas sem pausa de refeição", () => {
+  assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "09:20", "14:00")] }), ["refeicao"]);
+  assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "10:10", "14:50")] }), []);
+});
+
+test("detecta limite semanal somando outros turnos", () => {
+  assert.deepEqual(regrasCom({ aulasEmOutrosTurnos: 28 }), ["limite-semanal"]);
+  assert.deepEqual(regrasCom({ aulasEmOutrosTurnos: 27 }), []);
+});
+
+test("viabilidade: aulas atribuídas acima do limite semanal", () => {
+  const bia = { ...dados, professores: dados.professores.map((p) => (p.id === 200 ? { ...p, aulasEmOutrosTurnos: 30 } : p)) };
+  assert.match(verificarViabilidade(bia).join(), /Bia tem 31 aulas/);
+});
+
+test("hora-aula da noite tem 45 minutos", () => {
+  assert.deepEqual(horarios("NOITE", 4), ["19:00", "19:45", "20:30", "21:25"]);
 });

@@ -35,8 +35,19 @@ export interface Professor {
   email: string;
   telefone: string;
   pontuacaoCps: number;
+  contrato: "INDETERMINADO" | "DETERMINADO";
   disciplinaIds: number[];
   indisponibilidades: Slot[];
+  preferencias: (Slot & { tipo: "PREFERE" | "EVITAR" })[];
+  compromissosExternos: CompromissoExterno[];
+}
+
+/** Horário em que o professor trabalha fora desta unidade. */
+export interface CompromissoExterno {
+  dia: number;
+  inicio: string; // "HH:MM"
+  fim: string;
+  descricao: string;
 }
 
 export interface Carga {
@@ -111,7 +122,19 @@ export interface JobGeracao {
   tentativa: number;
   segundos: number;
   gradeId?: number;
+  resposta?: string;
   erro?: string;
+}
+
+/** O que falta ou está inconsistente nos cadastros de um turno. */
+export interface Diagnostico {
+  problemas: string[]; // impedem a geração
+  avisos: string[];    // não impedem, mas vale conferir
+}
+
+export interface MensagemAjuste {
+  papel: "coordenador" | "ia";
+  texto: string;
 }
 
 export interface Painel {

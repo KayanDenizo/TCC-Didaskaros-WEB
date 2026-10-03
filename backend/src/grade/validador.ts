@@ -1,4 +1,4 @@
-import { DIAS, type Aula, type DadosGeracao, type Violacao } from "./tipos.js";
+import { DIAS, REGRAS_CPS, hhmm, intervaloAula, type Aula, type DadosGeracao, type Violacao } from "./tipos.js";
 
 /**
  * Validador independente da IA: recebe uma grade pronta e aponta toda violação
@@ -85,7 +85,71 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
     }
   }
 
+  validarJornada(dados, aulas.filter((a) => professores.has(a.professorId) && a.dia >= 0 && a.dia <= 4), add);
   return v;
+}
+
+/**
+ * Regras de jornada do CPS, somando esta grade com o que o professor já tem
+ * em outros turnos e em outras unidades: sobreposição, limite diário de 8h,
+ * refeição de 1h, interjornada de 11h e limite semanal de aulas.
+ */
+function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string, mensagem: string) => void) {
+  const R = REGRAS_CPS;
+  for (const prof of dados.professores) {
+    const minhas = aulas.filter((a) => a.professorId === prof.id);
+    if (!minhas.length) continue;
+
+    const totalSemana = minhas.length + prof.aulasEmOutrosTurnos;
+    if (totalSemana > R.aulasSemanaisMax) {
+      add("limite-semanal", `${prof.nome} ficou com ${totalSemana} aulas na semana (máximo ${R.aulasSemanaisMax}).`);
+    }
+
+    // Períodos de trabalho de cada dia: aulas desta grade + ocupações já existentes.
+    const dias = Array.from({ length: 5 }, (_, dia) => [
+      ...minhas.filter((a) => a.dia === dia).map((a) => ({
+        ...intervaloAula(dados.turno, a.ordem), minutosContados: R.minutosPorAula, origem: "", ordem: a.ordem,
+      })),
+      ...prof.ocupacoes.filter((o) => o.dia === dia).map((o) => ({ ...o, ordem: -1 })),
+    ].sort((x, y) => x.inicio - y.inicio));
+
+    for (const [dia, periodos] of dias.entries()) {
+      if (!periodos.length) continue;
+      const nomeDia = DIAS[dia];
+
+      for (const a of periodos.filter((p) => p.ordem >= 0)) {
+        const choque = periodos.find((o) => o.ordem < 0 && o.inicio < a.fim && a.inicio < o.fim);
+        if (choque) add("compromisso-externo", `${prof.nome} tem ${choque.origem} (${hhmm(choque.inicio)}–${hhmm(choque.fim)}) na ${nomeDia}, mas recebeu a ${a.ordem + 1}ª aula.`);
+      }
+
+      const contados = periodos.reduce((s, p) => s + p.minutosContados, 0);
+      if (contados > R.jornadaDiariaMaxMin) {
+        add("jornada-diaria", `${prof.nome} trabalha ${(contados / 60).toFixed(1).replace(".0", "")}h na ${nomeDia} (máximo ${R.jornadaDiariaMaxMin / 60}h).`);
+      }
+
+      if (contados > R.jornadaSemRefeicaoMin) {
+        let maiorPausa = 0;
+        let fim = periodos[0].fim;
+        for (const p of periodos.slice(1)) {
+          maiorPausa = Math.max(maiorPausa, p.inicio - fim);
+          fim = Math.max(fim, p.fim);
+        }
+        if (maiorPausa < R.refeicaoMin) {
+          add("refeicao", `${prof.nome} trabalha mais de ${R.jornadaSemRefeicaoMin / 60}h na ${nomeDia} sem pausa de ${R.refeicaoMin} min para refeição.`);
+        }
+      }
+
+      const amanha = dias[dia + 1];
+      if (amanha?.length) {
+        const fimHoje = Math.max(...periodos.map((p) => p.fim));
+        const descanso = 24 * 60 - fimHoje + amanha[0].inicio;
+        if (descanso < R.interjornadaMin) {
+          add("interjornada", `${prof.nome} termina às ${hhmm(fimHoje)} na ${nomeDia} e volta às ${hhmm(amanha[0].inicio)} na ${DIAS[dia + 1]}: ` +
+            `${hhmm(descanso)} de descanso (mínimo ${R.interjornadaMin / 60}h).`);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -113,6 +177,14 @@ export function verificarViabilidade(dados: DadosGeracao): string[] {
         erros.push(`Nenhum professor habilitado para ${disc?.nome} (${t.codigo}).`);
       }
       if (disc?.exigeLaboratorio && !temLab) erros.push(`${disc.nome} exige laboratório, mas não há laboratório cadastrado.`);
+    }
+  }
+
+  for (const p of dados.professores) {
+    const atribuidas = dados.turmas.flatMap((t) => t.cargas).filter((c) => c.professorId === p.id).reduce((s, c) => s + c.aulasSemanais, 0);
+    const total = atribuidas + p.aulasEmOutrosTurnos;
+    if (atribuidas && total > REGRAS_CPS.aulasSemanaisMax) {
+      erros.push(`${p.nome} tem ${total} aulas atribuídas na semana somando todos os turnos (máximo ${REGRAS_CPS.aulasSemanaisMax}).`);
     }
   }
   return [...new Set(erros)];
