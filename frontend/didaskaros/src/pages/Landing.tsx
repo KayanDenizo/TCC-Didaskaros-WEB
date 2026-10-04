@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   GraduationCap,
@@ -35,25 +35,52 @@ import {
   Database,
   Code2,
   BrainCircuit,
+  ArrowUp,
 } from "lucide-react";
 import { AnimatedNumber } from "../components/AnimatedNumber";
+import { Logo } from "../components/Logo";
 import { useReveal } from "../hooks/useReveal";
-import heroMockup from "../assets/landing/hero-mockup.png";
-import shotAvailability from "../assets/landing/screen-availability.jpg";
-import shotDashboard from "../assets/landing/screen-dashboard.jpg";
-import shotGenerator from "../assets/landing/screen-generator.jpg";
+import shotGrades from "../assets/landing/app-grades.jpg";
+import shotProfessores from "../assets/landing/app-professores.jpg";
+import shotPainel from "../assets/landing/app-painel.jpg";
+import shotGerarGrade from "../assets/landing/app-gerar-grade.jpg";
 import shotMobile from "../assets/landing/screen-mobile.jpg";
 
 /* -------------------------------------------------- */
 /* Header                                              */
 /* -------------------------------------------------- */
+const LINKS_NAV = [
+  { id: "problemas", rotulo: "Problemas" },
+  { id: "solucao", rotulo: "Solução" },
+  { id: "funcionalidades", rotulo: "Funcionalidades" },
+  { id: "cps", rotulo: "Diferencial CPS" },
+  { id: "tecnologias", rotulo: "Tecnologias" },
+  { id: "faq", rotulo: "FAQ" },
+];
+
 function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [ativo, setAtivo] = useState("");
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Destaca na navbar a seção que está no meio da tela
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) if (e.isIntersecting) setAtivo(e.target.id);
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    for (const { id } of LINKS_NAV) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -67,39 +94,92 @@ function Header() {
           scrolled ? "glass-card mx-3 py-2.5 sm:mx-auto" : "py-2"
         }`}
       >
-        <a href="#top" className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand shadow-brand">
-            <GraduationCap className="h-5 w-5 text-white" />
-          </div>
-          <span className="font-display text-lg font-bold tracking-tight text-ink">
-            Didaskaros
-          </span>
+        <a href="#top" className="logo-landing flex items-center py-1" aria-label="Didáskaros — início">
+          <Logo cor="#0F172A" className="w-36 sm:w-40" />
         </a>
-        <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-          <a href="#problemas" className="hover:text-ink transition-colors">Problemas</a>
-          <a href="#solucao" className="hover:text-ink transition-colors">Solução</a>
-          <a href="#funcionalidades" className="hover:text-ink transition-colors">Funcionalidades</a>
-          <a href="#cps" className="hover:text-ink transition-colors">Diferencial CPS</a>
-          <a href="#tecnologias" className="hover:text-ink transition-colors">Tecnologias</a>
-          <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
+        <nav className="hidden items-center gap-1 text-sm font-medium text-muted-foreground lg:flex">
+          {LINKS_NAV.map(({ id, rotulo }) => (
+            <a key={id} href={`#${id}`} className={`nav-link ${ativo === id ? "ativo" : ""}`}>
+              {rotulo}
+            </a>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <a
             href="#cta"
-            className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-ink hover:bg-muted sm:inline-flex"
+            className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-brand/5 hover:text-brand sm:inline-flex"
           >
             Demonstração
           </a>
           <Link
             to="/painel"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white shadow-float transition-transform hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white shadow-float shine-on-hover transition-all hover:-translate-y-0.5 hover:bg-brand"
           >
             Entrar
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>
     </header>
+  );
+}
+
+/* -------------------------------------------------- */
+/* Print do app numa janela de navegador               */
+/* -------------------------------------------------- */
+function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: string; eager?: boolean }) {
+  return (
+    <div className="janela-app overflow-hidden rounded-2xl border border-border/80 bg-white shadow-float ring-1 ring-ink/5">
+      <div className="flex items-center gap-3 border-b border-border bg-muted/70 px-4 py-2.5">
+        <div className="flex gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+        </div>
+        <div className="mx-auto flex min-w-0 max-w-xs flex-1 items-center justify-center gap-1.5 rounded-md bg-white px-3 py-1 text-[11px] font-medium text-muted-foreground ring-1 ring-border">
+          <Shield className="h-3 w-3 shrink-0 text-success" />
+          <span className="truncate">{url}</span>
+        </div>
+        <div className="w-[42px]" />
+      </div>
+      <div className="overflow-hidden">
+        <img src={src} alt={alt} width={1920} height={1200} loading={eager ? "eager" : "lazy"} className="block w-full" />
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------- */
+/* Inclinação 3D seguindo o mouse                      */
+/* -------------------------------------------------- */
+function Inclinavel({ children, max = 9 }: { children: React.ReactNode; max?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  function mover(e: React.MouseEvent<HTMLDivElement>) {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--ry", `${(x - 0.5) * 2 * max}deg`);
+    el.style.setProperty("--rx", `${(0.5 - y) * 2 * max}deg`);
+    el.style.setProperty("--gx", `${x * 100}%`);
+    el.style.setProperty("--gy", `${y * 100}%`);
+    el.classList.add("movendo");
+  }
+
+  function sair() {
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
+    el.classList.remove("movendo");
+  }
+
+  return (
+    <div ref={ref} onMouseMove={mover} onMouseLeave={sair} className="tilt relative">
+      {children}
+    </div>
   );
 }
 
@@ -167,23 +247,24 @@ function Hero() {
         {/* mockup */}
         <div className="relative">
           <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[2rem] bg-gradient-brand opacity-20 blur-3xl" />
-          <div className="relative animate-float">
-            <img
-              src={heroMockup}
-              alt="Didaskaros — dashboards e gerador de horários"
-              width={1600}
-              height={1200}
-              className="w-full drop-shadow-2xl"
-            />
-          </div>
-          {/* floating chips */}
-          <div className="glass-card absolute -left-2 top-10 hidden items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-ink shadow-float sm:flex animate-float-slow">
-            <span className="h-2 w-2 rounded-full bg-success animate-pulse-ring" />
-            0 conflitos detectados
-          </div>
-          <div className="glass-card absolute -right-2 bottom-12 hidden items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-ink shadow-float md:flex animate-float">
-            <Bell className="h-3.5 w-3.5 text-brand" />
-            Horário publicado
+          <div className="animate-float">
+            <Inclinavel>
+              <JanelaApp src={shotGrades} alt="Grade horária gerada no Didáskaros" url="didaskaros.app/grades" eager />
+              <div className="tilt-brilho pointer-events-none absolute inset-0 rounded-2xl" />
+              {/* chips flutuantes: ficam "à frente" da janela ao inclinar */}
+              <div className="tilt-camada pointer-events-none absolute -left-6 bottom-[30%] hidden sm:block">
+                <div className="flex items-center gap-2 rounded-xl border border-white bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-ink shadow-float ring-1 ring-ink/5 animate-float-slow">
+                  <span className="h-2 w-2 rounded-full bg-success animate-pulse-ring" />
+                  0 conflitos detectados
+                </div>
+              </div>
+              <div className="tilt-camada pointer-events-none absolute -right-6 top-[22%] hidden md:block">
+                <div className="flex items-center gap-2 rounded-xl border border-white bg-white/95 px-3.5 py-2.5 text-xs font-semibold text-ink shadow-float ring-1 ring-ink/5 animate-float">
+                  <Sparkles className="h-3.5 w-3.5 text-brand" />
+                  Gerada pela Didáskaros IA
+                </div>
+              </div>
+            </Inclinavel>
           </div>
         </div>
       </div>
@@ -434,21 +515,24 @@ function Mockups() {
       eyebrow: "Visão Estratégica",
       title: "Dashboard Estratégico",
       desc: "Acompanhe indicadores de horários, ocupação docente e conflitos em uma única tela pensada para a coordenação.",
-      img: shotDashboard,
+      img: shotPainel,
+      url: "didaskaros.app/painel",
       reverse: false,
     },
     {
       eyebrow: "Coleta Inteligente",
       title: "Disponibilidade Docente",
       desc: "Professores registram janelas e restrições em segundos; o sistema entende vínculos, deslocamentos e pontuação CPS.",
-      img: shotAvailability,
+      img: shotProfessores,
+      url: "didaskaros.app/professores",
       reverse: true,
     },
     {
       eyebrow: "Motor Inteligente",
       title: "Gerador de Horários",
       desc: "Algoritmo de otimização monta grades completas respeitando regras institucionais — em segundos, não semanas.",
-      img: shotGenerator,
+      img: shotGerarGrade,
+      url: "didaskaros.app/gerar-grade",
       reverse: false,
     },
     {
@@ -456,6 +540,7 @@ function Mockups() {
       title: "Central na palma da mão",
       desc: "Professores e alunos recebem o horário atualizado, notificações e avisos institucionais no celular.",
       img: shotMobile,
+      url: "",
       reverse: true,
       portrait: true,
     },
@@ -494,18 +579,13 @@ function Mockups() {
               </div>
               <div className="reveal relative">
                 <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl bg-gradient-brand opacity-15 blur-2xl" />
-                <div
-                  className={`relative overflow-hidden rounded-2xl border border-border bg-white shadow-float ${
-                    r.portrait ? "mx-auto max-w-xs" : ""
-                  }`}
-                >
-                  <img
-                    src={r.img}
-                    alt={r.title}
-                    loading="lazy"
-                    className="block w-full"
-                  />
-                </div>
+                {r.portrait ? (
+                  <div className="relative mx-auto max-w-xs overflow-hidden rounded-2xl border border-border bg-white shadow-float">
+                    <img src={r.img} alt={r.title} loading="lazy" className="block w-full" />
+                  </div>
+                ) : (
+                  <JanelaApp src={r.img} alt={r.title} url={r.url} />
+                )}
               </div>
             </div>
           ))}
@@ -827,14 +907,9 @@ function Footer() {
     <footer className="border-t border-border bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand shadow-brand">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-display text-lg font-bold tracking-tight text-ink">
-              Didaskaros
-            </span>
-          </div>
+          <a href="#top" className="logo-landing inline-flex" aria-label="Didáskaros — voltar ao início">
+            <Logo cor="#0F172A" className="w-40" />
+          </a>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             Sistema inteligente para gestão acadêmica do Centro Paula Souza — ETECs e FATECs.
           </p>
@@ -894,6 +969,32 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
 }
 
 /* -------------------------------------------------- */
+/* Botão de voltar ao topo                             */
+/* -------------------------------------------------- */
+function VoltarAoTopo() {
+  const [visivel, setVisivel] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setVisivel(window.scrollY > 700);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      aria-label="Voltar ao topo"
+      className={`voltar-topo group fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-brand text-white shadow-brand ring-4 ring-white/70 hover:-translate-y-1 ${
+        visivel ? "" : "oculto"
+      }`}
+    >
+      <ArrowUp className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-0.5" />
+    </button>
+  );
+}
+
+/* -------------------------------------------------- */
 /* Page                                                */
 /* -------------------------------------------------- */
 export default function Landing() {
@@ -923,6 +1024,7 @@ export default function Landing() {
         <FinalCTA />
       </main>
       <Footer />
+      <VoltarAoTopo />
     </div>
   );
 }

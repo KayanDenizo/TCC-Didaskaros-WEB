@@ -89,8 +89,8 @@
   transform-box: fill-box;
   transform-origin: 50% 100%; /* gira em torno do centro do relógio */
 }
-.ponteiro-minuto { animation: gira-minuto 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
-.ponteiro-hora { animation: gira-hora 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
+.abertura-logo .ponteiro-minuto { animation: gira-minuto 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
+.abertura-logo .ponteiro-hora { animation: gira-hora 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
 
 @keyframes abertura-entra {
   from { opacity: 0; transform: scale(0.94); filter: blur(6px); }
@@ -189,6 +189,97 @@ html {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Logo da landing: ao passar o mouse o relógio dá uma volta e o lápis balança */
+.logo-landing .ponteiro-hora { transform: rotate(-45deg); }
+.logo-landing .ponteiro-minuto { transform: rotate(180deg); }
+.logo-landing .ponteiro-hora,
+.logo-landing .ponteiro-minuto {
+  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.logo-landing:hover .ponteiro-hora { transform: rotate(45deg); }
+.logo-landing:hover .ponteiro-minuto { transform: rotate(540deg); }
+.logo-landing .logo-lapis {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.logo-landing:hover .logo-lapis { animation: lapis-balanca 0.7s ease-in-out; }
+@keyframes lapis-balanca {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+}
+
+/* Links da navbar: pílula de fundo + sublinhado que cresce do centro */
+.nav-link {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.3rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b5bdb, #74c0fc);
+  transform: scaleX(0);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover {
+  color: #0f172a;
+  background-color: rgba(59, 91, 219, 0.07);
+}
+.nav-link:hover::after,
+.nav-link.ativo::after {
+  transform: scaleX(1);
+}
+.nav-link.ativo {
+  color: #3b5bdb;
+}
+
+/* Imagem do hero: inclina seguindo o mouse (variáveis definidas em Landing.tsx) */
+.tilt {
+  transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.tilt.movendo {
+  transition: transform 0.12s ease-out;
+}
+.tilt-brilho {
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.35), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.tilt.movendo .tilt-brilho {
+  opacity: 1;
+}
+.tilt-camada {
+  transform: translateZ(60px);
+}
+
+/* Prints do app dentro de uma janela de navegador */
+.janela-app img {
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.janela-app:hover img {
+  transform: scale(1.015);
+}
+
+/* Botão de voltar ao topo */
+.voltar-topo {
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.voltar-topo.oculto {
+  opacity: 0;
+  transform: translateY(16px) scale(0.85);
+  pointer-events: none;
 }
 
 /* Brilho que atravessa o botão ao passar o mouse */
