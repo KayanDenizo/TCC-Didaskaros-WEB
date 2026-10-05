@@ -6,6 +6,7 @@ import CadastroCoordenador from "./pages/CadastroCoordenador";
 import Disciplinas from "./pages/Disciplinas";
 import GerarGrade from "./pages/GerarGrade";
 import Grades from "./pages/Grades";
+import Landing from "./pages/Landing";
 import Painel from "./pages/Painel";
 import Perfil from "./pages/Perfil";
 import Professores from "./pages/Professores";
@@ -15,6 +16,7 @@ import Turmas from "./pages/Turmas";
 const pagina = (path: string, element: React.ReactNode, handle: RouteHandle) => ({ path, element, handle });
 
 const router = createBrowserRouter([
+  { path: "/", element: <Landing /> },
   { path: "/cadastro", element: <CadastroCoordenador /> },
   {
     element: <RequireAuth />,
