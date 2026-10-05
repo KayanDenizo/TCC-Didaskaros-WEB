@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+</head>
+
+<style>
+    :root {
+        --blue-50: #EFF6FF;
+        --blue-100: #DBEAFE;
+        --blue-400: #60A5FA;
+        --blue-500: #3B82F6;
+        --blue-600: #2563EB;
+        --blue-700: #1D4ED8;
+        --blue-800: #1E40AF;
+        --emerald-50: #ECFDF5;
+        --emerald-100: #D1FAE5;
+        --emerald-400: #34D399;
+        --emerald-500: #10B981;
+        --emerald-600: #059669;
+        --emerald-700: #047857;
+        --amber-50: #FFFBEB;
+        --amber-100: #FDE68A;
+        --amber-400: #FBBF24;
+        --amber-500: #F59E0B;
+        --amber-700: #B45309;
+        --violet-50: #F5F3FF;
+        --violet-400: #A78BFA;
+        --violet-500: #8B5CF6;
+        --violet-800: #5B21B6;
+        --pink-50: #FDF2F8;
+        --pink-500: #EC4899;
+        --pink-800: #9D174D;
+        --purple-50: #FAF5FF;
+        --purple-500: #A855F7;
+        --purple-800: #6B21A8;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-400: #9CA3AF;
+        --gray-500: #6B7280;
+        --gray-600: #4B5563;
+        --gray-700: #374151;
+        --gray-900: #111827;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        background: var(--gray-50);
+    }
+
+    body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: var(--gray-900);
+        display: flex;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 240px;
+        display: flex;
+        flex-direction: column;
+        z-index: 50;
+        background: linear-gradient(180deg, #0F2456 0%, #1B3A7A 100%);
+    }
+
+    .sidebar-logo {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .sidebar-logo-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-logo-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--blue-500);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        font-size: 14px;
+    }
+
+    .sidebar-logo-text {
+        color: #fff;
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: .01em;
+    }
+
+    .sidebar-user {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, .1);
+        background: rgba(255, 255, 255, .05);
+    }
+
+    .sidebar-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: var(--blue-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .sidebar-user-name {
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .sidebar-user-role {
+        color: rgba(255, 255, 255, .5);
+        font-size: 10px;
+        line-height: 1.2;
+    }
+
+    nav.sidebar-nav {
+        flex: 1;
+        padding: 12px 0;
+        overflow-y: auto;
+    }
+
+    .nav-section-title {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, .35);
+        padding: 16px 20px 6px;
+    }
+
+    .nav-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 13px;
+        text-align: left;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, .6);
+        position: relative;
+        transition: all .15s ease;
+    }
+
+    .nav-item:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, .07);
+    }
+
+    .nav-item.active {
+        color: #fff;
+        font-weight: 600;
+        background: rgba(37, 99, 235, .2);
+    }
+
+    .nav-item.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 24px;
+        border-radius: 0 4px 4px 0;
+        background: var(--blue-400);
+    }
+
+    .nav-item svg {
+        width: 16px;
+        height: 16px;
+        color: rgba(255, 255, 255, .4);
+        flex-shrink: 0;
+    }
+
+    .nav-item.active svg {
+        color: #93C5FD;
+    }
+
+    .nav-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .25);
+        flex-shrink: 0;
+    }
+
+    .nav-badge {
+        margin-left: auto;
+        background: #EF4444;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 999px;
+    }
+
+    .sidebar-footer {
+        border-top: 1px solid rgba(255, 255, 255, .1);
+        padding: 8px 0;
+    }
+
+    .sidebar-footer button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, .5);
+        background: transparent;
+        border: none;
+        transition: color .15s ease;
+    }
+
+    .sidebar-footer button:hover {
+        color: #fff;
+    }
+
+    .sidebar-footer svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* ---------- main / topbar ---------- */
+    main {
+        flex: 1;
+        margin-left: 240px;
+    }
+
+    .topbar {
+        height: 60px;
+        background: #fff;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        box-shadow: 0 1px 3px rgba(15, 36, 86, .05);
+    }
+
+    .topbar-title {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .topbar-breadcrumb {
+        font-size: 11px;
+        color: var(--gray-400);
+    }
+
+    .topbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .topbar-search {
+        position: relative;
+    }
+
+    .topbar-search svg {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: var(--gray-400);
+    }
+
+    .topbar-search input {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 8px 16px 8px 34px;
+        font-size: 13px;
+        color: var(--gray-700);
+        outline: none;
+        width: 224px;
+        transition: all .15s ease;
+    }
+
+    .topbar-search input:focus {
+        border-color: var(--blue-400);
+        background: #fff;
+    }
+
+    .topbar-date {
+        font-size: 12px;
+        color: var(--gray-400);
+        font-weight: 500;
+    }
+
+    .topbar-bell {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-500);
+        transition: all .15s ease;
+    }
+
+    .topbar-bell:hover {
+        border-color: var(--blue-400);
+        color: var(--blue-600);
+    }
+
+    .topbar-bell svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .topbar-bell-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #EF4444;
+        border: 2px solid #fff;
+    }
+
+    .topbar-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .filtragem>* {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+    }
+
+    .coluna {
+        h3 {
+            display: flex;
+            justify-content: center;
+            text-transform: uppercase;
+            color: #9ca3af;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+            padding: 0.6rem 0;
+        }
+    }
+
+
+    .horas {
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        color: #9ca3af;
+        font-weight: bold;
+        min-height: 87px;
+        font-size: 17px;
+    }
+
+    .coluna>*.containerAula {
+        width: 200px;
+    }
+</style>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-row">
+                <div class="sidebar-logo-badge">D</div>
+                <span class="sidebar-logo-text">DIDASKAROS</span>
+            </div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MC</div>
+            <div>
+                <div class="sidebar-user-name">Maria Costa</div>
+                <div class="sidebar-user-role">Coordenadora · ETEC Uirapuru</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div>
+                <div class="nav-section-title">Geral</div>
+                <button class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    Painel Principal
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="nav-section-title">Planejamento</div>
+                    <button class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        Grades Horárias
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M5 3l1.5 4.5L11 9l-4.5 1.5L5 15l-1.5-4.5L-1 9l4.5-1.5L5 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 12l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+                        </svg>
+                        Gerar Grade
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                        </svg>
+                        Equipe Docente
+                    </button>
+                    <button class="nav-item"><span class="nav-dot"></span>Classes</button>
+                    <button class="nav-item"><span class="nav-dot"></span>Disciplinas</button>
+                    <button class="nav-item"><span class="nav-dot"></span>Salas</button>
+                </div>
+                <div>
+                    <div class="nav-section-title">Comunicação</div>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 01-3.46 0" />
+                        </svg>
+                        Postar Avisos
+                    </button>
+                    <button class="nav-item"><span class="nav-dot"></span>Aprovações<span
+                            class="nav-badge">3</span></button>
+                </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+                Configurações
+            </button>
+            <button>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sair
+            </button>
+        </div>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div>
+                <div class="topbar-title">Grades Horárias</div>
+                <div class="topbar-breadcrumb">Didaskaros › Planejamento › Grades Horárias</div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <input placeholder="Buscar professores, turmas..." />
+                </div>
+                <span class="topbar-date">Ter, 21 Jul 2026</span>
+                <button class="topbar-bell">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                    <span class="topbar-bell-dot"></span>
+                </button>
+                <div class="topbar-avatar">MC</div>
+            </div>
+        </header>
+
+        <div class="page p-7 flex flex-col ">
+
+            <header class="gradesHorarias flex justify-between items-center gap-5 px-7 py-3">
+
+                <div>
+                    <h1 style="font-weight: bolder; font-size: 28px;">Grades Horárias</h1>
+                    <span>Visualize e gerencie os horários das turmas — 2º Semestre 2026.</span>
+                </div>
+
+                <div class="btn flex gap-3">
+                    <button id="exportPdf"
+                        class="flex align-center border border-gray-300 bg-white rounded-lg font-semibold px-6 py-3 flex items-center gap-2 hover:bg-gray-200  cursor-pointer transition">
+                        <span class="material-symbols-outlined" style="font-size: 25px;">download</span>
+                        Exportar PDF</button>
+
+                    <button id="gerarGrade"
+                        class="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg shadow-md shadow-blue-500/30 hover:opacity-95 transition cursor-pointer flex align-center font-semibold px-6 py-3 gap-2">
+                        <span class="material-symbols-outlined" style="font-size: 25px;">wand_stars</span>
+                        Gerar Grade</button>
+                </div>
+
+            </header>
+
+
+            <div class="flex gap-5 justify-between items-center justify-center">
+
+                <div class="grade bg-white shadow-md mt-5 w-full mx-7"
+                    style="border: 1px solid #e5e7eb; border-radius: 30px;">
+                    <div class="containerGrade  p-8 ">
+
+                        <div class="titleContent">
+                            <div class="title flex justify-between items-center">
+                                <span>
+                                    <h2 class="font-bold text-xl"> Grade Horária — 3º Desenvolvimento de Sistemas</h2>
+                                    <span class="subtitle">Turma Manhã - 31 aulas semanais</span>
+                                </span>
+                                <span class="status rounded-full px-4 py-1 gap-2 flex items-center"
+                                    style="font-weight: bold; font-size: 18px; color: #047857; background-color: #ecfdf5;"><span
+                                        class="material-symbols-outlined"
+                                        style="font-size: 18px; color: #047857;">check</span>Publicada</span>
+                            </div>
+
+                        </div>
+
+                        <hr class="-mx-7 my-3" style="color: #e7e7e7; width: 103%">
+
+                        <div class="lineSelecao flex justify-between items-center gap-5">
+
+                            <div class="filtro flex">
+                                <div class="filtragem gap-5 flex items-center justify-between">
+
+                                    <div class="topicosFilter"
+                                        style="display: flex; align-items: center; border: 1px solid #e5e7eb">
+                                        <span
+                                            class="selecao selected bg-blue-600 text-white font-semibold px-5 py-2 cursor-pointer transition rounded-lg">Por
+                                            Turma</span>
+                                        <span class="selecao px-5 py-2 ">Por Professor</span>
+                                        <span class="selecao px-5 py-2 ">Por Sala</span>
+                                    </div>
+
+                                    <div class="topicosTurma px-5 py-2">Turma: 3º DS</div>
+
+                                </div>
+                            </div>
+
+                            <div class="topicosData gap-2" style="border: none; display: flex ;align-items: center;">
+                                <button class="material-symbols-outlined hover:bg-slate-200 p-2 text-sm w-9"
+                                    style="border: 1px solid #e5e7eb; border-radius: 10px;">arrow_back_ios</button>
+                                21—25 Jul 2026
+                                <button class="material-symbols-outlined hover:bg-slate-200 p-2 text-sm w-9"
+                                    style="border: 1px solid #e5e7eb; border-radius: 10px;">arrow_forward_ios</button>
+                            </div>
+                        </div>
+                        <hr class="-mx-7 my-3" style="color: #e7e7e7; width: 103%">
+
+
+                        <section class="gradeContent flex w-full gap-7 ">
+
+                            <div class="coluna flex flex-col min-w-[100px]">
+                                <h3 class="font-bold" style="margin-bottom: 13px;">Horário</h3>
+
+                                <span class="horas px-5">7:30</span>
+                                <span class="horas px-5">8:20</span>
+                                <span class="horas px-5">9:10</span>
+                                <span class="horas px-5">10:20</span>
+                                <span class="horas px-5">11:10</span>
+                                <span class="horas px-5">12:00</span>
+                                <span class="horas px-5">13:50</span>
+                                <span class="horas px-5">14:40</span>
+
+                            </div>
+
+                            <div class="coluna flex flex-col gap-4">
+                                <h3 class="font-bold">Segunda</h3>
+
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-600 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-500">PDTCC</h2>
+                                    <span class="infos flex flex-col text-sm text-red-500">
+                                        <p>Prof. Paulo Rogério</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-600 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-500">PDTCC</h2>
+                                    <span class="infos flex flex-col text-sm text-red-500">
+                                        <p>Prof. Paulo Rogério</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-600 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-500">PDTCC</h2>
+                                    <span class="infos flex flex-col text-sm text-red-500">
+                                        <p>Prof. Paulo Rogério</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] border-2 border-dashed border-gray-300 shadow-sm gap-0.5 min-h-[70px] rounded-xl">
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-600 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-500">Química</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-500">
+                                        <p>Prof. Wilson</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-600 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-500">Química</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-500">
+                                        <p>Prof. Márcio</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-700/15 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-700">Inglês</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-700">
+                                        <p>Prof. Marcos</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-700/15 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-700">Inglês</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-700">
+                                        <p>Prof. Marcos</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <div class="coluna flex flex-col gap-4">
+                                <h3 class="font-bold">Terça</h3>
+
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-700">Matemática</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-700">
+                                        <p>Prof. Luís</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-700">Matemática</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-700">
+                                        <p>Prof. Luís</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-700">Programação de Apps Mobile II</h2>
+                                    <span class="infos flex flex-col text-sm text-red-700">
+                                        <p>Prof. Fábio</p>
+                                        <p>Lab</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-700">Programação de Apps Mobile II</h2>
+                                    <span class="infos flex flex-col text-sm text-red-700">
+                                        <p>Prof. Fábio</p>
+                                        <p>Lab</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-900">Programação Web III</h2>
+                                    <span class="infos flex flex-col text-sm text-red-900">
+                                        <p>Prof. Fábio</p>
+                                        <p>Lab</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-red-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-red-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-red-900">Programação Web III</h2>
+                                    <span class="infos flex flex-col text-sm text-red-900">
+                                        <p>Prof. Fábio</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] border-2 border-dashed border-gray-300 shadow-sm gap-0.5 min-h-[70px] rounded-xl">
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] border-2 border-dashed border-gray-300 shadow-sm gap-0.5 min-h-[70px] rounded-xl">
+                                </div>
+                            </div>
+
+                            <div class="coluna flex flex-col gap-4">
+                                <h3 class="font-bold">Quarta</h3>
+
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-700">Matemática</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-700">
+                                        <p>Prof. Luís</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-700">Matemática</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-700">
+                                        <p>Prof. Luís</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-500 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-500">Espanhol</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-500">
+                                        <p>Prof. Gisele</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-500 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-500">Espanhol</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-500">
+                                        <p>Prof. Gisele</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-900">Português</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-900">
+                                        <p>Prof. Gisele</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-gray-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-gray-500 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-gray-500">História</h2>
+                                    <span class="infos flex flex-col text-sm text-gray-500">
+                                        <p>Prof. Israel</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-green-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-green-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-green-900">Geografia</h2>
+                                    <span class="infos flex flex-col text-sm">
+                                        <p>Prof. Camila</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-green-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-green-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-green-900">Geografia</h2>
+                                    <span class="infos flex flex-col text-sm">
+                                        <p>Prof. Camila</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <div class="coluna flex flex-col gap-4">
+                                <h3 class="font-bold">Quinta</h3>
+
+                                <div
+                                    class="containerAula min-w-[280px] border-2 border-dashed border-gray-300 shadow-sm gap-0.5 min-h-[70px] rounded-xl">
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] border-2 border-dashed border-gray-300 shadow-sm gap-0.5 min-h-[70px] rounded-xl">
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-900">Física</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-900">
+                                        <p>Prof. Márcio</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-gray-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-gray-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-gray-900">Filosofia</h2>
+                                    <span class="infos flex flex-col text-sm text-gray-900">
+                                        <p>Prof. Rafael</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-gray-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-gray-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-gray-900">Filosofia</h2>
+                                    <span class="infos flex flex-col text-sm text-gray-900">
+                                        <p>Prof. Rafael</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-900">Português</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-900">
+                                        <p>Prof. Gisele</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-orange-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-orange-500 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-orange-500">Sistemas Embarcados</h2>
+                                    <span class="infos flex flex-col text-sm text-orange-500">
+                                        <p>Prof. Fábio</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-orange-500/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-orange-500 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-orange-500">Sistemas Embarcados</h2>
+                                    <span class="infos flex flex-col text-sm text-orange-500">
+                                        <p>Prof. Fábio</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="coluna flex flex-col gap-4">
+                                <h3 class="font-bold">Sexta</h3>
+
+                                <div
+                                    class="containerAula min-w-[280px] bg-gray-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-gray-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-gray-700">Sociologia</h2>
+                                    <span class="infos flex flex-col text-sm text-gray-700">
+                                        <p>Prof. Israel</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-gray-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-gray-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-gray-700">Sociologia</h2>
+                                    <span class="infos flex flex-col text-sm text-gray-700">
+                                        <p>Prof. Israel</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-pink-900/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-pink-900 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-pink-900">Português</h2>
+                                    <span class="infos flex flex-col text-sm text-pink-900">
+                                        <p>Prof. Gisele</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula min-w-[280px] bg-blue-700/20 px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-blue-700 shadow-sm gap-0.5">
+                                    <h2 class="font-semibold text-blue-700">Matemática</h2>
+                                    <span class="infos flex flex-col text-sm text-blue-700">
+                                        <p>Prof. Luís</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula bg-orange-700/20 min-w-[280px] px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-orange-700 shadow-sm flex flex-col gap-0.5">
+                                    <h2 class="font-semibold text-orange-700">IPSSI</h2>
+                                    <span class="infos flex flex-col text-sm text-orange-700">
+                                        <p>Prof. Jonathas</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula bg-orange-700/20 min-w-[280px] px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-orange-700 shadow-sm flex flex-col gap-0.5">
+                                    <h2 class="font-semibold text-orange-700">IPSSI</h2>
+                                    <span class="infos flex flex-col text-sm text-orange-700">
+                                        <p>Prof. Jonathas</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula bg-green-500/20 min-w-[280px] px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-green-500 shadow-sm flex flex-col gap-0.5">
+                                    <h2 class="font-semibold text-green-600">Biologia</h2>
+                                    <span class="infos flex flex-col text-sm text-green-600">
+                                        <p>Prof. Cícera</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                                <div
+                                    class="containerAula bg-green-500/20 min-w-[280px] px-2.5 py-0.5 rounded-xl border border-gray-200 border-l-4 border-l-green-500 shadow-sm flex flex-col gap-0.5">
+                                    <h2 class="font-semibold text-green-600">Biologia</h2>
+                                    <span class="infos flex flex-col text-sm text-green-600">
+                                        <p>Prof. Cícera</p>
+                                        <p>S11</p>
+                                    </span>
+
+                                </div>
+                            </div>
+
+
+                        </section>
+                    </div>
+                    <div class="disciplinas px-10 py-4 gap-5 flex bg-gray-100"
+                        style="border-radius: 0px 0px 30px 30px;">
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-blue-900"></span><span>Física</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-blue-700"></span><span>Matemática</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-blue-500"></span><span>Química</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-pink-900"></span><span>Português</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-pink-700"></span><span>Inglês</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-pink-500"></span><span>Espanhol</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-gray-900"></span><span>Filosofia</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-gray-700"></span><span>Sociologia</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-gray-500"></span><span>História</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-green-900"></span><span>Geografia</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-green-500"></span><span>Biologia</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-red-900"></span><span>PWIII</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-red-700"></span><span>PAMII</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-red-500"></span><span>PDTCC</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-orange-700"></span><span>IPSSI</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2">
+                            <span class="colors px-2 w-5 h-5 rounded-lg bg-orange-500"></span><span>SE</span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="containerDisponibilidade bg-white shadow-md p-7 rounded-lg border border-gray-200 min-w-[400px] min-h-[400px] max-h-[1000px] mx-7"
+                    style="border-radius: 30px;">
+                    <span>
+                        <div class="title flex justify-between items-center">
+                            <h2 class="font-bold text-xl"> Disponibilidade Hoje</h2> <span class="status"><span
+                                    class="bg-green-400 w-2 h-2 rounded-full inline-block mx-2"></span><span
+                                    class="text-green-500">Ao vivo</span>
+                        </div>
+                        <span class="subtitle text-slate-400">Para esta grade</span>
+
+                        <hr class="-mx-7 my-6" style="color: #e7e7e7; width: 117%">
+
+                        <div class="professores">
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-blue-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">M</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Márcio</h3>
+                                        <span class="text-sm text-slate-400">Física</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Disponível
+                                </span>
+                            </div>
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-purple-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">G</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Gisele</h3>
+                                        <span class="text-sm text-slate-400">Espanhol</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Disponível
+                                </span>
+                            </div>
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-pink-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">C</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Camila</h3>
+                                        <span class="text-sm text-slate-400">Geografia</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Disponível
+                                </span>
+                            </div>
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-gray-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">I</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Israel</h3>
+                                        <span class="text-sm text-slate-400">História</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-orange-100 text-orange-800 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Em aula
+                                </span>
+                            </div>
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-blue-800 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">R</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Rafael</h3>
+                                        <span class="text-sm text-slate-400">Filosofia</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Disponível
+                                </span>
+                            </div>
+
+                            <div class="containerProfessor flex justify-between items-center my-6">
+                                <div class="professor flex gap-3">
+
+                                    <span
+                                        class="avatarProfessor bg-green-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center gap-5">W</span>
+
+                                    <div class="info">
+                                        <h3 class="font-semibold">Wilson</h3>
+                                        <span class="text-sm text-slate-400">Química</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                    Disponível
+                                </span>
+                            </div>
+
+                            <hr class="-mx-7 my-6" style="color: #e7e7e7; width: 117%">
+
+                            <div class="outrasGrades">
+                                <h2 class="font-bold text-xl"> Outras Grades</h2>
+
+                                <div class="containerGradesSalas flex justify-between bg-gray-100 border border-gray-200 p-4 gap-1 my-5"
+                                    style="border-radius: 20px;">
+                                    <div class="sala">
+                                        <h3 class="font-semibold text-lg">Grade 2ºDS — 2025</h3>
+                                        <span class="text-sm text-slate-400">Manhã - 36 aulas/sem</span>
+                                    </div>
+                                    <span
+                                        class="status bg-orange-100 text-orange-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                        Rascunho
+                                    </span>
+                                </div>
+
+
+                                <div class="containerGradesSalas flex justify-between bg-gray-100 border border-gray-200 p-4 gap-1 my-5"
+                                    style="border-radius: 20px;">
+                                    <div class="sala">
+                                        <h3 class="font-semibold text-lg">Grade 2ºADM — 2025</h3>
+                                        <span class="text-sm text-slate-400">Manhã - 30 aulas/sem</span>
+                                    </div>
+                                    <span
+                                        class="status bg-green-100 text-green-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                        Publicada
+                                    </span>
+                                </div>
+
+
+                                <div class="containerGradesSalas flex justify-between bg-gray-100 border border-gray-200 p-4 gap-1 my-5"
+                                    style="border-radius: 20px;">
+                                    <div class="sala">
+                                        <h3 class="font-semibold text-lg">Grade 1ºMKT — 2025</h3>
+                                        <span class="text-sm text-slate-400">Manhã - 24 aulas/sem</span>
+                                    </div>
+                                    <span
+                                        class="status bg-gray-100 text-gray-700 px-4 h-7 flex items-center rounded-full text-xs font-bold ">
+                                        Arquivada
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                </div>
+
+                </span>
+
+            </div>
+
+
+        </div>
+        <div class="px-11 flex w-full">
+            <div
+                class="containerResumoGrade min-w-[1720px] bg-white shadow-md p-8 rounded-xl border border-gray-200 my-10 flex flex-col gap-5">
+                <h3 class="font-bold text-xl my-3">Resumo da Grade — 3º Desenvolvimento de Sistemas</h3>
+
+                <div class="blocos flex gap-5 justify-between items-center justify-center px-20">
+                    <div
+                        class="bloco text-red-900/25 flex flex-col w-[300px] h-[150px] bg-red-200 rounded-xl align-center justify-center border border-red-300 ">
+                        <span class="align-center text-red-900 justify-center flex font-bold"
+                            style="font-size: 40px;">31</span>
+                        <span class="align-center text-red-900/25 justify-center flex"> Aulas semanais </span>
+                    </div>
+                    <div
+                        class="bloco text-red-900/25 flex flex-col w-[300px] h-[150px] bg-green-200/60 rounded-xl align-center justify-center border border-green-300">
+                        <span class="align-center text-green-700 justify-center flex font-bold"
+                            style="font-size: 40px;">11</span>
+                        <span class="align-center text-green-900/40 justify-center flex"> Professores</span>
+                    </div>
+                    <div
+                        class="bloco text-purple-900/25 flex flex-col w-[300px] h-[150px] bg-purple-200/60 rounded-xl align-center justify-center border border-purple-300">
+                        <span class="align-center text-purple-900 justify-center flex font-bold"
+                            style="font-size: 40px;">16</span>
+                        <span class="align-center text-purple-900/25 justify-center flex"> Disciplinas </span>
+                    </div>
+                    <div
+                        class="bloco text-orange-900/25 flex flex-col w-[300px] h-[150px] bg-orange-200/60 rounded-xl align-center justify-center border border-orange-300">
+                        <span class="align-center text-orange-900 justify-center flex font-bold"
+                            style="font-size: 40px;">0</span>
+                        <span class="align-center text-orange-900/25 justify-center flex"> Conflitos </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+</body>
+
+</html>
