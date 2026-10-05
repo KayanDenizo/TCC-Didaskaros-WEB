@@ -44,7 +44,7 @@ import shotGrades from "../assets/landing/app-grades.jpg";
 import shotProfessores from "../assets/landing/app-professores.jpg";
 import shotPainel from "../assets/landing/app-painel.jpg";
 import shotGerarGrade from "../assets/landing/app-gerar-grade.jpg";
-import shotMobile from "../assets/landing/screen-mobile.jpg";
+import shotMobile from "../assets/landing/screen-mobile.png";
 
 /* -------------------------------------------------- */
 /* Header                                              */
@@ -144,6 +144,27 @@ function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: st
       </div>
       <div className="overflow-hidden">
         <img src={src} alt={alt} width={1920} height={1200} loading={eager ? "eager" : "lazy"} className="block w-full" />
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------- */
+/* Print do app mobile dentro de um celular            */
+/* -------------------------------------------------- */
+function Celular({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="relative mx-auto w-full max-w-[290px]">
+      {/* Botões laterais */}
+      <span className="absolute -left-[3px] top-[22%] h-10 w-[3px] rounded-l-sm bg-[#1f2330]" />
+      <span className="absolute -left-[3px] top-[32%] h-16 w-[3px] rounded-l-sm bg-[#1f2330]" />
+      <span className="absolute -right-[3px] top-[28%] h-20 w-[3px] rounded-r-sm bg-[#1f2330]" />
+      <div className="rounded-[2.75rem] bg-gradient-to-b from-[#2a2f3d] to-[#141720] p-[10px] shadow-float ring-1 ring-ink/20">
+        <div className="relative overflow-hidden rounded-[2.1rem] bg-white">
+          {/* Câmera frontal */}
+          <span className="absolute left-1/2 top-[7px] z-10 h-3 w-3 -translate-x-1/2 rounded-full bg-[#0b0d12] ring-2 ring-[#1f2330]" />
+          <img src={src} alt={alt} width={1041} height={2235} loading="lazy" className="block w-full" />
+        </div>
       </div>
     </div>
   );
@@ -580,9 +601,7 @@ function Mockups() {
               <div className="reveal relative">
                 <div className="pointer-events-none absolute -inset-6 -z-10 rounded-3xl bg-gradient-brand opacity-15 blur-2xl" />
                 {r.portrait ? (
-                  <div className="relative mx-auto max-w-xs overflow-hidden rounded-2xl border border-border bg-white shadow-float">
-                    <img src={r.img} alt={r.title} loading="lazy" className="block w-full" />
-                  </div>
+                  <Celular src={r.img} alt={r.title} />
                 ) : (
                   <JanelaApp src={r.img} alt={r.title} url={r.url} />
                 )}
