@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Link } from "react-router-dom";
 import type { StatusGrade } from "../api/types";
 import { STATUS_LABEL } from "../lib/format";
@@ -15,7 +15,7 @@ const buttonClass = (variant: Variante, className: string) =>
    active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANTES[variant]} ${className}`;
 
 export function Button({ variant = "secondary", loading, className = "", children, ...props }:
-  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variante; loading?: boolean }) {
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variante; loading?: boolean; ref?: Ref<HTMLButtonElement> }) {
   return (
     <button type="button" {...props} disabled={props.disabled || loading} className={buttonClass(variant, className)}>
       {loading && <Spinner />}

@@ -305,3 +305,17 @@ html {
   0% { transform: translateX(-120%) skewX(-12deg); }
   100% { transform: translateX(220%) skewX(-12deg); }
 }
+
+/* Caixa de confirmação de exclusão */
+@keyframes dialogo-fundo {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialogo-entra {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dialogo-fundo { animation: dialogo-fundo 0.2s ease-out; }
+.dialogo-caixa { animation: dialogo-entra 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+.dialogo-celula { transition: opacity 0.25s ease, transform 0.25s ease; }
+.apagando .dialogo-celula { opacity: 0.08; transform: scale(0.4); }

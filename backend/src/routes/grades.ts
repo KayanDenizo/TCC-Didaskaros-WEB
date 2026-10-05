@@ -4,7 +4,7 @@ import { z } from "zod";
 import { exec, select, transaction } from "../db.js";
 import { HttpError, idParam, parse } from "../http.js";
 import { GeracaoError, ajustarComClaude, gerarComClaude } from "../grade/claude.js";
-import { REGRAS_CPS, horarios, intervaloAula, type Aula, type DadosGeracao, type Turno } from "../grade/tipos.js";
+import { REGRAS_CPS, hhmm, horarios, intervaloAula, type Aula, type DadosGeracao, type Turno } from "../grade/tipos.js";
 import { metricas, validarGrade, verificarViabilidade } from "../grade/validador.js";
 import { TURNOS } from "./cadastros.js";
 
@@ -288,6 +288,11 @@ gradesRouter.get("/:id", async (req, res) => {
     restricoes: jsonArray(grade.restricoes),
     violacoes: jsonArray(grade.violacoes),
     horarios: horarios(grade.turno, grade.aulasPorDia),
+    // Início/fim de cada aula, para saber quem está em aula agora
+    intervalos: Array.from({ length: grade.aulasPorDia }, (_, i) => {
+      const { inicio, fim } = intervaloAula(grade.turno, i);
+      return { inicio: hhmm(inicio), fim: hhmm(fim) };
+    }),
     metricas: metricas(aulas),
     aulas,
     turmas: await buscar("SELECT t.id, t.codigo, c.nome AS curso FROM turma t JOIN curso c ON c.id = t.curso_id WHERE t.id IN (?) ORDER BY t.codigo", ids("turmaId")),

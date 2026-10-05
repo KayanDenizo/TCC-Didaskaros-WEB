@@ -107,6 +107,7 @@ export interface GradeDetalhe {
   tentativas: number | null;
   criadoEm: string;
   horarios: string[];
+  intervalos: { inicio: string; fim: string }[];
   metricas: { janelasTurmas: number; janelasProfessores: number };
   aulas: Aula[];
   turmas: { id: number; codigo: string; curso: string }[];
