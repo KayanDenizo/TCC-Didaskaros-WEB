@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { Icons, type IconName } from "./icons";
 
 /** Conta de 0 até o valor quando o cartão aparece. */
 function useContagem(alvo: number, atraso: number) {
@@ -18,31 +20,84 @@ function useContagem(alvo: number, atraso: number) {
   return valor;
 }
 
-export function StatCard({ label, value, detail, emoji, accent, delay = 0 }: {
+const CORES = {
+  blue: { icone: "bg-blue-50 text-blue-600 ring-blue-100", brilho: "rgba(37, 99, 235, 0.12)" },
+  emerald: { icone: "bg-emerald-50 text-emerald-600 ring-emerald-100", brilho: "rgba(16, 185, 129, 0.12)" },
+  amber: { icone: "bg-amber-50 text-amber-600 ring-amber-100", brilho: "rgba(245, 158, 11, 0.12)" },
+  violet: { icone: "bg-violet-50 text-violet-600 ring-violet-100", brilho: "rgba(139, 92, 246, 0.12)" },
+  red: { icone: "bg-red-50 text-red-600 ring-red-100", brilho: "rgba(239, 68, 68, 0.12)" },
+};
+
+/**
+ * Guarda a posição do cursor no elemento: `--cx/--cy` em px (para a luz) e
+ * `--px/--py` de -1 a 1 (para inclinações 3D feitas em CSS).
+ */
+export function seguirCursor(e: React.PointerEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+  el.style.setProperty("--cx", `${x}px`);
+  el.style.setProperty("--cy", `${y}px`);
+  el.style.setProperty("--px", ((x / r.width) * 2 - 1).toFixed(3));
+  el.style.setProperty("--py", ((y / r.height) * 2 - 1).toFixed(3));
+}
+
+export function soltarCursor(e: React.PointerEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  el.style.setProperty("--px", "0");
+  el.style.setProperty("--py", "0");
+}
+
+export function StatCard({ label, value, detail, icon, accent, delay = 0, to, children }: {
   label: string;
   value: number | string;
-  detail: string;
-  emoji: string;
-  accent: "blue" | "emerald" | "amber" | "violet";
+  detail: ReactNode;
+  icon: IconName;
+  accent: keyof typeof CORES;
   delay?: number;
+  /** Com destino, o cartão inteiro vira link para a página correspondente */
+  to?: string;
+  /** Visual extra abaixo do número (barra, anel…) */
+  children?: ReactNode;
 }) {
-  const cores = {
-    blue: ["bg-blue-50", "bg-blue-500"],
-    emerald: ["bg-emerald-50", "bg-emerald-500"],
-    amber: ["bg-amber-50", "bg-amber-500"],
-    violet: ["bg-violet-50", "bg-violet-500"],
-  }[accent];
+  const cor = CORES[accent];
   const contado = useContagem(typeof value === "number" ? value : 0, delay);
+  const Icon = Icons[icon];
 
-  return (
-    <div className="relative overflow-hidden bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out animate-fade-in-up group"
-      style={{ animationDelay: `${delay}ms`, animationFillMode: "backwards" }}>
-      <span className={`absolute -right-9 top-1/2 -translate-y-1/2 w-28 h-28 rounded-full ${cores[1]} opacity-[0.06]`} />
-      <span className={`absolute -right-5 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full ${cores[1]} opacity-[0.12]`} />
-      <div className={`relative w-10 h-10 rounded-xl ${cores[0]} flex items-center justify-center text-lg mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>{emoji}</div>
-      <p className="relative text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
-      <p className="relative text-3xl font-extrabold text-gray-900 tracking-tight leading-none tabular-nums">{typeof value === "number" ? contado : value}</p>
-      <p className="relative text-[11px] text-gray-400 mt-2">{detail}</p>
-    </div>
+  const conteudo = (
+    <>
+      <div className="flex items-start justify-between [transform-style:preserve-3d]">
+        <p className="flex items-center gap-1 text-[12px] font-semibold text-gray-500">
+          {label}
+          {to && (
+            <span className="-translate-x-1 text-blue-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+              <Icons.ArrowRight />
+            </span>
+          )}
+        </p>
+        <span className={`cartao-3d-icone grid h-10 w-10 place-items-center rounded-xl ring-1 ring-inset ${cor.icone}`}>
+          <Icon />
+        </span>
+      </div>
+      <p className="mt-1 text-[32px] font-extrabold text-gray-900 tracking-tight leading-none tabular-nums">
+        {typeof value === "number" ? contado : value}
+      </p>
+      <div className="mt-auto pt-3">
+        {children}
+        <p className="text-[11px] text-gray-400 mt-2">{detail}</p>
+      </div>
+    </>
   );
+
+  const comum = {
+    onPointerMove: seguirCursor,
+    onPointerLeave: soltarCursor,
+    className: `painel-cartao vidro group relative flex flex-col rounded-2xl p-5 animate-fade-up outline-none ${to ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500/50" : ""}`,
+    style: { animationDelay: `${delay}ms`, "--brilho": cor.brilho } as React.CSSProperties,
+  };
+
+  return to
+    ? <Link to={to} aria-label={`${label}: ${value}. Abrir página`} {...comum}>{conteudo}</Link>
+    : <div {...comum}>{conteudo}</div>;
 }

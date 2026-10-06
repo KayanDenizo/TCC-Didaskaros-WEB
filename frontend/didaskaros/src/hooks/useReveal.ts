@@ -12,8 +12,16 @@ export function useReveal() {
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add("is-visible");
-            io.unobserve(e.target);
+            const el = e.target as HTMLElement;
+            el.classList.add("is-visible");
+            io.unobserve(el);
+            // O atraso escalonado serve só para a entrada; depois atrasaria o hover
+            const fim = (ev: TransitionEvent) => {
+              if (ev.target !== el || ev.propertyName !== "opacity") return;
+              el.style.transitionDelay = "";
+              el.removeEventListener("transitionend", fim);
+            };
+            el.addEventListener("transitionend", fim);
           }
         });
       },

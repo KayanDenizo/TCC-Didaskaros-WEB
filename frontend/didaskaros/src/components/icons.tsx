@@ -25,6 +25,19 @@ export const Icons = {
   UserPlus: icon(<><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="M20 8v6M23 11h-6" /></>),
   Plus: icon(<path d="M12 5v14M5 12h14" />),
   LogOut: icon(<><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><path d="M21 12H9" /></>),
+  Search: icon(<><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></>),
+  Check: icon(<polyline points="20 6 9 17 4 12" />),
+  Clock: icon(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
+  Sun: icon(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></>),
+  Sunset: icon(<><path d="M17 18a5 5 0 00-10 0" /><path d="M12 9V2M4.22 10.22l1.42 1.42M1 18h2M21 18h2M18.36 11.64l1.42-1.42M23 22H1M16 5l-4 4-4-4" /></>),
+  Moon: icon(<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />),
+  Minus: icon(<path d="M5 12h14" />),
+  ArrowRight: icon(<><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></>),
+  Edit: icon(<><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z" /></>),
+  Refresh: icon(<><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></>),
+  Shield: icon(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></>),
+  Upload: icon(<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><path d="M12 3v12" /></>),
+  Zap: icon(<path d="M13 2L3 14h9l-1 8 10-12h-9z" />),
 };
 
 export type IconName = keyof typeof Icons;

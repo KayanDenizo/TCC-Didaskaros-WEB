@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { PaletaComandos } from "./PaletaComandos";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
@@ -6,7 +7,7 @@ import { Topbar } from "./Topbar";
 export function Layout() {
   const { pathname } = useLocation();
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="painel-fundo flex min-h-screen">
       <Sidebar />
       <main className="flex-1 ml-60 min-w-0 print:ml-0">
         <Topbar />
@@ -14,6 +15,7 @@ export function Layout() {
           <Outlet />
         </div>
       </main>
+      <PaletaComandos />
     </div>
   );
 }

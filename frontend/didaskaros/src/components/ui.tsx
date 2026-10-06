@@ -34,7 +34,7 @@ export function Spinner({ className = "w-4 h-4" }: { className?: string }) {
 }
 
 export function Card({ className = "", children }: { className?: string; children: ReactNode }) {
-  return <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm ${className}`}>{children}</div>;
+  return <div className={`vidro rounded-2xl ${className}`}>{children}</div>;
 }
 
 export function CardHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
@@ -91,6 +91,11 @@ export function Alert({ tone = "error", title, children }: { tone?: "error" | "w
 
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="px-5 py-10 text-center text-[13px] text-gray-400">{children}</div>;
+}
+
+/** Bloco cinza com brilho correndo, no formato do conteúdo que está carregando. */
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div aria-hidden className={`esqueleto rounded-lg ${className}`} />;
 }
 
 export function Loading() {
