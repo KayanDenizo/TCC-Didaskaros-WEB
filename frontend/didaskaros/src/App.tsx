@@ -3,6 +3,7 @@ import { RequireAuth } from "./auth/AuthContext";
 import { Layout } from "./components/Layout";
 import type { RouteHandle } from "./components/Topbar";
 import CadastroCoordenador from "./pages/CadastroCoordenador";
+import Configuracoes from "./pages/Configuracoes";
 import Disciplinas from "./pages/Disciplinas";
 import GerarGrade from "./pages/GerarGrade";
 import Grades from "./pages/Grades";
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
         pagina("/disciplinas", <Disciplinas />, { title: "Disciplinas", section: "Cadastros" }),
         pagina("/salas", <Salas />, { title: "Salas", section: "Cadastros" }),
         pagina("/perfil", <Perfil />, { title: "Meu Perfil", section: "Conta" }),
+        pagina("/configuracoes", <Configuracoes />, { title: "Configurações", section: "Sistema" }),
       ],
     }],
   },

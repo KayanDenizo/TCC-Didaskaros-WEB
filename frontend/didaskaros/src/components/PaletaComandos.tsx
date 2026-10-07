@@ -39,6 +39,7 @@ export function PaletaComandos() {
       { id: "turmas", label: "Turmas", grupo: "Páginas", icon: "Layers", termos: "classes cursos", executar: ir("/turmas") },
       { id: "disciplinas", label: "Disciplinas", grupo: "Páginas", icon: "Book", termos: "materias", executar: ir("/disciplinas") },
       { id: "salas", label: "Salas", grupo: "Páginas", icon: "Door", termos: "laboratorios", executar: ir("/salas") },
+      { id: "configuracoes", label: "Configurações", grupo: "Páginas", icon: "Settings", termos: "ajustes preferencias sistema", executar: ir("/configuracoes") },
       { id: "nova-grade", label: "Gerar nova grade com IA", grupo: "Ações", icon: "Zap", termos: "criar montar", executar: ir("/gerar-grade") },
       { id: "imprimir", label: "Ver grade publicada para imprimir", grupo: "Ações", icon: "Printer", termos: "pdf imprimir", executar: ir("/grades") },
       { id: "coordenador", label: "Cadastrar coordenador", grupo: "Ações", icon: "UserPlus", termos: "acesso usuario", executar: ir("/cadastro") },

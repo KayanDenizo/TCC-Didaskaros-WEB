@@ -23,6 +23,7 @@ const NAV: { section: string; items: { label: string; icon: IconName; to: string
       { label: "Salas", icon: "Door", to: "/salas" },
     ],
   },
+  { section: "Sistema", items: [{ label: "Configurações", icon: "Settings", to: "/configuracoes" }] },
 ];
 
 export function Sidebar() {
@@ -65,7 +66,7 @@ export function Sidebar() {
                     : "text-white/55 hover:text-white hover:bg-white/[0.04]"}`}>
                   {({ isActive }) => (
                     <>
-                      <span className={`transition-all duration-300 ${isActive ? "text-blue-200" : "group-hover:scale-110"}`}><Icon /></span>
+                      <span className={`transition-all duration-300 ${isActive ? "text-blue-200" : "group-hover:scale-110"} ${item.icon === "Settings" ? (isActive ? "rotate-90" : "group-hover:rotate-90") : ""}`}><Icon /></span>
                       <span className="transition-transform duration-200 group-hover:translate-x-0.5">{item.label}</span>
                       {item.to === "/gerar-grade" && (
                         <span className="ml-auto rounded-md bg-gradient-to-r from-blue-400/30 to-cyan-300/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-100 ring-1 ring-inset ring-white/10">IA</span>
