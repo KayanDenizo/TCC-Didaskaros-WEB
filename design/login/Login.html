@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Login</title>
+</head>
+
+<body>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif, Inter;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+        }
+
+        main {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        input {
+            outline: none;
+            border: none;
+            background: transparent;
+        }
+
+        input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+    </style>
+
+    <main>
+        <div class="esquerda bg-[#152e68] text-white text-[18px] w-1/2 h-fullflex flex-col">
+
+            <div class="logo flex p-9 mx-12">
+                <div class="flex"><img src="img/logo.svg" class=" w-[170px] bg-not-repeat object-contain"
+                        alt="Logo">
+                </div>
+            </div>
+
+            <div class="container w-[500px] flex flex-col justify-center h-[650px] mx-20">
+
+                <div class="flex flex-col justify-center align-items-center gap-3">
+
+                    <div class="flex"></div>
+                    <div
+                        class="status border-2 border-[#c7c7c7]/40 w-fit px-5 py-1 rounded-[30px] my-5 bg-[#c7c7c7]/15 font-[600] text-[#c7c7c7] text-[Inter] flex items-center gap-3">
+                        <div
+                            class="bg-green-400 w-2 h-2 rounded-full inline-block  shadow-[0_0_12px_3px_rgba(16,214,154,0.55)]">
+                        </div>
+                        Sistema ativo 2027
+                    </div>
+
+                    <div class="title text-[35px] font-[900] text-[Inter]">
+                        <h1 class="my-[-7px] text-white leading-[1.05] tracking-[-1px]">Gestão de grades</h1>
+                        <h1
+                            class=" bg-clip-text bg-gradient-to-r from-[#53acff]/90 via[#a00fff] via-[#c16cff]/60 to-[#faf3ff]/ bg-clip-text text-transparent tracking-tight">
+                            sem conflitos.</h1>
+                    </div>
+
+                    <div class="desc py-5 text-[#96a1bb] text-justify">
+                        Montagem automática de horários para ETECs e FATECs: disponibilidade de docentes, carga horária
+                        e
+                        salas resolvidas em uma única passagem.
+                    </div>
+                </div>
+
+
+                <div class="containerContent  flex flex-row justify-between text-[#96a1bb] ">
+                    <div class="content">
+                        <h2 class="text-white font-bold text-[26px]">10s</h2> <span>para gerar uma <br> grade</span>
+                    </div>
+                    <div class="content">
+                        <h2 class="text-white font-bold text-[26px]">0</h2> <span>conflitos <br> garantidos</span>
+                    </div>
+                    <div class="content">
+                        <h2 class="text-white font-bold text-[26px]">4</h2> <span>perfis de acesso</span>
+                    </div>
+                </div>
+
+            </div>
+            <footer class="text-[#a3a3a3] text-[13px] mx-5 my-[150px]">
+                            <p>&copy; 2026 Centro Paula Souza. Didaskaros v2.4</p>
+            </footer>
+            
+        </div>
+
+        <div class="direita w-1/2 flex flex-col bg-[#e9effe] justify-center items-center">
+            <div class="formulario flex justify-center items-center h-full w-[500px]">
+                <form action="" method="POST" class="bg-white rounded-[15px] p-10">
+
+                    <h3 class="font-bold text-[25px]">Bem-vindo de volta!</h3>
+                    <p class="text-[#96a1bb]">
+                        Acesse com suas credenciais institucionais para gerenciar suas grades horárias.
+                    </p>
+
+                    <div
+                        class="perfilSelecionado font-bold text-[#0b1f4b] flex justify-center border-4 border-[#cad8fb]/50 w-full px-5 py-2 rounded-[30px] my-5 ">
+                        🎓Coordenador
+                    </div>
+
+                    <div
+                        class="border-2 border-[#cad8fb]/30 w-full px-5 py-4 my-5 rounded-[17px] flex justify-between font-semibold font-[Inter]">
+                        <input type="text" name="username" placeholder="E-mail institucional" required>
+                        <span class="material-symbols-outlined text-[#96a1bb]">
+                            mail
+                        </span>
+                    </div>
+
+                    <div
+                        class="border-2 border-[#cad8fb]/30 w-full px-5 py-4 my-5 rounded-[17px] flex justify-between font-semibold font-[Inter]">
+                        <input type="password" name="password" placeholder="Senha" required>
+                        <span class="material-symbols-outlined text-[#96a1bb]">
+                            visibility
+                        </span>
+                    </div>
+
+                    <div class="flex flex-row justify-between items-center px-2">
+                        <div class="lembrarAcesso">
+                            <input type="checkbox" name="remember" id="remember">
+                            <label for="remember">Lembrar acesso</label>
+                        </div>
+                        <a href="#" class="text-[#2563eb]">Esqueci minha senha</a>
+                    </div>
+
+
+                    <button type="submit"
+                        class="botaoShine bg-gradient-to-r from-[#1e4da3] via-[#2563eb] via-[#2563eb]/70 to-[#1e4da3] w-full text-white py-4 items-center justify-center flex rounded-[13px] my-8 font-bold tracking-[1px]">Entrar
+                        na plataforma
+                        <span class="material-symbols-outlined mx-4 text-[22px]">
+                            arrow_forward
+                        </span>
+                    </button>
+
+                    <div class="acesso flex flex-col justify-center items-center w-full my-[-10px]">
+
+                        <div class="flex justify-center items-center w-full">
+                            <span
+                                class="flex h-[2px] w-1/2 bg-gradient-to-r from-[#ffff] via-[#e6e6e6] to-[#f5f5f5]"></span>
+                            <div class="demo text-[#727272] font-bold text-[15px] uppercase mx-3">Demo</div>
+                            <span
+                                class="flex h-[2px] w-1/2 bg-gradient-to-r from-[#e6e6e6] via-[#f5f5f5] to-[#ffff]"></span>
+                        </div>
+
+                        <div
+                            class="coordenadorDemo flex flex-start justify-between w-full border-2 border-[#cad8fb]/30 px-5 py-4 my-5 rounded-[17px] bg-[#cad8fb]/20 ">
+                            <h1 class="text-[#1e4da1] font-bold text-[15px] uppercase mx-3">Coordenador</h1>
+
+                            <span class="mx-3 font-mono text-[#727272]">coord@etec.sp.gov.br</span>
+                            <span class="font-mono text-[#727272]">demo123</span>
+                        </div>
+                    </div>
+            </div>
+
+        </div>
+        
+    </main>
+
+
+</body>
+
+</html>
