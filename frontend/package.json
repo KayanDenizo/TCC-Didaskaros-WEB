@@ -5,11 +5,10 @@
     "tailwindcss": "^4.3.3"
   },
   "dependencies": {
+    "@fontsource/material-symbols-outlined": "^5.3.9",
     "@tailwindcss/vite": "^4.3.3"
   },
-
   "scripts": {
-  "dev": "vite"
-}
-
+    "dev": "vite"
+  }
 }
