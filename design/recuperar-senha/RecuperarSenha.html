@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Didáskaros · Recuperar senha</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /*
+    v2: visual mais sobrio. sem brilhos, gradientes, card flutuante nem icone decorativo.
+    esquerda mostra um pedaco de grade de verdade (dados do banco de exemplo: 1DS, manha).
+  */
+  html, body { margin: 0; padding: 0; background: #E5E7EB; }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #111827; display: flex; flex-direction: column; gap: 120px; }
+  svg { display: block; flex: none; }
+
+  .tela { display: flex; width: 1440px; height: 900px; overflow: hidden; background: #FFFFFF; }
+
+  /* ---------- esquerda ---------- */
+  .esq { width: 520px; flex: none; background: #0F2456; padding: 48px; display: flex; flex-direction: column; justify-content: space-between; }
+  .meio { display: flex; flex-direction: column; gap: 28px; }
+  .grade { display: flex; flex-direction: column; gap: 6px; }
+  .grade-titulo { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.62); }
+  .linha { display: flex; gap: 4px; }
+  .hora { width: 44px; flex: none; padding-top: 6px; font-size: 11px; color: rgba(255,255,255,.45); }
+  .dia { flex: 1; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: rgba(255,255,255,.5); }
+  .aula { flex: 1; height: 40px; padding: 6px 8px; border-radius: 4px; border-left: 2px solid; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.9); }
+  .intervalo { height: 1px; margin: 4px 0 4px 48px; background: rgba(255,255,255,.12); }
+  .frase { margin: 0; max-width: 400px; font-size: 15px; line-height: 24px; color: rgba(255,255,255,.72); }
+  .rodape { font-size: 12px; color: rgba(255,255,255,.45); }
+
+  /* ---------- direita ---------- */
+  .dir { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 40px; }
+  .voltar { position: absolute; left: 64px; top: 48px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: #374151; }
+  .form { width: 380px; }
+  .passo { margin: 0 0 10px; font-size: 13px; font-weight: 500; color: #6B7280; }
+  h1 { margin: 0 0 8px; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -.015em; color: #0F172A; }
+  .sub { margin: 0 0 28px; font-size: 15px; line-height: 24px; color: #4B5563; }
+  .sub b { font-weight: 600; color: #111827; }
+
+  .campo { margin-bottom: 20px; }
+  .rotulo { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #111827; }
+  .caixa { height: 44px; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: space-between; font-size: 15px; color: #111827; }
+  .caixa.foco { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+  .pontos { letter-spacing: .14em; }
+  .mostrar { font-size: 13px; font-weight: 500; color: #1E4DA1; }
+  .dica { margin-top: 6px; font-size: 13px; line-height: 18px; color: #6B7280; }
+
+  .botao { height: 44px; margin-top: 8px; border-radius: 8px; background: #1E4DA1; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: #FFFFFF; }
+  .ajuda { margin: 20px 0 0; font-size: 14px; line-height: 21px; color: #4B5563; }
+  .link { font-weight: 500; color: #1E4DA1; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* codigo */
+  .codigo { display: flex; align-items: center; gap: 8px; }
+  .codigo .d { width: 52px; height: 56px; border: 1px solid #D1D5DB; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: #111827; }
+  .codigo .d.foco { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+  .codigo .traco { width: 12px; height: 2px; margin: 0 2px; border-radius: 1px; background: #9CA3AF; }
+  .cursor { width: 2px; height: 24px; border-radius: 1px; background: #2563EB; }
+
+  /* forca da senha: mesmo esquema do cadastro (4 barras, 3 = "Boa") */
+  .forca { display: flex; gap: 4px; margin-top: 8px; }
+  .forca span { flex: 1; height: 4px; border-radius: 2px; background: #E5E7EB; }
+  .forca span.on { background: #3B82F6; }
+  .ok { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; color: #047857; }
+
+  .feito { width: 40px; height: 40px; margin-bottom: 20px; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 1. INFORMAR E-MAIL ===================== -->
+<section class="tela" id="passo-1">
+  <div class="esq">
+    <div class="marca"><svg width="170" height="28.53" viewBox="-1.5 -8 175.78 29.5" fill="none" role="img" aria-label="Didáskaros"><defs><linearGradient id="lapis1" x1="19.72" y1="0" x2="26.32" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F7CF4A"/><stop offset="0.55" stop-color="#EDB82E"/><stop offset="1" stop-color="#C9921A"/></linearGradient></defs><path d="M9.23 20.0H2.31V0.0H9.23Q13.84 0.0 15.53 2.34Q17.23 4.67 17.23 9.66Q17.23 12.2 16.89 13.97Q16.55 15.74 15.71 17.17Q14.04 20.0 9.23 20.0ZM13.87 9.66Q13.87 6.04 12.96 4.44Q12.06 2.83 9.23 2.83H5.55V17.14H9.23Q12.12 17.14 13.08 15.01Q13.55 13.93 13.71 12.7Q13.87 11.47 13.87 9.66Z M36.54 20.0H29.62V0.0H36.54Q41.15 0.0 42.85 2.34Q44.54 4.67 44.54 9.66Q44.54 12.2 44.21 13.97Q43.87 15.74 43.02 17.17Q41.36 20.0 36.54 20.0ZM41.18 9.66Q41.18 6.04 40.28 4.44Q39.37 2.83 36.54 2.83H32.86V17.14H36.54Q39.43 17.14 40.4 15.01Q40.86 13.93 41.02 12.7Q41.18 11.47 41.18 9.66Z M47.21 20.0 52.15 0.0H58.6L63.56 20.0H60.29L59.21 15.71H51.54L50.46 20.0ZM54.66 2.72 52.18 12.85H58.57L56.12 2.72Z M72.89 2.51Q69.19 2.51 69.19 5.11Q69.19 6.45 70.06 7.02Q70.94 7.59 73.93 8.42Q76.92 9.26 78.15 10.41Q79.38 11.56 79.38 14.04Q79.38 17.2 77.58 18.76Q75.79 20.32 72.69 20.32Q70.21 20.32 67.2 19.74L66.15 19.53L66.47 16.93Q70.41 17.46 72.49 17.46Q76.11 17.46 76.11 14.25Q76.11 12.99 75.29 12.39Q74.47 11.8 71.61 11.08Q68.75 10.36 67.35 9.11Q65.95 7.85 65.95 5.14Q65.95 2.42 67.71 1.04Q69.48 -0.35 72.6 -0.35Q74.85 -0.35 77.92 0.18L78.94 0.35L78.68 2.98Q74.59 2.51 72.89 2.51Z M86.72 20.0H83.48V0.0H86.72V9.02L89.7 8.79L93.79 0.0H97.49L92.56 10.04L97.7 20.0H93.93L89.7 11.65L86.72 11.85Z M99.38 20.0 104.31 0.0H110.77L115.73 20.0H112.46L111.38 15.71H103.7L102.62 20.0ZM106.82 2.72 104.34 12.85H110.74L108.28 2.72ZM103.82 -4.41 110.71 -7.42 111.73 -4.58 104.64 -2.19Z M122.43 12.88V20.0H119.19V0.0H126.78Q133.56 0.0 133.56 6.36Q133.56 10.63 130.29 12.15L133.59 20.0H130.02L127.13 12.88ZM130.23 6.39Q130.23 2.8 126.78 2.8H122.43V10.07H126.84Q128.59 10.07 129.41 9.07Q130.23 8.06 130.23 6.39Z M165.1 2.51Q161.4 2.51 161.4 5.11Q161.4 6.45 162.27 7.02Q163.15 7.59 166.14 8.42Q169.13 9.26 170.36 10.41Q171.59 11.56 171.59 14.04Q171.59 17.2 169.79 18.76Q167.99 20.32 164.9 20.32Q162.42 20.32 159.41 19.74L158.36 19.53L158.68 16.93Q162.62 17.46 164.69 17.46Q168.32 17.46 168.32 14.25Q168.32 12.99 167.5 12.39Q166.68 11.8 163.82 11.08Q160.96 10.36 159.56 9.11Q158.15 7.85 158.15 5.14Q158.15 2.42 159.92 1.04Q161.69 -0.35 164.81 -0.35Q167.06 -0.35 170.13 0.18L171.15 0.35L170.88 2.98Q166.8 2.51 165.1 2.51Z" fill="#FFFFFF"/><path d="M19.72 5.2 L23.02 -0.9 L26.32 5.2 Z" fill="#F1D7A6"/><path d="M21.97 1.0 L23.02 -0.9 L24.07 1.0 Z" fill="#2B2B2B"/><rect x="19.72" y="5" width="6.6" height="15" rx="0.6" fill="url(#lapis1)"/><rect x="21.92" y="5" width="2.2" height="15" fill="#FFE27A" fill-opacity="0.45"/><path d="M19.72 5.25 Q20.82 6.2 21.92 5.25 Q23.02 6.2 24.12 5.25 Q25.22 6.2 26.32 5.25" stroke="#B9831A" stroke-width="0.45"/><circle cx="145.93" cy="10" r="9.1" stroke="#FFFFFF" stroke-width="2.2"/><path d="M145.93 3.4 V4.9 M152.53 10 H151.03 M145.93 16.6 V15.1 M139.33 10 H140.83" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/><path d="M145.93 10 L142.11 6.18" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><path d="M145.93 10 L145.93 14.6" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><circle cx="145.93" cy="10" r="1.1" fill="#FFFFFF"/></svg></div>
+    <div class="meio">
+      <div class="grade">
+        <div class="grade-titulo"><span>Grade do 1DS · manhã</span><span>1º sem. 2026</span></div>
+        <div class="linha"><div class="hora"></div><div class="dia">SEG</div><div class="dia">TER</div><div class="dia">QUA</div><div class="dia">QUI</div><div class="dia">SEX</div></div>
+        <div class="linha"><div class="hora">07:30</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div></div>
+        <div class="linha"><div class="hora">08:20</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(16,185,129,.16); border-color: rgb(16,185,129);">BIO</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div></div>
+        <div class="linha"><div class="hora">09:10</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div></div>
+        <div class="intervalo"></div>
+        <div class="linha"><div class="hora">10:10</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(249,115,22,.16); border-color: rgb(249,115,22);">GEO</div></div>
+        <div class="linha"><div class="hora">11:00</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div></div>
+      </div>
+      <p class="frase">Grades horárias das ETECs, montadas sem choque de horário entre professores, turmas e salas.</p>
+    </div>
+    <div class="rodape">© 2026 Didáskaros · Centro Paula Souza</div>
+  </div>
+  <div class="dir">
+    <div class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Voltar para o login</div>
+    <div class="form">
+      <p class="passo">Passo 1 de 3</p>
+      <h1>Redefinir senha</h1>
+      <p class="sub">Digite o e-mail institucional que você usa para entrar. Vamos mandar um código de 6 dígitos para ele.</p>
+      <div class="campo">
+        <span class="rotulo">E-mail institucional</span>
+        <div class="caixa foco"><span>coord@etec.sp.gov.br</span></div>
+        <div class="dica">Seu e-mail pessoal cadastrado também recebe o código.</div>
+      </div>
+      <div class="botao">Enviar código</div>
+      <p class="ajuda">Não tem mais acesso a esse e-mail? Procure a secretaria da sua unidade.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 2. CODIGO ===================== -->
+<section class="tela" id="passo-2">
+  <div class="esq">
+    <div class="marca"><svg width="170" height="28.53" viewBox="-1.5 -8 175.78 29.5" fill="none" role="img" aria-label="Didáskaros"><defs><linearGradient id="lapis2" x1="19.72" y1="0" x2="26.32" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F7CF4A"/><stop offset="0.55" stop-color="#EDB82E"/><stop offset="1" stop-color="#C9921A"/></linearGradient></defs><path d="M9.23 20.0H2.31V0.0H9.23Q13.84 0.0 15.53 2.34Q17.23 4.67 17.23 9.66Q17.23 12.2 16.89 13.97Q16.55 15.74 15.71 17.17Q14.04 20.0 9.23 20.0ZM13.87 9.66Q13.87 6.04 12.96 4.44Q12.06 2.83 9.23 2.83H5.55V17.14H9.23Q12.12 17.14 13.08 15.01Q13.55 13.93 13.71 12.7Q13.87 11.47 13.87 9.66Z M36.54 20.0H29.62V0.0H36.54Q41.15 0.0 42.85 2.34Q44.54 4.67 44.54 9.66Q44.54 12.2 44.21 13.97Q43.87 15.74 43.02 17.17Q41.36 20.0 36.54 20.0ZM41.18 9.66Q41.18 6.04 40.28 4.44Q39.37 2.83 36.54 2.83H32.86V17.14H36.54Q39.43 17.14 40.4 15.01Q40.86 13.93 41.02 12.7Q41.18 11.47 41.18 9.66Z M47.21 20.0 52.15 0.0H58.6L63.56 20.0H60.29L59.21 15.71H51.54L50.46 20.0ZM54.66 2.72 52.18 12.85H58.57L56.12 2.72Z M72.89 2.51Q69.19 2.51 69.19 5.11Q69.19 6.45 70.06 7.02Q70.94 7.59 73.93 8.42Q76.92 9.26 78.15 10.41Q79.38 11.56 79.38 14.04Q79.38 17.2 77.58 18.76Q75.79 20.32 72.69 20.32Q70.21 20.32 67.2 19.74L66.15 19.53L66.47 16.93Q70.41 17.46 72.49 17.46Q76.11 17.46 76.11 14.25Q76.11 12.99 75.29 12.39Q74.47 11.8 71.61 11.08Q68.75 10.36 67.35 9.11Q65.95 7.85 65.95 5.14Q65.95 2.42 67.71 1.04Q69.48 -0.35 72.6 -0.35Q74.85 -0.35 77.92 0.18L78.94 0.35L78.68 2.98Q74.59 2.51 72.89 2.51Z M86.72 20.0H83.48V0.0H86.72V9.02L89.7 8.79L93.79 0.0H97.49L92.56 10.04L97.7 20.0H93.93L89.7 11.65L86.72 11.85Z M99.38 20.0 104.31 0.0H110.77L115.73 20.0H112.46L111.38 15.71H103.7L102.62 20.0ZM106.82 2.72 104.34 12.85H110.74L108.28 2.72ZM103.82 -4.41 110.71 -7.42 111.73 -4.58 104.64 -2.19Z M122.43 12.88V20.0H119.19V0.0H126.78Q133.56 0.0 133.56 6.36Q133.56 10.63 130.29 12.15L133.59 20.0H130.02L127.13 12.88ZM130.23 6.39Q130.23 2.8 126.78 2.8H122.43V10.07H126.84Q128.59 10.07 129.41 9.07Q130.23 8.06 130.23 6.39Z M165.1 2.51Q161.4 2.51 161.4 5.11Q161.4 6.45 162.27 7.02Q163.15 7.59 166.14 8.42Q169.13 9.26 170.36 10.41Q171.59 11.56 171.59 14.04Q171.59 17.2 169.79 18.76Q167.99 20.32 164.9 20.32Q162.42 20.32 159.41 19.74L158.36 19.53L158.68 16.93Q162.62 17.46 164.69 17.46Q168.32 17.46 168.32 14.25Q168.32 12.99 167.5 12.39Q166.68 11.8 163.82 11.08Q160.96 10.36 159.56 9.11Q158.15 7.85 158.15 5.14Q158.15 2.42 159.92 1.04Q161.69 -0.35 164.81 -0.35Q167.06 -0.35 170.13 0.18L171.15 0.35L170.88 2.98Q166.8 2.51 165.1 2.51Z" fill="#FFFFFF"/><path d="M19.72 5.2 L23.02 -0.9 L26.32 5.2 Z" fill="#F1D7A6"/><path d="M21.97 1.0 L23.02 -0.9 L24.07 1.0 Z" fill="#2B2B2B"/><rect x="19.72" y="5" width="6.6" height="15" rx="0.6" fill="url(#lapis2)"/><rect x="21.92" y="5" width="2.2" height="15" fill="#FFE27A" fill-opacity="0.45"/><path d="M19.72 5.25 Q20.82 6.2 21.92 5.25 Q23.02 6.2 24.12 5.25 Q25.22 6.2 26.32 5.25" stroke="#B9831A" stroke-width="0.45"/><circle cx="145.93" cy="10" r="9.1" stroke="#FFFFFF" stroke-width="2.2"/><path d="M145.93 3.4 V4.9 M152.53 10 H151.03 M145.93 16.6 V15.1 M139.33 10 H140.83" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/><path d="M145.93 10 L142.11 6.18" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><path d="M145.93 10 L145.93 14.6" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><circle cx="145.93" cy="10" r="1.1" fill="#FFFFFF"/></svg></div>
+    <div class="meio">
+      <div class="grade">
+        <div class="grade-titulo"><span>Grade do 1DS · manhã</span><span>1º sem. 2026</span></div>
+        <div class="linha"><div class="hora"></div><div class="dia">SEG</div><div class="dia">TER</div><div class="dia">QUA</div><div class="dia">QUI</div><div class="dia">SEX</div></div>
+        <div class="linha"><div class="hora">07:30</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div></div>
+        <div class="linha"><div class="hora">08:20</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(16,185,129,.16); border-color: rgb(16,185,129);">BIO</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div></div>
+        <div class="linha"><div class="hora">09:10</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div></div>
+        <div class="intervalo"></div>
+        <div class="linha"><div class="hora">10:10</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(249,115,22,.16); border-color: rgb(249,115,22);">GEO</div></div>
+        <div class="linha"><div class="hora">11:00</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div></div>
+      </div>
+      <p class="frase">Grades horárias das ETECs, montadas sem choque de horário entre professores, turmas e salas.</p>
+    </div>
+    <div class="rodape">© 2026 Didáskaros · Centro Paula Souza</div>
+  </div>
+  <div class="dir">
+    <div class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Voltar para o login</div>
+    <div class="form">
+      <p class="passo">Passo 2 de 3</p>
+      <h1>Confira seu e-mail</h1>
+      <p class="sub">Mandamos um código para <b>co•••@etec.sp.gov.br</b>. Ele vale por 15 minutos.</p>
+      <div class="campo">
+        <span class="rotulo">Código de verificação</span>
+        <div class="codigo">
+          <div class="d">4</div><div class="d">8</div><div class="d">2</div>
+          <div class="traco"></div>
+          <div class="d">9</div><div class="d foco"><div class="cursor"></div></div><div class="d"></div>
+        </div>
+      </div>
+      <div class="botao">Continuar</div>
+      <p class="ajuda">Não chegou? Veja na caixa de spam ou peça outro código em 0:42.<br><span class="link">Usar outro e-mail</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. NOVA SENHA ===================== -->
+<section class="tela" id="passo-3">
+  <div class="esq">
+    <div class="marca"><svg width="170" height="28.53" viewBox="-1.5 -8 175.78 29.5" fill="none" role="img" aria-label="Didáskaros"><defs><linearGradient id="lapis3" x1="19.72" y1="0" x2="26.32" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F7CF4A"/><stop offset="0.55" stop-color="#EDB82E"/><stop offset="1" stop-color="#C9921A"/></linearGradient></defs><path d="M9.23 20.0H2.31V0.0H9.23Q13.84 0.0 15.53 2.34Q17.23 4.67 17.23 9.66Q17.23 12.2 16.89 13.97Q16.55 15.74 15.71 17.17Q14.04 20.0 9.23 20.0ZM13.87 9.66Q13.87 6.04 12.96 4.44Q12.06 2.83 9.23 2.83H5.55V17.14H9.23Q12.12 17.14 13.08 15.01Q13.55 13.93 13.71 12.7Q13.87 11.47 13.87 9.66Z M36.54 20.0H29.62V0.0H36.54Q41.15 0.0 42.85 2.34Q44.54 4.67 44.54 9.66Q44.54 12.2 44.21 13.97Q43.87 15.74 43.02 17.17Q41.36 20.0 36.54 20.0ZM41.18 9.66Q41.18 6.04 40.28 4.44Q39.37 2.83 36.54 2.83H32.86V17.14H36.54Q39.43 17.14 40.4 15.01Q40.86 13.93 41.02 12.7Q41.18 11.47 41.18 9.66Z M47.21 20.0 52.15 0.0H58.6L63.56 20.0H60.29L59.21 15.71H51.54L50.46 20.0ZM54.66 2.72 52.18 12.85H58.57L56.12 2.72Z M72.89 2.51Q69.19 2.51 69.19 5.11Q69.19 6.45 70.06 7.02Q70.94 7.59 73.93 8.42Q76.92 9.26 78.15 10.41Q79.38 11.56 79.38 14.04Q79.38 17.2 77.58 18.76Q75.79 20.32 72.69 20.32Q70.21 20.32 67.2 19.74L66.15 19.53L66.47 16.93Q70.41 17.46 72.49 17.46Q76.11 17.46 76.11 14.25Q76.11 12.99 75.29 12.39Q74.47 11.8 71.61 11.08Q68.75 10.36 67.35 9.11Q65.95 7.85 65.95 5.14Q65.95 2.42 67.71 1.04Q69.48 -0.35 72.6 -0.35Q74.85 -0.35 77.92 0.18L78.94 0.35L78.68 2.98Q74.59 2.51 72.89 2.51Z M86.72 20.0H83.48V0.0H86.72V9.02L89.7 8.79L93.79 0.0H97.49L92.56 10.04L97.7 20.0H93.93L89.7 11.65L86.72 11.85Z M99.38 20.0 104.31 0.0H110.77L115.73 20.0H112.46L111.38 15.71H103.7L102.62 20.0ZM106.82 2.72 104.34 12.85H110.74L108.28 2.72ZM103.82 -4.41 110.71 -7.42 111.73 -4.58 104.64 -2.19Z M122.43 12.88V20.0H119.19V0.0H126.78Q133.56 0.0 133.56 6.36Q133.56 10.63 130.29 12.15L133.59 20.0H130.02L127.13 12.88ZM130.23 6.39Q130.23 2.8 126.78 2.8H122.43V10.07H126.84Q128.59 10.07 129.41 9.07Q130.23 8.06 130.23 6.39Z M165.1 2.51Q161.4 2.51 161.4 5.11Q161.4 6.45 162.27 7.02Q163.15 7.59 166.14 8.42Q169.13 9.26 170.36 10.41Q171.59 11.56 171.59 14.04Q171.59 17.2 169.79 18.76Q167.99 20.32 164.9 20.32Q162.42 20.32 159.41 19.74L158.36 19.53L158.68 16.93Q162.62 17.46 164.69 17.46Q168.32 17.46 168.32 14.25Q168.32 12.99 167.5 12.39Q166.68 11.8 163.82 11.08Q160.96 10.36 159.56 9.11Q158.15 7.85 158.15 5.14Q158.15 2.42 159.92 1.04Q161.69 -0.35 164.81 -0.35Q167.06 -0.35 170.13 0.18L171.15 0.35L170.88 2.98Q166.8 2.51 165.1 2.51Z" fill="#FFFFFF"/><path d="M19.72 5.2 L23.02 -0.9 L26.32 5.2 Z" fill="#F1D7A6"/><path d="M21.97 1.0 L23.02 -0.9 L24.07 1.0 Z" fill="#2B2B2B"/><rect x="19.72" y="5" width="6.6" height="15" rx="0.6" fill="url(#lapis3)"/><rect x="21.92" y="5" width="2.2" height="15" fill="#FFE27A" fill-opacity="0.45"/><path d="M19.72 5.25 Q20.82 6.2 21.92 5.25 Q23.02 6.2 24.12 5.25 Q25.22 6.2 26.32 5.25" stroke="#B9831A" stroke-width="0.45"/><circle cx="145.93" cy="10" r="9.1" stroke="#FFFFFF" stroke-width="2.2"/><path d="M145.93 3.4 V4.9 M152.53 10 H151.03 M145.93 16.6 V15.1 M139.33 10 H140.83" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/><path d="M145.93 10 L142.11 6.18" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><path d="M145.93 10 L145.93 14.6" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><circle cx="145.93" cy="10" r="1.1" fill="#FFFFFF"/></svg></div>
+    <div class="meio">
+      <div class="grade">
+        <div class="grade-titulo"><span>Grade do 1DS · manhã</span><span>1º sem. 2026</span></div>
+        <div class="linha"><div class="hora"></div><div class="dia">SEG</div><div class="dia">TER</div><div class="dia">QUA</div><div class="dia">QUI</div><div class="dia">SEX</div></div>
+        <div class="linha"><div class="hora">07:30</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div></div>
+        <div class="linha"><div class="hora">08:20</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(16,185,129,.16); border-color: rgb(16,185,129);">BIO</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div></div>
+        <div class="linha"><div class="hora">09:10</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div></div>
+        <div class="intervalo"></div>
+        <div class="linha"><div class="hora">10:10</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(249,115,22,.16); border-color: rgb(249,115,22);">GEO</div></div>
+        <div class="linha"><div class="hora">11:00</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div></div>
+      </div>
+      <p class="frase">Grades horárias das ETECs, montadas sem choque de horário entre professores, turmas e salas.</p>
+    </div>
+    <div class="rodape">© 2026 Didáskaros · Centro Paula Souza</div>
+  </div>
+  <div class="dir">
+    <div class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>Voltar para o login</div>
+    <div class="form">
+      <p class="passo">Passo 3 de 3</p>
+      <h1>Crie uma nova senha</h1>
+      <p class="sub">Ela precisa ter pelo menos 8 caracteres.</p>
+      <div class="campo">
+        <span class="rotulo">Nova senha</span>
+        <div class="caixa"><span class="pontos">••••••••••</span><span class="mostrar">Mostrar</span></div>
+        <div class="forca"><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+        <div class="dica">Boa</div>
+      </div>
+      <div class="campo">
+        <span class="rotulo">Repita a nova senha</span>
+        <div class="caixa foco"><span class="pontos">••••••••••</span><span class="mostrar">Mostrar</span></div>
+        <div class="ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>As senhas são iguais</div>
+      </div>
+      <div class="botao">Salvar nova senha</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. CONCLUIDO ===================== -->
+<section class="tela" id="passo-4">
+  <div class="esq">
+    <div class="marca"><svg width="170" height="28.53" viewBox="-1.5 -8 175.78 29.5" fill="none" role="img" aria-label="Didáskaros"><defs><linearGradient id="lapis4" x1="19.72" y1="0" x2="26.32" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F7CF4A"/><stop offset="0.55" stop-color="#EDB82E"/><stop offset="1" stop-color="#C9921A"/></linearGradient></defs><path d="M9.23 20.0H2.31V0.0H9.23Q13.84 0.0 15.53 2.34Q17.23 4.67 17.23 9.66Q17.23 12.2 16.89 13.97Q16.55 15.74 15.71 17.17Q14.04 20.0 9.23 20.0ZM13.87 9.66Q13.87 6.04 12.96 4.44Q12.06 2.83 9.23 2.83H5.55V17.14H9.23Q12.12 17.14 13.08 15.01Q13.55 13.93 13.71 12.7Q13.87 11.47 13.87 9.66Z M36.54 20.0H29.62V0.0H36.54Q41.15 0.0 42.85 2.34Q44.54 4.67 44.54 9.66Q44.54 12.2 44.21 13.97Q43.87 15.74 43.02 17.17Q41.36 20.0 36.54 20.0ZM41.18 9.66Q41.18 6.04 40.28 4.44Q39.37 2.83 36.54 2.83H32.86V17.14H36.54Q39.43 17.14 40.4 15.01Q40.86 13.93 41.02 12.7Q41.18 11.47 41.18 9.66Z M47.21 20.0 52.15 0.0H58.6L63.56 20.0H60.29L59.21 15.71H51.54L50.46 20.0ZM54.66 2.72 52.18 12.85H58.57L56.12 2.72Z M72.89 2.51Q69.19 2.51 69.19 5.11Q69.19 6.45 70.06 7.02Q70.94 7.59 73.93 8.42Q76.92 9.26 78.15 10.41Q79.38 11.56 79.38 14.04Q79.38 17.2 77.58 18.76Q75.79 20.32 72.69 20.32Q70.21 20.32 67.2 19.74L66.15 19.53L66.47 16.93Q70.41 17.46 72.49 17.46Q76.11 17.46 76.11 14.25Q76.11 12.99 75.29 12.39Q74.47 11.8 71.61 11.08Q68.75 10.36 67.35 9.11Q65.95 7.85 65.95 5.14Q65.95 2.42 67.71 1.04Q69.48 -0.35 72.6 -0.35Q74.85 -0.35 77.92 0.18L78.94 0.35L78.68 2.98Q74.59 2.51 72.89 2.51Z M86.72 20.0H83.48V0.0H86.72V9.02L89.7 8.79L93.79 0.0H97.49L92.56 10.04L97.7 20.0H93.93L89.7 11.65L86.72 11.85Z M99.38 20.0 104.31 0.0H110.77L115.73 20.0H112.46L111.38 15.71H103.7L102.62 20.0ZM106.82 2.72 104.34 12.85H110.74L108.28 2.72ZM103.82 -4.41 110.71 -7.42 111.73 -4.58 104.64 -2.19Z M122.43 12.88V20.0H119.19V0.0H126.78Q133.56 0.0 133.56 6.36Q133.56 10.63 130.29 12.15L133.59 20.0H130.02L127.13 12.88ZM130.23 6.39Q130.23 2.8 126.78 2.8H122.43V10.07H126.84Q128.59 10.07 129.41 9.07Q130.23 8.06 130.23 6.39Z M165.1 2.51Q161.4 2.51 161.4 5.11Q161.4 6.45 162.27 7.02Q163.15 7.59 166.14 8.42Q169.13 9.26 170.36 10.41Q171.59 11.56 171.59 14.04Q171.59 17.2 169.79 18.76Q167.99 20.32 164.9 20.32Q162.42 20.32 159.41 19.74L158.36 19.53L158.68 16.93Q162.62 17.46 164.69 17.46Q168.32 17.46 168.32 14.25Q168.32 12.99 167.5 12.39Q166.68 11.8 163.82 11.08Q160.96 10.36 159.56 9.11Q158.15 7.85 158.15 5.14Q158.15 2.42 159.92 1.04Q161.69 -0.35 164.81 -0.35Q167.06 -0.35 170.13 0.18L171.15 0.35L170.88 2.98Q166.8 2.51 165.1 2.51Z" fill="#FFFFFF"/><path d="M19.72 5.2 L23.02 -0.9 L26.32 5.2 Z" fill="#F1D7A6"/><path d="M21.97 1.0 L23.02 -0.9 L24.07 1.0 Z" fill="#2B2B2B"/><rect x="19.72" y="5" width="6.6" height="15" rx="0.6" fill="url(#lapis4)"/><rect x="21.92" y="5" width="2.2" height="15" fill="#FFE27A" fill-opacity="0.45"/><path d="M19.72 5.25 Q20.82 6.2 21.92 5.25 Q23.02 6.2 24.12 5.25 Q25.22 6.2 26.32 5.25" stroke="#B9831A" stroke-width="0.45"/><circle cx="145.93" cy="10" r="9.1" stroke="#FFFFFF" stroke-width="2.2"/><path d="M145.93 3.4 V4.9 M152.53 10 H151.03 M145.93 16.6 V15.1 M139.33 10 H140.83" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/><path d="M145.93 10 L142.11 6.18" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><path d="M145.93 10 L145.93 14.6" stroke="#FFFFFF" stroke-width="1.35" stroke-linecap="round"/><circle cx="145.93" cy="10" r="1.1" fill="#FFFFFF"/></svg></div>
+    <div class="meio">
+      <div class="grade">
+        <div class="grade-titulo"><span>Grade do 1DS · manhã</span><span>1º sem. 2026</span></div>
+        <div class="linha"><div class="hora"></div><div class="dia">SEG</div><div class="dia">TER</div><div class="dia">QUA</div><div class="dia">QUI</div><div class="dia">SEX</div></div>
+        <div class="linha"><div class="hora">07:30</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div></div>
+        <div class="linha"><div class="hora">08:20</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(99,102,241,.16); border-color: rgb(99,102,241);">BD</div><div class="aula" style="background: rgba(101,163,13,.16); border-color: rgb(101,163,13);">DS</div><div class="aula" style="background: rgba(16,185,129,.16); border-color: rgb(16,185,129);">BIO</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div></div>
+        <div class="linha"><div class="hora">09:10</div><div class="aula" style="background: rgba(139,92,246,.16); border-color: rgb(139,92,246);">POR</div><div class="aula" style="background: rgba(20,184,166,.16); border-color: rgb(20,184,166);">ING</div><div class="aula" style="background: rgba(59,130,246,.16); border-color: rgb(59,130,246);">MAT</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div></div>
+        <div class="intervalo"></div>
+        <div class="linha"><div class="hora">10:10</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(236,72,153,.16); border-color: rgb(236,72,153);">FIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(249,115,22,.16); border-color: rgb(249,115,22);">GEO</div></div>
+        <div class="linha"><div class="hora">11:00</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(6,182,212,.16); border-color: rgb(6,182,212);">HIS</div><div class="aula" style="background: rgba(245,158,11,.16); border-color: rgb(245,158,11);">QUI</div><div class="aula" style="background: rgba(244,63,94,.16); border-color: rgb(244,63,94);">PW</div><div class="aula" style="background: rgba(217,70,239,.16); border-color: rgb(217,70,239);">APS</div></div>
+      </div>
+      <p class="frase">Grades horárias das ETECs, montadas sem choque de horário entre professores, turmas e salas.</p>
+    </div>
+    <div class="rodape">© 2026 Didáskaros · Centro Paula Souza</div>
+  </div>
+  <div class="dir">
+    <div class="form">
+      <div class="feito"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h1>Senha alterada</h1>
+      <p class="sub">Pronto. A partir de agora, entre com a nova senha.</p>
+      <div class="botao">Ir para o login</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
