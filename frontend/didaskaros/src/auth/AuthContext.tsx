@@ -10,7 +10,7 @@ interface Auth {
   carregando: boolean;
   entrar: (tokenRecebido: string, usuario: Usuario, lembrar: boolean) => void;
   sair: () => void;
-  /** Mostra a tela de abertura (logo + relógio) logo depois do login. */
+  /** mostra a abertura (logo + relogio) logo dps do login */
   abertura: boolean;
   encerrarAbertura: () => void;
 }
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [abertura, setAbertura] = useState(false);
   const encerrarAbertura = useCallback(() => setAbertura(false), []);
 
-  // Com token salvo, recupera o usuário ao abrir a página
+  // se tiver token salvo, busca o usuario qnd abre a pagina
   useEffect(() => {
     if (!token.get()) {
       loginProvisorio().finally(() => setCarregando(false));
@@ -35,8 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setCarregando(false));
   }, []);
 
-  // PROVISÓRIO: a tela de Login é da Julia. Até ela chegar, entra direto com a
-  // coordenadora do banco de exemplo. Remover quando a rota /login voltar.
+  // PROVISORIO: a tela de login fica com a Julia. ate ela terminar, entra direto com a
+  // coordenadora do banco de exemplo. tirar isso qnd a rota /login voltar
   async function loginProvisorio() {
     try {
       const { data } = await api.post<{ token: string; usuario: Usuario }>("/auth/login", {
@@ -72,7 +72,7 @@ export function useAuth() {
   return ctx;
 }
 
-/** Rotas que exigem login. */
+/** rotas q precisam de login */
 export function RequireAuth() {
   const { usuario, carregando, abertura, encerrarAbertura } = useAuth();
   if (carregando) return <Loading />;

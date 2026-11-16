@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 
 const DURACAO_MS = 2600;
 
-// Abertura depois do login: os ponteiros giram e o zoom no relógio revela o painel.
+// abertura dps do login: os ponteiros giram e o zoom no relogio mostra o painel
 export function Abertura({ onFim }: { onFim: () => void }) {
   useEffect(() => {
     const semAnimacao = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

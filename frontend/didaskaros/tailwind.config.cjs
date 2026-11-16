@@ -7,7 +7,7 @@ module.exports = {
         archivo: ["Archivo", "sans-serif"],
         display: ["Manrope", "Inter", "sans-serif"],
       },
-      // Paleta da landing page
+      // paleta da landing page
       colors: {
         brand: { DEFAULT: "#3B5BDB", 2: "#5C7CFA", accent: "#74C0FC" },
         ink: "#0F172A",

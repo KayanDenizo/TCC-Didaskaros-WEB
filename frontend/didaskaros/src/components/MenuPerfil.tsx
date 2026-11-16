@@ -10,13 +10,13 @@ const OPCOES: { label: string; desc: string; icon: IconName; to: string }[] = [
   { label: "Cadastrar coordenador", desc: "Dar acesso a outra pessoa da coordenação", icon: "UserPlus", to: "/cadastro" },
 ];
 
-/** Avatar do canto superior direito com o menu da conta. */
+/** avatar no canto de cima com o menu da conta */
 export function MenuPerfil() {
   const { usuario, sair } = useAuth();
   const [aberto, setAberto] = useState(false);
   const raiz = useRef<HTMLDivElement>(null);
 
-  // Fecha ao clicar fora ou apertar Esc
+  // fecha se clicar fora ou apertar Esc
   useEffect(() => {
     if (!aberto) return;
     const clique = (e: MouseEvent) => { if (!raiz.current?.contains(e.target as Node)) setAberto(false); };

@@ -17,7 +17,7 @@ const SUGESTOES = [
   "Evite aulas no último horário de sexta",
 ];
 
-// Chat com a IA sobre a grade. Quando ela altera a grade, a nova versão chega por onNovaVersao.
+// chat com a IA sobre a grade. qnd ela muda a grade, a versao nova chega pelo onNovaVersao
 export function ChatAjuste({ grade, onNovaVersao }: { grade: GradeDetalhe; onNovaVersao: (g: GradeDetalhe) => void }) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState("");
@@ -43,7 +43,7 @@ export function ChatAjuste({ grade, onNovaVersao }: { grade: GradeDetalhe; onNov
     }
   }
 
-  // Acompanha a resposta da IA
+  // fica olhando a resposta da IA
   useEffect(() => {
     if (job?.status !== "executando") return;
     const timer = setTimeout(async () => {

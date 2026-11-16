@@ -1,4 +1,4 @@
-// Uma cor por disciplina, escolhida de forma estável a partir do id.
+// uma cor pra cada disciplina, sempre a mesma pro mesmo id
 const PALETA = [
   { cell: "bg-blue-50 border-l-blue-500 text-blue-800", dot: "bg-blue-500" },
   { cell: "bg-violet-50 border-l-violet-500 text-violet-800", dot: "bg-violet-500" },

@@ -11,8 +11,8 @@ import { TURNOS } from "./cadastros.js";
 const TURNO_NOME: Record<Turno, string> = { MANHA: "manhã", TARDE: "tarde", NOITE: "noite" };
 const minutos = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5));
 
-// Aulas que os professores já têm nos outros turnos do semestre (a grade publicada ou,
-// se não tiver, o rascunho mais novo). Usadas nas regras de jornada.
+// aulas q os professores ja tem nos outros turnos do semestre (pega a grade publicada
+// ou, se nao tiver, o rascunho mais novo). usa nas regras de jornada
 async function aulasDeOutrosTurnos(unidadeId: number, turno: Turno, ano: number, semestre: number) {
   const grades = await select<{ id: number; turno: Turno }>(
     `SELECT id, turno FROM grade
@@ -32,7 +32,7 @@ async function aulasDeOutrosTurnos(unidadeId: number, turno: Turno, ano: number,
   return aulas.map((a) => ({ ...a, turno: turnoDaGrade.get(a.gradeId)! }));
 }
 
-/** Lê do banco tudo o que a geração de um turno precisa. */
+/** puxa do banco tudo q a geracao de um turno precisa */
 async function carregarDados(
   unidadeId: number, turno: Turno, aulasPorDia: number, ano: number, semestre: number, preferencias: string[],
 ): Promise<DadosGeracao> {
@@ -110,8 +110,8 @@ async function carregarDados(
   };
 }
 
-// Jobs em memória: o POST responde na hora com um id e o front consulta
-// GET /grades/jobs/:id até terminar, porque a IA pode levar alguns minutos.
+// os jobs ficam na memoria: o POST responde na hora com um id e o front fica consultando
+// GET /grades/jobs/:id ate acabar, pq a IA pode demorar uns minutos
 
 interface Job {
   id: string;
@@ -120,7 +120,7 @@ interface Job {
   etapa: string;
   tentativa: number;
   gradeId?: number;
-  resposta?: string; // texto da IA (ajuste conversacional)
+  resposta?: string; // texto da IA (ajuste pelo chat)
   erro?: string;
   iniciadoEm: number;
 }
@@ -132,7 +132,7 @@ function limparJobsAntigos() {
   for (const [id, job] of jobs) if (Date.now() - job.iniciadoEm > UMA_HORA) jobs.delete(id);
 }
 
-/** Cria um job, responde 202 com o id e roda a tarefa em segundo plano. */
+/** cria o job, responde 202 com o id e roda a tarefa em segundo plano */
 function iniciarJob(
   res: import("express").Response, unidadeId: number,
   tarefa: (progresso: (etapa: string, tentativa: number) => void) => Promise<{ gradeId?: number; resposta?: string }>,
@@ -156,7 +156,7 @@ function exigirChave() {
   }
 }
 
-// Avisos de cadastro incompleto que não impedem a geração.
+// avisos de cadastro incompleto q nao impedem de gerar
 function avisosDeCadastro(dados: DadosGeracao): string[] {
   const avisos: string[] = [];
   const usadas = new Set(dados.turmas.flatMap((t) => t.cargas.map((c) => c.disciplinaId)));
@@ -228,7 +228,7 @@ gradesRouter.post("/gerar", async (req, res) => {
   });
 });
 
-// O que falta ou está inconsistente nos cadastros de um turno, antes de gerar.
+// o q ta faltando ou inconsistente nos cadastros de um turno, antes de gerar
 gradesRouter.get("/diagnostico", async (req, res) => {
   const { turno, aulasPorDia } = parse(
     z.object({ turno: z.enum(TURNOS), aulasPorDia: z.coerce.number().int().min(1).max(8).default(5) }), req.query,
@@ -258,7 +258,7 @@ gradesRouter.get("/", async (req, res) => {
   res.json(grades.map(({ violacoes, ...g }) => ({ ...g, conflitos: jsonArray(violacoes).length })));
 });
 
-/** MySQL devolve JSON como objeto; MariaDB como string. */
+/** o mysql devolve JSON como objeto e o mariadb como string */
 function jsonArray(v: unknown): unknown[] {
   const parsed = typeof v === "string" ? JSON.parse(v) : v;
   return Array.isArray(parsed) ? parsed : [];
@@ -288,7 +288,7 @@ gradesRouter.get("/:id", async (req, res) => {
     restricoes: jsonArray(grade.restricoes),
     violacoes: jsonArray(grade.violacoes),
     horarios: horarios(grade.turno, grade.aulasPorDia),
-    // Início/fim de cada aula, para saber quem está em aula agora
+    // inicio/fim de cada aula, pra saber quem ta em aula agora
     intervalos: Array.from({ length: grade.aulasPorDia }, (_, i) => {
       const { inicio, fim } = intervaloAula(grade.turno, i);
       return { inicio: hhmm(inicio), fim: hhmm(fim) };
@@ -314,7 +314,7 @@ gradesRouter.patch("/:id/status", async (req, res) => {
     if (!grade) throw new HttpError(404, "Grade não encontrada.");
     if (status === "PUBLICADA") {
       if (jsonArray(grade.violacoes).length) throw new HttpError(409, "Grade com conflitos não pode ser publicada. Gere novamente.");
-      // Só uma grade publicada por turno/semestre: a anterior vai para o arquivo.
+      // so pode ter uma grade publicada por turno/semestre, a antiga vai pro arquivo
       await exec(
         `UPDATE grade SET status = 'ARQUIVADA'
          WHERE escola_id = ? AND turno = ? AND ano = ? AND semestre = ? AND status = 'PUBLICADA' AND id <> ?`,
@@ -333,7 +333,7 @@ gradesRouter.delete("/:id", async (req, res) => {
   res.status(204).end();
 });
 
-// Revalida uma grade salva contra os dados atuais (útil depois de editar cadastros).
+// revalida uma grade salva com os dados de agora (serve pra qnd mexeram nos cadastros dps)
 gradesRouter.post("/:id/validar", async (req, res) => {
   const { id } = parse(idParam, req.params);
   const unidadeId = req.sessao.unidadeId;
@@ -351,7 +351,7 @@ gradesRouter.post("/:id/validar", async (req, res) => {
   res.json({ violacoes });
 });
 
-// Conversa com a IA sobre uma grade. Se o pedido muda a grade, salva uma nova versão (rascunho).
+// conversa com a IA sobre a grade. se o pedido mudar a grade salva uma versao nova (rascunho)
 const ajusteSchema = z.object({
   mensagem: z.string().trim().min(1).max(2000),
   historico: z.array(z.object({ papel: z.enum(["coordenador", "ia"]), texto: z.string().max(4000) })).max(40).default([]),

@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 
 /**
- * Efeitos interativos da landing. Tudo é feito com variáveis CSS (o visual fica no
- * index.css); aqui só medimos rolagem e mouse.
+ * efeitos interativos da landing. tudo funciona com variavel css (o visual ta no
+ * index.css), aqui so mede rolagem e mouse.
  *
- * - `--rolagem` (0..1) na .landing: progresso da página, usado na barra do topo
- * - `--hero` (0..1) na .landing: quanto o hero já saiu da tela
- * - `[data-rolagem]` ganha `--p` (0..1) conforme atravessa a tela
- * - `[data-fixo]` ganha `--f` (0..1) conforme a seção fixa é rolada
- * - `--hx/--hy` (-1..1) no hero: posição do mouse, para o parallax do fundo
- * - `.cartao`: luz seguindo o cursor (`--cx/--cy`) e inclinação 3D (`rotate`)
- * - `[data-luz]`: brilho que acompanha o mouse na seção (`--lx/--ly`)
+ * - `--rolagem` (0..1) na .landing: progresso da pagina, usado na barra do topo
+ * - `--hero` (0..1) na .landing: o quanto o hero ja saiu da tela
+ * - `[data-rolagem]` ganha `--p` (0..1) conforme passa pela tela
+ * - `[data-fixo]` ganha `--f` (0..1) conforme rola a secao fixa
+ * - `--hx/--hy` (-1..1) no hero: posicao do mouse, pro parallax do fundo
+ * - `.cartao`: luz seguindo o mouse (`--cx/--cy`) e inclinacao 3D (`rotate`)
+ * - `[data-luz]`: brilho q segue o mouse na secao (`--lx/--ly`)
  */
 export function useEfeitosLanding() {
   useEffect(() => {
@@ -30,9 +30,9 @@ export function useEfeitosLanding() {
       limpar.push(() => alvo.removeEventListener(tipo, fn as EventListener));
     }
 
-    // Elementos animados pela rolagem. O valor medido é só o alvo: o valor aplicado
-    // corre atrás dele a cada quadro, para a roda do mouse (que pula de 100 em 100px)
-    // virar um movimento contínuo.
+    // elementos q animam com a rolagem. o valor medido serve so de alvo, o valor aplicado
+    // vai correndo atras dele a cada frame, assim a rodinha do mouse (q pula de 100 em 100px)
+    // vira um movimento continuo
     const rolaveis = [...document.querySelectorAll<HTMLElement>("[data-rolagem]")];
     const fixos = [...document.querySelectorAll<HTMLElement>("[data-fixo]")];
     const alvo = new Map<HTMLElement, number>();
@@ -55,7 +55,7 @@ export function useEfeitosLanding() {
     };
     limpar.push(() => cancelAnimationFrame(quadroSuave));
 
-    // Rolagem — no máximo uma medição por quadro
+    // rolagem: no maximo uma medicao por frame
     let quadro = 0;
     const medirRolagem = () => {
       quadro = 0;
@@ -64,12 +64,12 @@ export function useEfeitosLanding() {
       raiz.style.setProperty("--rolagem", (max > 0 ? window.scrollY / max : 0).toFixed(4));
       if (!reduzido) raiz.style.setProperty("--hero", Math.min(window.scrollY / 700, 1).toFixed(4));
 
-      // --p: 0 quando o elemento surge embaixo, 0.5 no meio da tela, 1 quando some em cima
+      // --p: 0 qnd o elemento aparece embaixo, 0.5 no meio da tela, 1 qnd some em cima
       for (const el of rolaveis) {
         const r = el.getBoundingClientRect();
         alvo.set(el, reduzido ? 0.5 : limitar((vh - r.top) / (vh + r.height)));
       }
-      // --f: progresso dentro de uma seção com conteúdo fixo (sticky)
+      // --f: progresso dentro de uma secao com conteudo fixo (sticky)
       for (const el of fixos) {
         const r = el.getBoundingClientRect();
         alvo.set(el, reduzido ? 1 : limitar(-r.top / Math.max(r.height - vh, 1)));
@@ -92,10 +92,10 @@ export function useEfeitosLanding() {
           const y = e.clientY - r.top;
           el.style.setProperty("--cx", `${x}px`);
           el.style.setProperty("--cy", `${y}px`);
-          // Gira em torno de um eixo perpendicular ao cursor: o canto apontado afunda
+          // gira num eixo perpendicular ao mouse, ai o canto apontado afunda
           const dx = x / r.width - 0.5;
           const dy = y / r.height - 0.5;
-          // Blocos grandes giram menos: o mesmo ângulo num bloco largo parece exagerado
+          // bloco grande gira menos, o mesmo angulo num bloco largo fica exagerado
           const angulo = Math.hypot(dx, dy) * 12 * Math.min(1, 320 / r.width);
           if (angulo > 0.05) el.style.rotate = `${(-dy).toFixed(3)} ${dx.toFixed(3)} 0 ${angulo.toFixed(2)}deg`;
         });

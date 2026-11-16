@@ -3,7 +3,7 @@ import { PaletaComandos } from "./PaletaComandos";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
-/** Moldura das páginas internas: menu lateral + barra superior. */
+/** moldura das paginas de dentro: menu lateral + barra de cima */
 export function Layout() {
   const { pathname } = useLocation();
   return (

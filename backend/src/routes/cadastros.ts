@@ -6,8 +6,8 @@ import { HttpError, idParam, parse } from "../http.js";
 export const TURNOS = ["MANHA", "TARDE", "NOITE"] as const;
 
 /**
- * CRUD de uma tabela simples da unidade (disciplina, sala).
- * `colunas` mapeia campo da API → coluna do banco.
+ * crud de tabela simples da unidade (disciplina, sala).
+ * `colunas` liga o campo da api -> coluna no banco
  */
 function crudSimples<S extends z.ZodObject>(tabela: string, colunas: Record<keyof z.infer<S> & string, string>, schema: S, ordem: string) {
   const r = Router();
@@ -70,7 +70,7 @@ export const salasRouter = crudSimples(
   "tipo, nome",
 );
 
-// Professores (com habilitações e indisponibilidades)
+// professores (com habilitacoes e indisponibilidades)
 
 const slot = z.object({ turno: z.enum(TURNOS), dia: z.number().int().min(0).max(4), ordem: z.number().int().min(0).max(9) });
 const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida (use HH:MM).");
@@ -92,10 +92,15 @@ const professorSchema = z.object({
   }).refine((c) => c.inicio < c.fim, "O compromisso precisa terminar depois de começar.")).default([]),
 });
 
-async function garantirDaUnidade(tabela: string, ids: number[], unidadeId: number, conn: Conn) {
+const INVALIDOS = {
+  disciplina: "Há disciplinas inválidas na requisição.",
+  professor: "Há professores inválidos na requisição.",
+};
+
+async function garantirDaUnidade(tabela: keyof typeof INVALIDOS, ids: number[], unidadeId: number, conn: Conn) {
   if (!ids.length) return;
   const rows = await select<{ id: number }>(`SELECT id FROM ${tabela} WHERE escola_id = ? AND id IN (?)`, [unidadeId, ids], conn);
-  if (rows.length !== new Set(ids).size) throw new HttpError(400, `Há ${tabela}s inválidas na requisição.`);
+  if (rows.length !== new Set(ids).size) throw new HttpError(400, INVALIDOS[tabela]);
 }
 
 async function salvarVinculosProfessor(id: number, d: z.infer<typeof professorSchema>, unidadeId: number, conn: Conn) {
@@ -113,7 +118,7 @@ async function salvarVinculosProfessor(id: number, d: z.infer<typeof professorSc
       [d.indisponibilidades.map((s) => [id, s.turno, s.dia, s.ordem])], conn,
     );
   }
-  // Horário indisponível não pode ser também "preferido": a indisponibilidade vence.
+  // horario indisponivel nao pode ser "preferido" tb, a indisponibilidade ganha
   const indisp = new Set(d.indisponibilidades.map((s) => `${s.turno}:${s.dia}:${s.ordem}`));
   const prefs = d.preferencias.filter((s) => !indisp.has(`${s.turno}:${s.dia}:${s.ordem}`));
   if (prefs.length) {
@@ -197,7 +202,7 @@ professoresRouter.delete("/:id", async (req, res) => {
   res.status(204).end();
 });
 
-// Turmas (com carga horária)
+// turmas (com carga horaria)
 
 const turmaSchema = z.object({
   codigo: z.string().trim().min(1).max(12),
@@ -211,7 +216,7 @@ const turmaSchema = z.object({
   })).default([]),
 });
 
-/** Id do curso da escola com esse nome; cria o curso se ainda não existir. */
+/** id do curso da escola com esse nome, se nao existir cria */
 export async function idCurso(escolaId: number, nome: string, conn: Conn) {
   await exec("INSERT IGNORE INTO curso (escola_id, nome) VALUES (?, ?)", [escolaId, nome], conn);
   const [curso] = await select<{ id: number }>("SELECT id FROM curso WHERE escola_id = ? AND nome = ?", [escolaId, nome], conn);

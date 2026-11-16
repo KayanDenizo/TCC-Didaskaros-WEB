@@ -21,7 +21,7 @@ declare global {
   }
 }
 
-/** Exige token JWT válido e disponibiliza req.sessao. */
+/** so deixa passar com token jwt valido e joga os dados em req.sessao */
 export const requireAuth: RequestHandler = (req, _res, next) => {
   const token = req.headers.authorization?.replace(/^Bearer /, "");
   if (!token) throw new HttpError(401, "Faça login para continuar.");
@@ -94,7 +94,7 @@ authRouter.post("/login", async (req, res) => {
   res.json({ token: emitirToken(u, manterConectado), usuario: publico(u) });
 });
 
-// Cadastro de coordenador (primeiro acesso). Cria a escola e o curso se ainda não existirem.
+// cadastro do coordenador (primeiro acesso). se a escola e o curso nao existirem ainda, cria eles
 authRouter.post("/cadastro", async (req, res) => {
   const d = parse(cadastroSchema, req.body);
   const id = await transaction(async (conn) => {

@@ -5,9 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Abre o navegador na landing page ao rodar npm run dev
+    // abre o navegador na landing qnd roda npm run dev
     open: true,
-    // Encaminha /api para o backend (npm run dev dentro de backend/)
+    // manda o /api pro backend (npm run dev dentro do backend/)
     proxy: { '/api': 'http://localhost:3333' },
   },
 })

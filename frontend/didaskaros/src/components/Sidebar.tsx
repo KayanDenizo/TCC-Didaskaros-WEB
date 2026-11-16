@@ -32,7 +32,7 @@ export function Sidebar() {
   const links = useRef(new Map<string, HTMLAnchorElement>());
   const [marcador, setMarcador] = useState<{ top: number; height: number } | null>(null);
 
-  // O destaque do item ativo desliza até o link da página atual
+  // o destaque do item ativo desliza ate o link da pagina atual
   useLayoutEffect(() => {
     const ativo = [...links.current].find(([to]) => pathname.startsWith(to))?.[1];
     setMarcador(ativo ? { top: ativo.offsetTop, height: ativo.offsetHeight } : null);

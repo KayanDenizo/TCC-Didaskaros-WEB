@@ -11,7 +11,7 @@ const MODOS: { id: Modo; label: string; chave: keyof Aula }[] = [
   { id: "sala", label: "Por Sala", chave: "salaId" },
 ];
 
-/** Grade semanal navegável por turma, professor ou sala. */
+/** grade da semana, da pra navegar por turma, professor ou sala */
 export function GradeViewer({ grade }: { grade: GradeDetalhe }) {
   const [modo, setModo] = useState<Modo>("turma");
   const listas = {
@@ -30,7 +30,7 @@ export function GradeViewer({ grade }: { grade: GradeDetalhe }) {
     professor: (id: number) => grade.professores.find((p) => p.id === id)?.nome ?? "",
     sala: (id: number) => grade.salas.find((s) => s.id === id)?.nome ?? "",
   };
-  // Linha secundária da célula: o que não é o filtro atual
+  // segunda linha da celula: o q nao ta sendo filtrado
   const detalhe = (a: Aula) => (modo === "professor" ? nome.turma(a.turmaId) : nome.professor(a.professorId));
   const local = (a: Aula) => (modo === "sala" ? nome.turma(a.turmaId) : nome.sala(a.salaId));
   const disciplinasVisiveis = [...new Set(aulas.map((a) => a.disciplinaId))];

@@ -15,11 +15,11 @@ export function maskRF(v: string) {
   return v.replace(/\D/g, "").slice(0, 8);
 }
 
-// -- VALIDAÇÃO DE CPF REAL --
+// validacao de cpf de verdade (confere os digitos)
 export function validarCPF(cpf: string): boolean {
   const nums = cpf.replace(/\D/g, "");
   if (nums.length !== 11) return false;
-  if (/^(\d)\1+$/.test(nums)) return false; // todos dígitos iguais
+  if (/^(\d)\1+$/.test(nums)) return false; // todos os digitos iguais
   let soma = 0;
   for (let i = 0; i < 9; i++) soma += parseInt(nums[i]) * (10 - i);
   let resto = (soma * 10) % 11;
@@ -32,7 +32,7 @@ export function validarCPF(cpf: string): boolean {
   return resto === parseInt(nums[10]);
 }
 
-// -- FORÇA DA SENHA --
+// forca da senha
 export function calcStrength(senha: string): number {
   if (senha.length >= 12 && /[A-Z]/.test(senha) && /\d/.test(senha) && /[^A-Za-z0-9]/.test(senha)) return 4;
   if (senha.length >= 10 && /[A-Z]/.test(senha) && /\d/.test(senha)) return 3;

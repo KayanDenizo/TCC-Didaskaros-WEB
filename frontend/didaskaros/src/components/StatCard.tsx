@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Icons, type IconName } from "./icons";
 
-/** Conta de 0 até o valor quando o cartão aparece. */
+/** conta de 0 ate o valor qnd o card aparece */
 function useContagem(alvo: number, atraso: number) {
   const [valor, setValor] = useState(0);
   useEffect(() => {
@@ -29,8 +29,8 @@ const CORES = {
 };
 
 /**
- * Guarda a posição do cursor no elemento: `--cx/--cy` em px (para a luz) e
- * `--px/--py` de -1 a 1 (para inclinações 3D feitas em CSS).
+ * guarda a posicao do mouse no elemento: `--cx/--cy` em px (pra luz) e
+ * `--px/--py` de -1 a 1 (pras inclinacoes 3D no css)
  */
 export function seguirCursor(e: React.PointerEvent<HTMLElement>) {
   const el = e.currentTarget;
@@ -56,9 +56,9 @@ export function StatCard({ label, value, detail, icon, accent, delay = 0, to, ch
   icon: IconName;
   accent: keyof typeof CORES;
   delay?: number;
-  /** Com destino, o cartão inteiro vira link para a página correspondente */
+  /** se tiver destino o card inteiro vira link pra pagina */
   to?: string;
-  /** Visual extra abaixo do número (barra, anel…) */
+  /** visual a mais embaixo do numero (barra, anel...) */
   children?: ReactNode;
 }) {
   const cor = CORES[accent];

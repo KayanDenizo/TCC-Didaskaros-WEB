@@ -23,7 +23,7 @@ painelRouter.get("/", async (req, res) => {
     [unidade],
   );
 
-  // Aulas de hoje, a partir das grades publicadas (0 = segunda … 4 = sexta)
+  // aulas de hoje, vindas das grades publicadas (0 = segunda ... 4 = sexta)
   const diaSemana = (new Date().getDay() + 6) % 7;
   const publicadas = grades.filter((g) => g.status === "PUBLICADA");
   const aulasHoje = diaSemana > 4 || !publicadas.length ? [] : await select<{ gradeId: number; ordem: number }>(
@@ -35,7 +35,7 @@ painelRouter.get("/", async (req, res) => {
     [publicadas.map((g) => g.id), diaSemana],
   );
 
-  // Carga semanal de cada professor nas grades publicadas
+  // carga da semana de cada professor nas grades publicadas
   const professores = await select(
     `SELECT p.id, p.nome,
             (SELECT GROUP_CONCAT(d.nome ORDER BY d.nome SEPARATOR ' · ')

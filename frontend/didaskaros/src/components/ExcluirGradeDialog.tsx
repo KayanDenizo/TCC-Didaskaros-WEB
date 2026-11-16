@@ -8,7 +8,7 @@ import { Alert, Button } from "./ui";
 
 const MAX_TURMAS = 3;
 
-/** Confirmação de exclusão que mostra a grade em miniatura; ao confirmar, as aulas se apagam. */
+/** confirmacao de excluir q mostra a grade em miniatura, qnd confirma as aulas vao sumindo */
 export function ExcluirGradeDialog({ grade, onCancelar, onConfirmar }: {
   grade: GradeDetalhe;
   onCancelar: () => void;
@@ -18,7 +18,7 @@ export function ExcluirGradeDialog({ grade, onCancelar, onConfirmar }: {
   const [erro, setErro] = useState("");
   const cancelar = useRef<HTMLButtonElement>(null);
 
-  // Foco começa no "Cancelar", a opção segura
+  // o foco ja comeca no "Cancelar", pra ser a opcao segura
   useEffect(() => cancelar.current?.focus(), []);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function ExcluirGradeDialog({ grade, onCancelar, onConfirmar }: {
     setApagando(true);
     setErro("");
     try {
-      // Espera a miniatura terminar de se apagar antes de fechar
+      // espera a miniatura terminar de apagar antes de fechar
       await Promise.all([onConfirmar(), new Promise((r) => setTimeout(r, 650))]);
     } catch (err) {
       setErro(mensagemErro(err));
@@ -41,7 +41,7 @@ export function ExcluirGradeDialog({ grade, onCancelar, onConfirmar }: {
 
   const turmas = grade.turmas.slice(0, MAX_TURMAS);
   const publicada = grade.status === "PUBLICADA";
-  let indice = 0; // ordem em que as células se apagam
+  let indice = 0; // ordem q as celulas vao apagando
 
   return createPortal(
     <div className="dialogo-fundo fixed inset-0 z-[90] flex items-center justify-center p-4 bg-[#0F2456]/45 backdrop-blur-[3px]"

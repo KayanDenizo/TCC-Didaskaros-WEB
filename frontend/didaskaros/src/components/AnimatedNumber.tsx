@@ -8,7 +8,7 @@ interface Props {
   decimals?: number;
 }
 
-/** Número que conta de 0 até `to` quando aparece na tela. */
+/** numero q conta de 0 ate `to` qnd aparece na tela */
 export function AnimatedNumber({ to, duration = 1800, suffix = "", prefix = "", decimals = 0 }: Props) {
   const [value, setValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);

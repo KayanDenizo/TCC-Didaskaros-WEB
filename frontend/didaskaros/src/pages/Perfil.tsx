@@ -1,5 +1,5 @@
-// PROVISÓRIO: a tela Meu Perfil é da Julia (protótipo de alta no Figma, página
-// Dashboard Coordenador). Fica em branco até ela implementar.
+// tela Meu Perfil, feita pela Julia (prototipo de alta no Figma, pagina
+// Dashboard Coordenador)
 import { ReactNode } from "react";
 import { useState } from "react";
 
@@ -358,7 +358,7 @@ export function ProfilePage() {
 
             <Btn
               title="Salvar alterações"
-              btn="hover:bg-blue-700 bg-gradient-to-r from-[#2353aa] via-[#296fe7] to-[#3883e5] text-white"
+              btn="shine-on-hover hover:bg-blue-700 bg-gradient-to-r from-[#2353aa] via-[#296fe7] to-[#3883e5] text-white"
             />
           </div>
 
@@ -390,7 +390,7 @@ export function ProfilePage() {
             <Navegation icon="person" title="Dados pessoais" selected={itemSelecionado === 'pessoais'} onClick={() => setItemSelecionado('pessoais')} />
             <Navegation icon="domain" title="Dados institucionais" selected={itemSelecionado === 'institucionais'} onClick={() => setItemSelecionado('institucionais')} />
             <Navegation icon="lock" title="Segurança" selected={itemSelecionado === 'seguranca'} onClick={() => setItemSelecionado('seguranca')} />
-            <Navegation icon="setttings" title="Preferências" selected={itemSelecionado === 'preferencias'} onClick={() => setItemSelecionado('preferencias')} />
+            <Navegation icon="settings" title="Preferências" selected={itemSelecionado === 'preferencias'} onClick={() => setItemSelecionado('preferencias')} />
           </div>
         </div>
 

@@ -17,7 +17,7 @@ const PINCEIS: { id: Pincel; label: string; cor: string }[] = [
   { id: "EVITAR", label: "Evitar", cor: "bg-amber-300 border-amber-300" },
 ];
 
-// Quadro semanal: indisponível a IA nunca usa; prefere/evitar ela tenta respeitar.
+// quadro da semana: horario indisponivel a IA nunca usa, prefere/evitar ela tenta respeitar
 function QuadroHorarios({ valor, onChange }: { valor: Quadro; onChange: (v: Quadro) => void }) {
   const [turno, setTurno] = useState<Turno>("MANHA");
   const [pincel, setPincel] = useState<Pincel>("INDISPONIVEL");
@@ -81,7 +81,7 @@ function QuadroHorarios({ valor, onChange }: { valor: Quadro; onChange: (v: Quad
   );
 }
 
-// Horários em que o professor trabalha em outra unidade (contam na jornada).
+// horarios q o professor trabalha em outra unidade (contam na jornada)
 function CompromissosExternos({ valor, onChange }: { valor: CompromissoExterno[]; onChange: (v: CompromissoExterno[]) => void }) {
   const alterar = (i: number, mudanca: Partial<CompromissoExterno>) => onChange(valor.map((c, j) => (j === i ? { ...c, ...mudanca } : c)));
   return (
@@ -125,9 +125,11 @@ export default function Professores() {
             : f.compromissosExternos.some((c) => !c.inicio || !c.fim || c.inicio >= c.fim) ? "Compromisso externo precisa terminar depois de começar."
               : null}
       colunas={[
-        { titulo: "Professor", render: (p) => (
-          <div><p className="font-semibold text-gray-900">{p.nome}</p><p className="text-[11px] text-gray-400">{p.email}</p></div>
-        ) },
+        {
+          titulo: "Professor", render: (p) => (
+            <div><p className="font-semibold text-gray-900">{p.nome}</p><p className="text-[11px] text-gray-400">{p.email}</p></div>
+          )
+        },
         { titulo: "Disciplinas", render: (p) => p.disciplinaIds.map(nomeDisciplina).join(" · ") || "—" },
         { titulo: "Indisp.", render: (p) => (p.indisponibilidades.length ? `${p.indisponibilidades.length} horários` : "—") },
         { titulo: "Contrato", render: (p) => (p.contrato === "INDETERMINADO" ? "Indeterm." : "Determ.") },

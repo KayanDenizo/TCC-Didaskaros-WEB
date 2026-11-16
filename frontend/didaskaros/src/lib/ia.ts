@@ -1,2 +1,2 @@
-/** Nome da IA de geração de grades exibido na interface. */
+/** nome da IA q aparece na interface */
 export const NOME_IA = "Didáskaros IA";

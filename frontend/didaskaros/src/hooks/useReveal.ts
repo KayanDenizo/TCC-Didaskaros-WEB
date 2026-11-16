@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-/** Mostra os elementos `.reveal` com animação quando entram na tela. */
+/** mostra os `.reveal` com animacao qnd entram na tela */
 export function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll<HTMLElement>(".reveal");
@@ -15,7 +15,7 @@ export function useReveal() {
             const el = e.target as HTMLElement;
             el.classList.add("is-visible");
             io.unobserve(el);
-            // O atraso escalonado serve só para a entrada; depois atrasaria o hover
+            // o atraso escalonado serve so pra entrada, dps ia deixar o hover lento
             const fim = (ev: TransitionEvent) => {
               if (ev.target !== el || ev.propertyName !== "opacity") return;
               el.style.transitionDelay = "";

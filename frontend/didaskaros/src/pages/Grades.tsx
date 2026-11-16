@@ -20,7 +20,7 @@ const MODOS: { id: Modo; label: string; chave: keyof Aula; rotulo: string }[] = 
 const AVATARES = ["bg-blue-500", "bg-violet-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-indigo-500", "bg-gray-500"];
 const minutos = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
 
-/** Segunda-feira da semana de `d`. */
+/** segunda-feira da semana de `d` */
 function segundaDaSemana(d: Date) {
   const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   s.setDate(s.getDate() - ((s.getDay() + 6) % 7));
@@ -35,7 +35,7 @@ function rotuloSemana(segunda: Date) {
   return `${ini}–${sexta.getDate()} ${mes(sexta)} ${sexta.getFullYear()}`;
 }
 
-/** Relógio que atualiza a cada 30s, para o "ao vivo". */
+/** relogio q atualiza a cada 30s, pro "ao vivo" */
 function useAgora() {
   const [agora, setAgora] = useState(() => new Date());
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function Grades() {
   const mudarStatus = (status: StatusGrade) => acao(() => api.patch(`/grades/${idSelecionado}/status`, { status }));
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
   async function excluir() {
-    // Erros aparecem dentro da própria caixa de confirmação
+    // os erros aparecem dentro da propria caixa de confirmacao
     await api.delete(`/grades/${idSelecionado}`);
     setConfirmandoExclusao(false);
     setParams({});
@@ -153,7 +153,7 @@ export default function Grades() {
   );
 }
 
-/** Quadro semanal (design da Julia): filtros, navegação de semana, grade e legenda. */
+/** quadro da semana (design da Julia): filtros, navegar entre semanas, grade e legenda */
 function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
   const [modo, setModo] = useState<Modo>("turma");
   const listas = {
@@ -180,7 +180,7 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
     professor: () => nome.professor(atual ?? 0),
     sala: () => nome.sala(atual ?? 0),
   }[modo]();
-  // Linhas secundárias do cartão: o que não é o filtro atual
+  // linhas de baixo do card: o q nao ta sendo filtrado
   const detalhe = (a: Aula) => (modo === "professor" ? nome.turma(a.turmaId) : nome.professor(a.professorId));
   const local = (a: Aula) => (modo === "sala" ? nome.turma(a.turmaId) : nome.sala(a.salaId));
   const disciplinasVisiveis = [...new Set(aulas.map((a) => a.disciplinaId))];
@@ -290,7 +290,7 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
   );
 }
 
-/** Quem da grade está em aula agora e quem está livre hoje. */
+/** quem da grade ta em aula agora e quem ta livre hoje */
 function DisponibilidadeHoje({ grade }: { grade: GradeDetalhe }) {
   const agora = useAgora();
   const dia = (agora.getDay() + 6) % 7; // 0 = segunda
@@ -351,7 +351,7 @@ function DisponibilidadeHoje({ grade }: { grade: GradeDetalhe }) {
   );
 }
 
-/** Números da grade, explicação da IA e conflitos do validador. */
+/** numeros da grade, explicacao da IA e conflitos do validador */
 function ResumoGradeCard({ grade }: { grade: GradeDetalhe }) {
   const blocos = [
     { label: "Aulas semanais", valor: grade.aulas.length, cor: "bg-red-50 border-red-200 text-red-800" },

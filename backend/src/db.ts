@@ -5,27 +5,27 @@ export const pool = mysql.createPool({
   ...env.db,
   connectionLimit: 10,
   dateStrings: true,
-  // DECIMAL como número, não string
+  // pro DECIMAL vir como numero e nao string
   decimalNumbers: true,
-  // BOOLEAN (TINYINT(1)) como true/false
+  // BOOLEAN (TINYINT(1)) vem como true/false
   typeCast: (field, next) => (field.type === "TINY" && field.length === 1 ? field.string() === "1" : next()),
 });
 
 export type Conn = Pick<typeof pool, "query">;
 
-/** SELECT tipado: devolve as linhas já como T[]. */
+/** select ja tipado, devolve as linhas como T[] */
 export async function select<T>(sql: string, params: unknown[] = [], conn: Conn = pool): Promise<T[]> {
   const [rows] = await conn.query<RowDataPacket[]>(sql, params);
   return rows as T[];
 }
 
-/** INSERT/UPDATE/DELETE: devolve insertId e affectedRows. */
+/** pra insert/update/delete, devolve insertId e affectedRows */
 export async function exec(sql: string, params: unknown[] = [], conn: Conn = pool) {
   const [res] = await conn.query<ResultSetHeader>(sql, params);
   return res;
 }
 
-/** Executa fn dentro de uma transação. */
+/** roda o fn dentro de uma transacao */
 export async function transaction<T>(fn: (conn: Conn) => Promise<T>): Promise<T> {
   const conn = await pool.getConnection();
   try {

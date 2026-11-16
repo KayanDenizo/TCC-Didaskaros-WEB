@@ -5,7 +5,7 @@ import { horarios, type Aula, type DadosGeracao, type Ocupacao } from "./tipos.j
 
 const semExtras = { contrato: "INDETERMINADO" as const, preferidos: [], evitar: [], ocupacoes: [], aulasEmOutrosTurnos: 0 };
 
-// Duas turmas, duas disciplinas (uma de laboratório), dois professores, uma sala e um laboratório.
+// duas turmas, duas disciplinas (uma de lab), dois professores, uma sala e um lab
 const dados: DadosGeracao = {
   turno: "MANHA",
   aulasPorDia: 2,
@@ -99,8 +99,8 @@ test("horários do turno da manhã seguem o padrão da ETEC", () => {
   assert.deepEqual(horarios("MANHA", 5), ["07:30", "08:20", "09:10", "10:10", "11:00"]);
 });
 
-// Regras de jornada do CPS
-// Na grade "valida", João (100) dá aula na segunda das 07:30 às 09:10 e na terça das 07:30 às 08:20.
+// regras de jornada do CPS
+// na grade "valida" o João (100) da aula segunda das 07:30 as 09:10 e terca das 07:30 as 08:20
 
 const h = (hora: string) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3));
 const ocupacao = (dia: number, inicio: string, fim: string, origem = "aula no turno da noite"): Ocupacao =>
@@ -114,7 +114,7 @@ test("detecta aula em horário de compromisso em outra unidade", () => {
 });
 
 test("detecta interjornada menor que 11 horas", () => {
-  // Termina 23:00 na segunda e volta 07:30 na terça: 8h30 de descanso.
+  // termina 23:00 na segunda e volta 07:30 na terca, so 8h30 de descanso
   assert.deepEqual(regrasCom({ ocupacoes: [ocupacao(0, "22:00", "23:00")] }), ["interjornada"]);
 });
 

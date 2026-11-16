@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, mensagemErro } from "../api/client";
 
-/** GET com estados de carregamento/erro e função para recarregar. */
+/** GET com loading/erro e uma funcao pra recarregar */
 export function useApi<T>(path: string | null) {
   const [data, setData] = useState<T | null>(null);
   const [erro, setErro] = useState("");
@@ -27,7 +27,7 @@ export function useApi<T>(path: string | null) {
   return { data, erro, carregando, recarregar };
 }
 
-/** Lista de um cadastro (professores, turmas…) com salvar/excluir. */
+/** lista de um cadastro (professores, turmas...) com salvar/excluir */
 export function useRecurso<T extends { id: number }>(path: string) {
   const { data, erro, carregando, recarregar } = useApi<T[]>(path);
 

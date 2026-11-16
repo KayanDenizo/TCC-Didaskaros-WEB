@@ -22,7 +22,7 @@ const STEPS = [
   { label: "Resultado", desc: "Grade pronta" },
 ];
 
-// Restrições moles: a IA tenta atender, mas não invalidam a grade.
+// restricoes moles: a IA tenta atender, mas se nao der a grade continua valendo
 const PREFERENCIAS: { label: string; desc: string; icon: IconName }[] = [
   { label: "Evitar janelas na grade", desc: "Não deixar horários vagos entre aulas de uma turma ou professor no mesmo dia", icon: "Grid" },
   { label: "Agrupar aulas da mesma disciplina", desc: "Preferir aulas geminadas (em sequência) da mesma disciplina", icon: "Layers" },
@@ -46,7 +46,7 @@ const TURNO_INFO: Record<Turno, { icon: IconName; desc: string }> = {
 
 const anoAtual = new Date().getFullYear();
 
-/* ---------------- Etapas ---------------- */
+/* ---------------- etapas ---------------- */
 function Stepper({ step, onIr }: { step: Step; onIr: (s: Step) => void }) {
   return (
     <Card className="mb-6 px-3 py-3">
@@ -55,7 +55,7 @@ function Stepper({ step, onIr }: { step: Step; onIr: (s: Step) => void }) {
           const n = (i + 1) as Step;
           const feito = step > n;
           const atual = step === n;
-          // Dá para voltar a uma etapa já feita, mas não pular para frente nem sair do resultado
+          // da pra voltar numa etapa q ja fez, mas nao pular pra frente nem sair do resultado
           const clicavel = feito && step < 4;
           return (
             <li key={label} className="flex flex-1 items-center last:flex-none">
@@ -84,9 +84,9 @@ function Stepper({ step, onIr }: { step: Step; onIr: (s: Step) => void }) {
   );
 }
 
-/* ---------------- Estimativa de tempo ----------------
- * Começa com um palpite por turma e aprende com as gerações anteriores
- * (segundos por turma, guardado no navegador). */
+/* ---------------- estimativa de tempo ----------------
+ * comeca com um chute por turma e vai aprendendo com as geracoes anteriores
+ * (segundos por turma, fica salvo no navegador) */
 const CHAVE_DURACAO = "didaskaros.segundosPorTurma";
 
 function segundosPorTurma(): number {
@@ -111,13 +111,13 @@ function formatarTempo(seg: number) {
   return `${Math.round(seg / 60)} min`;
 }
 
-/* ---------------- Progresso da geração ---------------- */
+/* ---------------- progresso da geracao ---------------- */
 const ETAPAS = ["Preparar dados", "Montar grade", "Validar conflitos", "Salvar"];
 
-/** Grade em miniatura que vai se preenchendo conforme o progresso real avança. */
+/** grade em miniatura q vai enchendo conforme o progresso de verdade avanca */
 function GradeViva({ pct, aulasPorDia, concluido }: { pct: number; aulasPorDia: number; concluido: boolean }) {
   const total = aulasPorDia * 5;
-  // Ordem de preenchimento "embaralhada" e estável, para parecer o motor encaixando aulas
+  // ordem de preencher "embaralhada" mas sempre igual, pra parecer o motor encaixando as aulas
   const ordem = useMemo(() => Array.from({ length: total }, (_, i) => (i * 7 + 3) % total), [total]);
   const preenchidas = Math.round((Math.min(pct, 100) / 100) * total);
   return (
@@ -150,10 +150,10 @@ function ProgressoGeracao({ job, inicio, estimativa, concluido, aulasPorDia }: {
   }, [concluido]);
 
   const decorrido = (agora - inicio) / 1000;
-  // Cada tentativa de correção soma ~60% do tempo previsto
+  // cada tentativa de correcao soma uns 60% do tempo previsto
   const previsto = estimativa * (1 + 0.6 * Math.max(job.tentativa - 1, 0));
   const fracao = decorrido / previsto;
-  // Linear até 85% no tempo previsto; depois avança devagar, sem chegar a 100% sozinho
+  // vai linear ate 85% no tempo previsto, dps anda devagar e nao chega a 100% sozinho
   let pct = fracao <= 1 ? 3 + fracao * 82 : 85 + 9 * (1 - Math.exp(-(fracao - 1) * 2));
   const validando = job.etapa.startsWith("Validando");
   if (validando) pct = Math.max(pct, 90);
@@ -179,7 +179,7 @@ function ProgressoGeracao({ job, inicio, estimativa, concluido, aulasPorDia }: {
               <p className="text-[12px] text-gray-400 mt-0.5">
                 {concluido ? "Abrindo o resultado"
                   : job.tentativa > 1 ? `O validador encontrou conflitos. ${NOME_IA} está corrigindo — tentativa ${job.tentativa} de 3.`
-                  : `${NOME_IA} monta todas as turmas do turno juntas.`}
+                    : `${NOME_IA} monta todas as turmas do turno juntas.`}
               </p>
             </div>
           </div>
@@ -189,7 +189,7 @@ function ProgressoGeracao({ job, inicio, estimativa, concluido, aulasPorDia }: {
             <span className="text-gray-500 tabular-nums">
               {concluido ? `Concluído em ${formatarTempo(decorrido)}`
                 : restante > 5 ? `Faltam cerca de ${formatarTempo(restante)}`
-                : "Levando um pouco mais que o previsto. Quase lá."}
+                  : "Levando um pouco mais que o previsto. Quase lá."}
             </span>
           </div>
           <div className="relative mt-2 h-2.5 overflow-hidden rounded-full bg-gray-100" role="progressbar"
@@ -225,7 +225,7 @@ function ProgressoGeracao({ job, inicio, estimativa, concluido, aulasPorDia }: {
   );
 }
 
-/* ---------------- Avisos da IA sobre os cadastros ---------------- */
+/* ---------------- avisos da IA sobre os cadastros ---------------- */
 const TELAS = [
   { to: "/professores", label: "Professores" },
   { to: "/turmas", label: "Turmas" },
@@ -233,7 +233,7 @@ const TELAS = [
   { to: "/salas", label: "Salas" },
 ];
 
-/** A IA avisa, antes de gerar, o que falta ou está inconsistente nos cadastros. */
+/** antes de gerar a IA avisa o q ta faltando ou inconsistente nos cadastros */
 function AvisosCadastro({ diagnostico }: { diagnostico: Diagnostico }) {
   const { problemas, avisos } = diagnostico;
   if (!problemas.length && !avisos.length) return null;
@@ -266,7 +266,7 @@ function AvisosCadastro({ diagnostico }: { diagnostico: Diagnostico }) {
   );
 }
 
-/* ---------------- Controles reutilizados ---------------- */
+/* ---------------- controles reaproveitados ---------------- */
 function Segmentado<T extends string | number>({ valor, opcoes, onChange }: {
   valor: T; opcoes: { valor: T; label: string }[]; onChange: (v: T) => void;
 }) {
@@ -295,7 +295,7 @@ function Rotulo({ children, extra }: { children: React.ReactNode; extra?: React.
   );
 }
 
-/* ---------------- Página ---------------- */
+/* ---------------- pagina ---------------- */
 export default function GerarGrade() {
   const [step, setStep] = useState<Step>(1);
   const [turno, setTurno] = useState<Turno>("MANHA");
@@ -338,7 +338,7 @@ export default function GerarGrade() {
     }
   }
 
-  // Acompanha o job de geração até terminar
+  // fica acompanhando o job da geracao ate terminar
   useEffect(() => {
     if (job?.status !== "executando") return;
     const timer = setTimeout(async () => {
@@ -347,7 +347,7 @@ export default function GerarGrade() {
         if (data.status === "concluido") {
           const { data: nova } = await api.get<GradeDetalhe>(`/grades/${data.gradeId}`);
           registrarDuracao((Date.now() - inicio) / 1000, turmas.length);
-          // Deixa a barra chegar a 100% antes de mostrar a grade
+          // deixa a barra chegar em 100% antes de mostrar a grade
           setTimeout(() => setGrade(nova), 900);
         }
         if (data.status === "erro") setErro({ mensagem: data.erro ?? "Falha na geração." });
@@ -679,9 +679,9 @@ export default function GerarGrade() {
                 {step < 3
                   ? <Button variant="primary" onClick={() => setStep((s) => (s + 1) as Step)}>Próximo <Icons.ChevronRight /></Button>
                   : <Button variant="primary" onClick={gerar} disabled={!turmas.length || bloqueado} className="group"
-                      title={bloqueado ? "Resolva o que falta nos cadastros antes de gerar" : undefined}>
-                      <span className="transition-transform duration-300 group-hover:rotate-12"><Icons.Sparkles /></span> Gerar grade
-                    </Button>}
+                    title={bloqueado ? "Resolva o que falta nos cadastros antes de gerar" : undefined}>
+                    <span className="transition-transform duration-300 group-hover:rotate-12"><Icons.Sparkles /></span> Gerar grade
+                  </Button>}
               </>
             ) : (
               <>

@@ -1,6 +1,6 @@
 import type { GradeDetalhe } from "../api/types";
 
-/** Números da grade, explicação da IA e conflitos apontados pelo validador. */
+/** numeros da grade, explicacao da IA e os conflitos q o validador achou */
 export function ResumoGrade({ grade }: { grade: GradeDetalhe }) {
   const stats = [
     { label: "Aulas/sem", valor: grade.aulas.length, cor: "bg-blue-50 text-blue-700" },

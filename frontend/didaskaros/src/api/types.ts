@@ -42,7 +42,7 @@ export interface Professor {
   compromissosExternos: CompromissoExterno[];
 }
 
-/** Horário em que o professor trabalha fora desta unidade. */
+/** horario q o professor trabalha fora daqui */
 export interface CompromissoExterno {
   dia: number;
   inicio: string; // "HH:MM"
@@ -127,10 +127,10 @@ export interface JobGeracao {
   erro?: string;
 }
 
-/** O que falta ou está inconsistente nos cadastros de um turno. */
+/** o q ta faltando ou inconsistente nos cadastros de um turno */
 export interface Diagnostico {
-  problemas: string[]; // impedem a geração
-  avisos: string[];    // não impedem, mas vale conferir
+  problemas: string[]; // impedem de gerar
+  avisos: string[];    // nao impedem mas vale dar uma olhada
 }
 
 export interface MensagemAjuste {

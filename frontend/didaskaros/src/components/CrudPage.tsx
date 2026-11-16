@@ -18,7 +18,7 @@ interface Props<T extends { id: number }, F> {
   feminino?: boolean;
 }
 
-/** Tela de cadastro padrão: tabela à esquerda, formulário de criação/edição à direita. */
+/** tela de cadastro padrao: tabela na esquerda e form de criar/editar na direita */
 export function CrudPage<T extends { id: number }, F extends object>(p: Props<T, F>) {
   const { itens, erro, carregando, salvar, excluir } = useRecurso<T>(p.recurso);
   const [form, setForm] = useState<F>(p.vazio);
@@ -30,7 +30,7 @@ export function CrudPage<T extends { id: number }, F extends object>(p: Props<T,
   const formRef = useRef<HTMLFormElement>(null);
   const artigo = p.feminino ? "a" : "o";
 
-  // Confirmação some sozinha depois de alguns segundos
+  // a confirmacao some sozinha dps de uns segundos
   useEffect(() => {
     if (!aviso) return;
     const t = setTimeout(() => setAviso(""), 2800);

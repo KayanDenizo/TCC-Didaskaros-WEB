@@ -1,6 +1,6 @@
 import { DIAS, REGRAS_CPS, hhmm, intervaloAula, type Aula, type DadosGeracao, type Violacao } from "./tipos.js";
 
-// Confere a grade sem depender da IA e lista toda restrição dura que foi quebrada.
+// confere a grade sem depender da IA e lista toda restricao dura q foi quebrada
 export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   const v: Violacao[] = [];
   const add = (regra: string, mensagem: string) => v.push({ regra, mensagem });
@@ -12,8 +12,8 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   const quando = (a: Aula) => `${DIAS[a.dia] ?? `dia ${a.dia}`}, ${a.ordem + 1}ª aula`;
 
   const ocupado = { turma: new Map<string, Aula>(), professor: new Map<string, Aula>(), sala: new Map<string, Aula>() };
-  const contagem = new Map<string, number>();            // turma:disciplina → aulas alocadas
-  const professorDaDisciplina = new Map<string, number>(); // turma:disciplina → professor
+  const contagem = new Map<string, number>();            // turma:disciplina -> qtd de aulas alocadas
+  const professorDaDisciplina = new Map<string, number>(); // turma:disciplina -> professor
 
   for (const a of aulas) {
     const turma = turmas.get(a.turmaId);
@@ -85,8 +85,8 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   return v;
 }
 
-// Jornada do CPS (choque de horário, 8h/dia, refeição, interjornada e limite semanal),
-// contando também as aulas de outros turnos e de outras unidades.
+// jornada do CPS (choque de horario, 8h/dia, refeicao, interjornada e limite semanal),
+// contando tb as aulas dos outros turnos e das outras unidades
 function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string, mensagem: string) => void) {
   const R = REGRAS_CPS;
   for (const prof of dados.professores) {
@@ -98,7 +98,7 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
       add("limite-semanal", `${prof.nome} ficou com ${totalSemana} aulas na semana (máximo ${R.aulasSemanaisMax}).`);
     }
 
-    // Períodos de trabalho de cada dia: aulas desta grade + ocupações já existentes.
+    // o q o professor trabalha em cada dia: aulas dessa grade + ocupacoes q ja existiam
     const dias = Array.from({ length: 5 }, (_, dia) => [
       ...minhas.filter((a) => a.dia === dia).map((a) => ({
         ...intervaloAula(dados.turno, a.ordem), minutosContados: R.minutosPorAula, origem: "", ordem: a.ordem,
@@ -145,7 +145,7 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
   }
 }
 
-// O que impede a geração antes de chamar a IA (ex.: turma com mais aulas que horários).
+// o q impede de gerar antes de chamar a IA (tipo turma com mais aula do q horario)
 export function verificarViabilidade(dados: DadosGeracao): string[] {
   const erros: string[] = [];
   const slots = 5 * dados.aulasPorDia;
@@ -180,7 +180,7 @@ export function verificarViabilidade(dados: DadosGeracao): string[] {
   return [...new Set(erros)];
 }
 
-/** Métricas de qualidade (restrições moles): quantas janelas ficaram na grade. */
+/** metricas de qualidade (restricoes moles): quantas janelas sobraram na grade */
 export function metricas(aulas: Aula[]) {
   const janelas = (chave: (a: Aula) => number) => {
     const porDia = new Map<string, number[]>();

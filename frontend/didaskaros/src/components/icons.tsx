@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// Ícones inline (traço 2px, 16px) para não depender de biblioteca.
+// icones inline (traco 2px, 16px) pra nao precisar de biblioteca
 const icon = (children: ReactNode) => () => (
   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
     {children}

@@ -72,7 +72,7 @@ export interface ResultadoGeracao {
 
 export class GeracaoError extends Error {}
 
-/** Erros da API viram mensagens legíveis para o coordenador. */
+/** traduz os erros da api pra uma msg q o coordenador entenda */
 function traduzirErroApi(err: unknown) {
   if (err instanceof Anthropic.AuthenticationError) return new GeracaoError("Chave da API de IA inválida (ANTHROPIC_API_KEY no backend/.env).");
   if (err instanceof Anthropic.RateLimitError) return new GeracaoError("Limite de uso da Didáskaros IA atingido. Tente em alguns minutos.");
@@ -107,8 +107,8 @@ function descreverViolacoes(violacoes: Violacao[]) {
     "Corrija todas e devolva a grade completa novamente (todas as turmas, não só as aulas alteradas).";
 }
 
-// Gera a grade e passa no validador. Se tiver conflito, manda os erros de volta pra IA
-// corrigir (até MAX_TENTATIVAS) e fica com a tentativa que teve menos conflitos.
+// gera a grade e passa no validador. se der conflito manda os erros de volta pra IA
+// corrigir (ate MAX_TENTATIVAS) e fica com a tentativa q teve menos conflito
 export async function gerarComClaude(
   dados: DadosGeracao,
   onProgresso: (etapa: string, tentativa: number) => void,
@@ -124,7 +124,7 @@ export async function gerarComClaude(
 
     let resposta: Anthropic.Beta.BetaMessage;
     try {
-      // Streaming evita timeout HTTP em respostas longas; finalMessage() junta tudo no fim.
+      // usa stream pq a resposta demora e senao da timeout no http. o finalMessage() junta tudo no final
       resposta = await client.beta.messages
         .stream({
           model: env.claudeModel,
@@ -132,7 +132,7 @@ export async function gerarComClaude(
           system: SYSTEM,
           messages,
           output_config: { effort: env.claudeEffort, format: zodOutputFormat(RespostaSchema) },
-          // Se o modelo recusar por falso positivo de segurança, a API refaz com o modelo reserva.
+          // se o modelo recusar por engano (falso positivo de seguranca) a api tenta de novo com o modelo reserva
           betas: ["server-side-fallback-2026-07-01"],
           fallbacks: "default",
         })
@@ -168,8 +168,8 @@ export async function gerarComClaude(
   return melhor;
 }
 
-// Ajuste pelo chat: se o pedido mudar a grade, a IA devolve ela inteira, que passa
-// pelo mesmo validador e vira uma nova versão (rascunho).
+// ajuste pelo chat: se o pedido mudar a grade a IA devolve ela inteira,
+// passa pelo mesmo validador e vira uma versao nova (rascunho)
 
 const AjusteSchema = z.object({
   resposta: z.string(),
@@ -268,7 +268,7 @@ export async function ajustarComClaude(
       continue;
     }
 
-    // Só pergunta: nada para validar
+    // so foi uma pergunta, nao tem nada pra validar
     if (!parsed.alterou) return { ...parsed, aulas: [], violacoes: [], tentativas: tentativa, modelo: resposta.model };
 
     onProgresso("Validando conflitos", tentativa);

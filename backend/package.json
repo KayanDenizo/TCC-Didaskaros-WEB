@@ -11,7 +11,8 @@
     "start": "tsx src/server.ts",
     "build": "tsc --noEmit",
     "db:setup": "tsx src/scripts/setup-db.ts",
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "tsx --test src/**/*.test.ts",
+    "test:api": "tsx --test src/api.e2e.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

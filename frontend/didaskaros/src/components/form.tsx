@@ -5,7 +5,7 @@ export const inputClass = (error?: string) =>
    disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed focus:ring-2
    ${error ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"}`;
 
-/** Rótulo + controle + mensagem de erro/dica. */
+/** label + campo + msg de erro/dica */
 export function Field({ label, required, error, hint, className = "", children }: {
   label: string; required?: boolean; error?: string; hint?: string; className?: string; children: ReactNode;
 }) {
@@ -65,7 +65,7 @@ export function Select({ value, onChange, options, placeholder, error, disabled 
   );
 }
 
-/** Grupo de botões liga/desliga (seleção múltipla). */
+/** grupo de botoes liga/desliga (da pra marcar varios) */
 export function Chips<T extends string | number>({ options, selected, onChange, label = String }: {
   options: readonly T[];
   selected: T[];

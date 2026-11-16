@@ -24,7 +24,7 @@ export function Button({ variant = "secondary", loading, className = "", childre
   );
 }
 
-/** Link de navegação com aparência de botão. */
+/** link com cara de botao */
 export function LinkButton({ to, variant = "secondary", className = "", children }: { to: string; variant?: Variante; className?: string; children: ReactNode }) {
   return <Link to={to} className={buttonClass(variant, className)}>{children}</Link>;
 }
@@ -93,7 +93,7 @@ export function Empty({ children }: { children: ReactNode }) {
   return <div className="px-5 py-10 text-center text-[13px] text-gray-400">{children}</div>;
 }
 
-/** Bloco cinza com brilho correndo, no formato do conteúdo que está carregando. */
+/** bloco cinza com brilho passando, no formato do q ta carregando */
 export function Skeleton({ className = "" }: { className?: string }) {
   return <div aria-hidden className={`esqueleto rounded-lg ${className}`} />;
 }

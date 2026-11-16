@@ -48,9 +48,7 @@ import shotPainel from "../assets/landing/app-painel.jpg";
 import shotGerarGrade from "../assets/landing/app-gerar-grade.jpg";
 import shotMobile from "../assets/landing/screen-mobile.png";
 
-/* -------------------------------------------------- */
-/* Header                                              */
-/* -------------------------------------------------- */
+/* ---------------- header ---------------- */
 const LINKS_NAV = [
   { id: "problemas", rotulo: "Problemas" },
   { id: "solucao", rotulo: "Solução" },
@@ -70,7 +68,7 @@ function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Destaca na navbar a seção que está no meio da tela
+  // destaca na navbar a secao q ta no meio da tela
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entradas) => {
@@ -127,9 +125,7 @@ function Header() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Print do app numa janela de navegador               */
-/* -------------------------------------------------- */
+/* ---------------- print do app numa janela de navegador ---------------- */
 function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: string; eager?: boolean }) {
   return (
     <div className="janela-app overflow-hidden rounded-2xl border border-border/80 bg-white shadow-float ring-1 ring-ink/5">
@@ -152,9 +148,7 @@ function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: st
   );
 }
 
-/* -------------------------------------------------- */
-/* Print do app mobile dentro de um celular            */
-/* -------------------------------------------------- */
+/* ---------------- print do app mobile dentro de um celular ---------------- */
 function Celular({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative mx-auto w-full max-w-[290px]">
@@ -173,17 +167,15 @@ function Celular({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-/* -------------------------------------------------- */
-/* Inclinação 3D seguindo o mouse                      */
-/* -------------------------------------------------- */
+/* ---------------- inclinacao 3D seguindo o mouse ---------------- */
 type EstadoTilt = { rx: number; ry: number; mx: number; my: number; s: number };
 const TILT_REPOUSO: EstadoTilt = { rx: 0, ry: 0, mx: 0.5, my: 0.5, s: 0 };
 
 /*
- * O mouse define um "alvo" e a cada quadro o estado anda uma fração do caminho
- * até ele (amortecimento). Assim a peça tem peso: acompanha o cursor sem tremer
- * e volta ao repouso desacelerando, em vez de parar seco.
- * A área que capta o mouse (palco) não gira, só o conteúdo — evita tremedeira nas bordas.
+ * o mouse define um "alvo" e a cada frame o estado anda um pedaco do caminho
+ * ate ele (amortecimento). assim a peca tem peso: segue o mouse sem tremer
+ * e volta pro lugar desacelerando, em vez de parar seco.
+ * a area q pega o mouse (palco) nao gira, so o conteudo, senao treme nas bordas
  */
 function Inclinavel({
   children,
@@ -247,7 +239,7 @@ function Inclinavel({
   );
 }
 
-/* Etiqueta que flutua à frente da imagem inclinada */
+/* etiqueta q flutua na frente da imagem inclinada */
 function Etiqueta({ className, children }: { className: string; children: React.ReactNode }) {
   return (
     <div className={`tilt-camada pointer-events-none absolute hidden sm:block ${className}`}>
@@ -258,13 +250,13 @@ function Etiqueta({ className, children }: { className: string; children: React.
   );
 }
 
-/* Título que entra palavra por palavra, cada uma girando de baixo para cima */
+/* titulo q entra palavra por palavra, cada uma girando de baixo pra cima */
 function Palavras({ texto, inicio = 0, className = "" }: { texto: string; inicio?: number; className?: string }) {
   const palavras = texto.split(" ");
   return (
     <>
       {palavras.map((p, i) => (
-        // O espaço fica fora do inline-block: dentro dele, espaço no fim da caixa é descartado
+        // o espaco fica fora do inline-block pq dentro dele o espaco no fim da caixa some
         <Fragment key={i}>
           <span className="palavra">
             <span className={className} style={{ animationDelay: `${180 + (inicio + i) * 75}ms` }}>
@@ -278,9 +270,7 @@ function Palavras({ texto, inicio = 0, className = "" }: { texto: string; inicio
   );
 }
 
-/* -------------------------------------------------- */
-/* Hero                                                */
-/* -------------------------------------------------- */
+/* ---------------- hero ---------------- */
 function Hero() {
   return (
     <section
@@ -387,9 +377,7 @@ function Hero() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Section header                                      */
-/* -------------------------------------------------- */
+/* ---------------- titulo das secoes ---------------- */
 function SectionEyebrow({
   eyebrow,
   title,
@@ -432,9 +420,7 @@ function SectionEyebrow({
   );
 }
 
-/* -------------------------------------------------- */
-/* Problemas                                           */
-/* -------------------------------------------------- */
+/* ---------------- problemas ---------------- */
 function Problems() {
   const items = [
     { icon: AlertTriangle, title: "Conflitos de Horários", desc: "Sobreposições entre disciplinas, salas e professores." },
@@ -473,9 +459,7 @@ function Problems() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Solução / Timeline                                  */
-/* -------------------------------------------------- */
+/* ---------------- solucao / timeline ---------------- */
 function Solution() {
   const steps = [
     { title: "Disponibilidade", desc: "Professor informa janelas e restrições." },
@@ -520,9 +504,7 @@ function Solution() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Funcionalidades                                     */
-/* -------------------------------------------------- */
+/* ---------------- funcionalidades ---------------- */
 function Features() {
   const items = [
     { icon: Calendar, title: "Disponibilidade Docente", desc: "Coleta estruturada de janelas e restrições por professor." },
@@ -564,9 +546,7 @@ function Features() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Diferencial CPS (dark)                              */
-/* -------------------------------------------------- */
+/* ---------------- diferencial CPS (parte escura) ---------------- */
 function CPSDifferential() {
   const items = [
     "Prioridade para professores indeterminados",
@@ -610,26 +590,24 @@ function CPSDifferential() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Vista explodida: as telas se separam com a rolagem  */
-/* -------------------------------------------------- */
+/* ---------------- vista explodida: as telas se separam qnd rola ---------------- */
 const CAMADAS_EXPLOSAO = [
   { img: shotProfessores, url: "didaskaros.app/professores", etapa: "1 · Disponibilidade", nome: "Professores informam a disponibilidade", z: "0px" },
   { img: shotGerarGrade, url: "didaskaros.app/gerar-grade", etapa: "2 · Geração", nome: "O motor monta a grade com as regras CPS", z: "150px" },
   { img: shotPainel, url: "didaskaros.app/painel", etapa: "3 · Acompanhamento", nome: "A coordenação acompanha tudo no painel", z: "300px" },
 ];
-// Momento da rolagem (--f) em que as telas terminam de abrir; precisa bater com o --b do index.css
+// ponto da rolagem (--f) em q as telas terminam de abrir, tem q bater com o --b do index.css
 const EXPLOSAO_ABERTA = 0.74;
 
 /*
- * Ao rolar, a pilha isométrica se separa e se abre (CSS, via --f). Depois de aberta,
- * vira um carrossel em anel: cada tela fica num ângulo do anel e trocar de tela só
- * gira esse ângulo — a que dá a volta passa por trás das outras.
+ * qnd rola, a pilha isometrica separa e abre (no css, via --f). dps de aberta
+ * vira um carrossel em anel: cada tela fica num angulo do anel e trocar de tela so
+ * gira esse angulo, a q da a volta passa por tras das outras.
  */
 function Explosao() {
   const ref = useRef<HTMLElement>(null);
   const [aberto, setAberto] = useState(false);
-  // Posição do anel. Não volta para 0..2: crescer sem limite mantém o giro sempre pelo caminho curto
+  // posicao do anel. nao volta pra 0..2 de proposito: crescendo sem limite o giro vai sempre pelo caminho mais curto
   const [giro, setGiro] = useState(1);
   const total = CAMADAS_EXPLOSAO.length;
   const ativa = ((giro % total) + total) % total;
@@ -764,9 +742,7 @@ function Explosao() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Mockups alternados                                  */
-/* -------------------------------------------------- */
+/* ---------------- mockups alternados ---------------- */
 function Mockups() {
   const rows = [
     {
@@ -899,9 +875,7 @@ function Mockups() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Benefícios (counters)                               */
-/* -------------------------------------------------- */
+/* ---------------- beneficios (contadores) ---------------- */
 function Benefits() {
   const stats = [
     { value: 92, suffix: "%", label: "Menos conflitos acadêmicos" },
@@ -938,9 +912,7 @@ function Benefits() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Público-alvo                                        */
-/* -------------------------------------------------- */
+/* ---------------- publico-alvo ---------------- */
 function Audiences() {
   const items = [
     { icon: GraduationCap, role: "Professor", desc: "Informe disponibilidade, acompanhe sua grade e receba avisos." },
@@ -974,9 +946,7 @@ function Audiences() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Tecnologias                                         */
-/* -------------------------------------------------- */
+/* ---------------- tecnologias ---------------- */
 function TechStack() {
   const groups = [
     {
@@ -1039,9 +1009,7 @@ function TechStack() {
   );
 }
 
-/* -------------------------------------------------- */
-/* FAQ                                                 */
-/* -------------------------------------------------- */
+/* ---------------- faq ---------------- */
 function FAQ() {
   const faqs = [
     {
@@ -1160,9 +1128,7 @@ function FAQ() {
   );
 }
 
-/* -------------------------------------------------- */
-/* CTA final                                           */
-/* -------------------------------------------------- */
+/* ---------------- cta final ---------------- */
 function FinalCTA() {
   return (
     <section id="cta" className="relative overflow-hidden py-28">
@@ -1206,9 +1172,7 @@ function FinalCTA() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Footer                                              */
-/* -------------------------------------------------- */
+/* ---------------- footer ---------------- */
 function Footer() {
   return (
     <footer className="border-t border-border bg-white">
@@ -1275,9 +1239,7 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
   );
 }
 
-/* -------------------------------------------------- */
-/* Botão de voltar ao topo                             */
-/* -------------------------------------------------- */
+/* ---------------- botao de voltar pro topo ---------------- */
 function VoltarAoTopo() {
   const [visivel, setVisivel] = useState(false);
   useEffect(() => {
@@ -1301,13 +1263,11 @@ function VoltarAoTopo() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Page                                                */
-/* -------------------------------------------------- */
+/* ---------------- pagina ---------------- */
 /*
- * Cópia da landing ANTES da rodada que trouxe: Problemas editorial, Funcionalidades em
- * bento com mini-interfaces, Tecnologias em painel único e granulação. Só para comparar
- * (rota /landing-antes) — pode apagar este arquivo e a rota quando não precisar mais.
+ * copia da landing de ANTES da leva q trouxe: problemas estilo editorial, funcionalidades em
+ * bento com mini-interfaces, tecnologias num painel so e o granulado. so pra comparar
+ * (rota /landing-antes), pode apagar esse arquivo e a rota qnd nao precisar mais
  */
 export default function LandingAntes() {
   useReveal();

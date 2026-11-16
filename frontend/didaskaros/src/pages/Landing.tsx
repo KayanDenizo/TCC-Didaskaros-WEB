@@ -48,9 +48,7 @@ import shotPainel from "../assets/landing/app-painel.jpg";
 import shotGerarGrade from "../assets/landing/app-gerar-grade.jpg";
 import shotMobile from "../assets/landing/screen-mobile.png";
 
-/* -------------------------------------------------- */
-/* Header                                              */
-/* -------------------------------------------------- */
+/* ---------------- header ---------------- */
 const LINKS_NAV = [
   { id: "problemas", rotulo: "Problemas" },
   { id: "solucao", rotulo: "Solução" },
@@ -70,7 +68,7 @@ function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Destaca na navbar a seção que está no meio da tela
+  // destaca na navbar a secao q ta no meio da tela
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entradas) => {
@@ -87,15 +85,13 @@ function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? "py-3" : "py-5"
-      }`}
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "py-3" : "py-5"
+        }`}
     >
       <div className="barra-rolagem" aria-hidden />
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between gap-6 rounded-2xl px-4 sm:px-6 transition-all duration-300 ${
-          scrolled ? "glass-card mx-3 py-2.5 sm:mx-auto" : "py-2"
-        }`}
+        className={`mx-auto flex max-w-7xl items-center justify-between gap-6 rounded-2xl px-4 sm:px-6 transition-all duration-300 ${scrolled ? "glass-card mx-3 py-2.5 sm:mx-auto" : "py-2"
+          }`}
       >
         <a href="#top" className="logo-landing flex items-center py-1" aria-label="Didáskaros — início">
           <Logo cor="#0F172A" className="w-36 sm:w-40" />
@@ -127,9 +123,7 @@ function Header() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Print do app numa janela de navegador               */
-/* -------------------------------------------------- */
+/* ---------------- print do app numa janela de navegador ---------------- */
 function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: string; eager?: boolean }) {
   return (
     <div className="janela-app overflow-hidden rounded-2xl border border-border/80 bg-white shadow-float ring-1 ring-ink/5">
@@ -152,9 +146,7 @@ function JanelaApp({ src, alt, url, eager }: { src: string; alt: string; url: st
   );
 }
 
-/* -------------------------------------------------- */
-/* Print do app mobile dentro de um celular            */
-/* -------------------------------------------------- */
+/* ---------------- print do app mobile dentro de um celular ---------------- */
 function Celular({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative mx-auto w-full max-w-[290px]">
@@ -173,17 +165,15 @@ function Celular({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-/* -------------------------------------------------- */
-/* Inclinação 3D seguindo o mouse                      */
-/* -------------------------------------------------- */
+/* ---------------- inclinacao 3D seguindo o mouse ---------------- */
 type EstadoTilt = { rx: number; ry: number; mx: number; my: number; s: number };
 const TILT_REPOUSO: EstadoTilt = { rx: 0, ry: 0, mx: 0.5, my: 0.5, s: 0 };
 
 /*
- * O mouse define um "alvo" e a cada quadro o estado anda uma fração do caminho
- * até ele (amortecimento). Assim a peça tem peso: acompanha o cursor sem tremer
- * e volta ao repouso desacelerando, em vez de parar seco.
- * A área que capta o mouse (palco) não gira, só o conteúdo — evita tremedeira nas bordas.
+ * o mouse define um "alvo" e a cada frame o estado anda um pedaco do caminho
+ * ate ele (amortecimento). assim a peca tem peso: segue o mouse sem tremer
+ * e volta pro lugar desacelerando, em vez de parar seco.
+ * a area q pega o mouse (palco) nao gira, so o conteudo, senao treme nas bordas
  */
 function Inclinavel({
   children,
@@ -247,7 +237,7 @@ function Inclinavel({
   );
 }
 
-/* Etiqueta que flutua à frente da imagem inclinada */
+/* etiqueta q flutua na frente da imagem inclinada */
 function Etiqueta({ className, children }: { className: string; children: React.ReactNode }) {
   return (
     <div className={`tilt-camada pointer-events-none absolute hidden sm:block ${className}`}>
@@ -258,13 +248,13 @@ function Etiqueta({ className, children }: { className: string; children: React.
   );
 }
 
-/* Título que entra palavra por palavra, cada uma girando de baixo para cima */
+/* titulo q entra palavra por palavra, cada uma girando de baixo pra cima */
 function Palavras({ texto, inicio = 0, className = "" }: { texto: string; inicio?: number; className?: string }) {
   const palavras = texto.split(" ");
   return (
     <>
       {palavras.map((p, i) => (
-        // O espaço fica fora do inline-block: dentro dele, espaço no fim da caixa é descartado
+        // o espaco fica fora do inline-block pq dentro dele o espaco no fim da caixa some
         <Fragment key={i}>
           <span className="palavra">
             <span className={className} style={{ animationDelay: `${180 + (inicio + i) * 75}ms` }}>
@@ -278,9 +268,7 @@ function Palavras({ texto, inicio = 0, className = "" }: { texto: string; inicio
   );
 }
 
-/* -------------------------------------------------- */
-/* Hero                                                */
-/* -------------------------------------------------- */
+/* ---------------- hero ---------------- */
 function Hero() {
   return (
     <section
@@ -387,9 +375,7 @@ function Hero() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Section header                                      */
-/* -------------------------------------------------- */
+/* ---------------- titulo das secoes ---------------- */
 function SectionEyebrow({
   eyebrow,
   title,
@@ -406,26 +392,23 @@ function SectionEyebrow({
   return (
     <div className={`reveal reveal-titulo ${esquerda ? "max-w-xl text-left" : "mx-auto max-w-3xl text-center"}`}>
       <span
-        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
-          light
-            ? "border-white/15 bg-white/5 text-brand-accent"
-            : "border-brand/20 bg-brand/5 text-brand"
-        }`}
+        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${light
+          ? "border-white/15 bg-white/5 text-brand-accent"
+          : "border-brand/20 bg-brand/5 text-brand"
+          }`}
       >
         {eyebrow}
       </span>
       <h2
-        className={`mt-4 text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl ${
-          light ? "text-white" : "text-ink"
-        }`}
+        className={`mt-4 text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl ${light ? "text-white" : "text-ink"
+          }`}
       >
         {title}
       </h2>
       {description && (
         <p
-          className={`mt-4 text-pretty text-base leading-relaxed sm:text-lg ${
-            light ? "text-white/70" : "text-muted-foreground"
-          }`}
+          className={`mt-4 text-pretty text-base leading-relaxed sm:text-lg ${light ? "text-white/70" : "text-muted-foreground"
+            }`}
         >
           {description}
         </p>
@@ -434,9 +417,7 @@ function SectionEyebrow({
   );
 }
 
-/* -------------------------------------------------- */
-/* Problemas                                           */
-/* -------------------------------------------------- */
+/* ---------------- problemas ---------------- */
 function Problems() {
   const items = [
     { icon: AlertTriangle, title: "Conflitos de Horários", desc: "Sobreposições entre disciplinas, salas e professores." },
@@ -491,9 +472,7 @@ function Problems() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Solução / Timeline                                  */
-/* -------------------------------------------------- */
+/* ---------------- solucao / timeline ---------------- */
 function Solution() {
   const steps = [
     { title: "Disponibilidade", desc: "Professor informa janelas e restrições." },
@@ -538,10 +517,8 @@ function Solution() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Funcionalidades                                     */
-/* -------------------------------------------------- */
-/* Mini-interfaces desenhadas em código para os blocos maiores do bento */
+/* ---------------- funcionalidades ---------------- */
+/* mini-interfaces feitas em codigo pros blocos maiores do bento */
 const GRADE_DEMO = [
   ["PW", "BD", "ES", "MAT", "PW"],
   ["PW", "BD", "POR", "MAT", "ING"],
@@ -579,7 +556,7 @@ function DemoGrade() {
             <span
               key={`${l}-${c}`}
               className={`demo-celula grid h-8 place-items-center rounded-md text-[10px] font-bold sm:h-9 ${COR_DISCIPLINA[sigla]}`}
-              // Ordem "embaralhada" para parecer o motor preenchendo, não uma varredura
+              // ordem "embaralhada" pra parecer o motor preenchendo e nao uma varredura
               style={{ "--ordem": (c * 7 + l * 3) % 20 } as React.CSSProperties}
             >
               {sigla}
@@ -782,9 +759,7 @@ function Features() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Diferencial CPS (dark)                              */
-/* -------------------------------------------------- */
+/* ---------------- diferencial CPS (parte escura) ---------------- */
 function CPSDifferential() {
   const items = [
     "Prioridade para professores indeterminados",
@@ -828,26 +803,24 @@ function CPSDifferential() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Vista explodida: as telas se separam com a rolagem  */
-/* -------------------------------------------------- */
+/* ---------------- vista explodida: as telas se separam qnd rola ---------------- */
 const CAMADAS_EXPLOSAO = [
   { img: shotProfessores, url: "didaskaros.app/professores", etapa: "1 · Disponibilidade", nome: "Professores informam a disponibilidade", z: "0px" },
   { img: shotGerarGrade, url: "didaskaros.app/gerar-grade", etapa: "2 · Geração", nome: "O motor monta a grade com as regras CPS", z: "150px" },
   { img: shotPainel, url: "didaskaros.app/painel", etapa: "3 · Acompanhamento", nome: "A coordenação acompanha tudo no painel", z: "300px" },
 ];
-// Momento da rolagem (--f) em que as telas terminam de abrir; precisa bater com o --b do index.css
+// ponto da rolagem (--f) em q as telas terminam de abrir, tem q bater com o --b do index.css
 const EXPLOSAO_ABERTA = 0.74;
 
 /*
- * Ao rolar, a pilha isométrica se separa e se abre (CSS, via --f). Depois de aberta,
- * vira um carrossel em anel: cada tela fica num ângulo do anel e trocar de tela só
- * gira esse ângulo — a que dá a volta passa por trás das outras.
+ * qnd rola, a pilha isometrica separa e abre (no css, via --f). dps de aberta
+ * vira um carrossel em anel: cada tela fica num angulo do anel e trocar de tela so
+ * gira esse angulo, a q da a volta passa por tras das outras.
  */
 function Explosao() {
   const ref = useRef<HTMLElement>(null);
   const [aberto, setAberto] = useState(false);
-  // Posição do anel. Não volta para 0..2: crescer sem limite mantém o giro sempre pelo caminho curto
+  // posicao do anel. nao volta pra 0..2 de proposito: crescendo sem limite o giro vai sempre pelo caminho mais curto
   const [giro, setGiro] = useState(1);
   const total = CAMADAS_EXPLOSAO.length;
   const ativa = ((giro % total) + total) % total;
@@ -956,9 +929,8 @@ function Explosao() {
                   tabIndex={aberto ? 0 : -1}
                   aria-label={`Ir para: ${c.nome}`}
                   aria-current={i === ativa}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    i === ativa ? "w-7 bg-gradient-brand" : "w-2 bg-ink/20 hover:bg-ink/40"
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-500 ${i === ativa ? "w-7 bg-gradient-brand" : "w-2 bg-ink/20 hover:bg-ink/40"
+                    }`}
                 />
               ))}
             </div>
@@ -982,9 +954,7 @@ function Explosao() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Mockups alternados                                  */
-/* -------------------------------------------------- */
+/* ---------------- mockups alternados ---------------- */
 function Mockups() {
   const rows = [
     {
@@ -1070,9 +1040,8 @@ function Mockups() {
           {rows.map((r) => (
             <div
               key={r.title}
-              className={`grid grid-cols-1 items-center gap-10 lg:grid-cols-2 ${
-                r.reverse ? "lg:[&>div:first-child]:order-2" : ""
-              }`}
+              className={`grid grid-cols-1 items-center gap-10 lg:grid-cols-2 ${r.reverse ? "lg:[&>div:first-child]:order-2" : ""
+                }`}
             >
               <div className="reveal">
                 <span className="inline-flex rounded-full border border-brand/20 bg-brand/5 px-3 py-1 text-xs font-semibold text-brand">
@@ -1117,9 +1086,7 @@ function Mockups() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Benefícios (counters)                               */
-/* -------------------------------------------------- */
+/* ---------------- beneficios (contadores) ---------------- */
 function Benefits() {
   const stats = [
     { value: 92, suffix: "%", label: "Menos conflitos acadêmicos" },
@@ -1156,9 +1123,7 @@ function Benefits() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Público-alvo                                        */
-/* -------------------------------------------------- */
+/* ---------------- publico-alvo ---------------- */
 function Audiences() {
   const items = [
     { icon: GraduationCap, role: "Professor", desc: "Informe disponibilidade, acompanhe sua grade e receba avisos." },
@@ -1192,9 +1157,7 @@ function Audiences() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Tecnologias                                         */
-/* -------------------------------------------------- */
+/* ---------------- tecnologias ---------------- */
 function TechStack() {
   const groups = [
     {
@@ -1251,9 +1214,7 @@ function TechStack() {
   );
 }
 
-/* -------------------------------------------------- */
-/* FAQ                                                 */
-/* -------------------------------------------------- */
+/* ---------------- faq ---------------- */
 function FAQ() {
   const faqs = [
     {
@@ -1307,9 +1268,8 @@ function FAQ() {
               >
                 {/* glow accent */}
                 <div
-                  className={`pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-brand to-transparent transition-opacity duration-500 ${
-                    isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-60"
-                  }`}
+                  className={`pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-brand to-transparent transition-opacity duration-500 ${isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                    }`}
                 />
                 <button
                   type="button"
@@ -1318,11 +1278,10 @@ function FAQ() {
                   aria-expanded={isOpen}
                 >
                   <span
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-all duration-300 ${
-                      isOpen
-                        ? "bg-gradient-brand text-white shadow-brand"
-                        : "bg-brand/10 text-brand group-hover:bg-brand/15"
-                    }`}
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-all duration-300 ${isOpen
+                      ? "bg-gradient-brand text-white shadow-brand"
+                      : "bg-brand/10 text-brand group-hover:bg-brand/15"
+                      }`}
                   >
                     <HelpCircle className="h-5 w-5" />
                   </span>
@@ -1330,9 +1289,8 @@ function FAQ() {
                     {f.q}
                   </span>
                   <span
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform duration-300 ${
-                      isOpen ? "rotate-45 border-brand/40 bg-brand/5 text-brand" : ""
-                    }`}
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-45 border-brand/40 bg-brand/5 text-brand" : ""
+                      }`}
                   >
                     <Plus className="h-4 w-4" />
                   </span>
@@ -1372,9 +1330,7 @@ function FAQ() {
   );
 }
 
-/* -------------------------------------------------- */
-/* CTA final                                           */
-/* -------------------------------------------------- */
+/* ---------------- cta final ---------------- */
 function FinalCTA() {
   return (
     <section id="cta" className="relative overflow-hidden py-28">
@@ -1418,9 +1374,7 @@ function FinalCTA() {
   );
 }
 
-/* -------------------------------------------------- */
-/* Footer                                              */
-/* -------------------------------------------------- */
+/* ---------------- footer ---------------- */
 function Footer() {
   return (
     <footer className="border-t border-border bg-white">
@@ -1487,9 +1441,7 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
   );
 }
 
-/* -------------------------------------------------- */
-/* Botão de voltar ao topo                             */
-/* -------------------------------------------------- */
+/* ---------------- botao de voltar pro topo ---------------- */
 function VoltarAoTopo() {
   const [visivel, setVisivel] = useState(false);
   useEffect(() => {
@@ -1504,18 +1456,15 @@ function VoltarAoTopo() {
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="Voltar ao topo"
-      className={`voltar-topo group fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-brand text-white shadow-brand ring-4 ring-white/70 hover:-translate-y-1 ${
-        visivel ? "" : "oculto"
-      }`}
+      className={`voltar-topo group fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-brand text-white shadow-brand ring-4 ring-white/70 hover:-translate-y-1 ${visivel ? "" : "oculto"
+        }`}
     >
       <ArrowUp className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-0.5" />
     </button>
   );
 }
 
-/* -------------------------------------------------- */
-/* Page                                                */
-/* -------------------------------------------------- */
+/* ---------------- pagina ---------------- */
 export default function Landing() {
   useReveal();
   useEfeitosLanding();

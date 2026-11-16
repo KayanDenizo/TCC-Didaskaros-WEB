@@ -31,7 +31,7 @@ CREATE TABLE professor (
   telefone        VARCHAR(20),
   senha_hash      VARCHAR(100),
   pontuacao_cps   DECIMAL(7,2) NOT NULL DEFAULT 0,
-  -- Deliberação CEETEPS 23/2015: indeterminado escolhe aulas antes de determinado.
+  -- Deliberacao CEETEPS 23/2015: indeterminado escolhe aula antes do determinado
   contrato        ENUM('INDETERMINADO','DETERMINADO') NOT NULL DEFAULT 'INDETERMINADO',
   UNIQUE KEY uq_professor_email (escola_id, email),
   UNIQUE KEY uq_professor_cod (escola_id, cod_professor),
@@ -53,8 +53,8 @@ CREATE TABLE turma (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   escola_id   INT NOT NULL,
   curso_id    INT NOT NULL,
-  codigo      VARCHAR(12) NOT NULL,                   -- número da turma, ex.: 3DS
-  turno       ENUM('MANHA','TARDE','NOITE') NOT NULL, -- período
+  codigo      VARCHAR(12) NOT NULL,                   -- numero da turma, tipo 3DS
+  turno       ENUM('MANHA','TARDE','NOITE') NOT NULL, -- periodo
   qtd_alunos  INT NOT NULL,
   UNIQUE KEY uq_turma (escola_id, codigo),
   FOREIGN KEY (escola_id) REFERENCES escola(id),
@@ -76,7 +76,7 @@ CREATE TABLE aluno (
   FOREIGN KEY (turma_id)  REFERENCES turma(id) ON DELETE SET NULL
 );
 
--- Leciona (professor × turma × disciplina)
+-- leciona (professor x turma x disciplina)
 CREATE TABLE carga_horaria (
   turma_id        INT NOT NULL,
   disciplina_id   INT NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE carga_horaria (
   FOREIGN KEY (professor_id)  REFERENCES professor(id)  ON DELETE SET NULL
 );
 
--- Coordenador
+-- coordenador
 CREATE TABLE coordenador (
   id                  INT AUTO_INCREMENT PRIMARY KEY,
   escola_id           INT NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE coordenador (
   email               VARCHAR(160) NOT NULL UNIQUE,
   email_pessoal       VARCHAR(160),
   senha_hash          VARCHAR(100) NOT NULL,
-  turnos              VARCHAR(60)  NOT NULL,          -- lista separada por vírgula
+  turnos              VARCHAR(60)  NOT NULL,          -- lista separada por virgula
   registro_funcional  VARCHAR(8)   NOT NULL,
   categoria           VARCHAR(60)  NOT NULL,
   data_inicio         DATE         NOT NULL,
@@ -129,8 +129,8 @@ CREATE TABLE habilitacao (
   FOREIGN KEY (disciplina_id) REFERENCES disciplina(id) ON DELETE CASCADE
 );
 
--- Dias / horários / períodos em que o professor não pode dar aula.
--- dia: 0 = segunda … 4 = sexta. ordem: horário da aula no turno (0 = primeira).
+-- dias/horarios em q o professor nao pode dar aula
+-- dia: 0 = segunda ... 4 = sexta. ordem: qual aula do turno (0 = primeira)
 CREATE TABLE indisponibilidade (
   professor_id  INT NOT NULL,
   turno         ENUM('MANHA','TARDE','NOITE') NOT NULL,
@@ -140,7 +140,7 @@ CREATE TABLE indisponibilidade (
   FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE
 );
 
--- Horários que o professor prefere (ou prefere evitar). Restrição mole: a IA tenta atender.
+-- horarios q o professor prefere (ou quer evitar). restricao mole, a IA tenta atender
 CREATE TABLE preferencia (
   professor_id  INT NOT NULL,
   turno         ENUM('MANHA','TARDE','NOITE') NOT NULL,
@@ -151,8 +151,8 @@ CREATE TABLE preferencia (
   FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE
 );
 
--- Horário em que o professor trabalha FORA desta unidade (outra ETEC/FATEC, outro emprego).
--- Entra no cálculo de conflito, interjornada de 11h, refeição e limite diário de 8h.
+-- horario q o professor trabalha FORA daqui (outra ETEC/FATEC, outro emprego)
+-- entra na conta de conflito, interjornada de 11h, refeicao e limite de 8h por dia
 CREATE TABLE compromisso_externo (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   professor_id  INT NOT NULL,

@@ -4,7 +4,7 @@ const TOKEN_KEY = "didaskaros.token";
 
 export const api = axios.create({ baseURL: "/api" });
 
-/** Token fica no localStorage se "manter conectado", senão só na sessão da aba. */
+/** token vai pro localStorage se marcar "manter conectado", senao fica so na sessao da aba */
 export const token = {
   get: () => localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY),
   set: (valor: string, lembrar: boolean) => (lembrar ? localStorage : sessionStorage).setItem(TOKEN_KEY, valor),
@@ -21,7 +21,7 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(undefined, (err) => {
-  // Sessão expirada: limpa e volta para o login
+  // sessao expirou: limpa e volta pro login
   if (err.response?.status === 401 && token.get()) {
     token.clear();
     window.location.assign("/painel");
@@ -29,7 +29,7 @@ api.interceptors.response.use(undefined, (err) => {
   return Promise.reject(err);
 });
 
-/** Mensagem legível de um erro da API. */
+/** msg legivel de um erro da api */
 export function mensagemErro(err: unknown): string {
   if (axios.isAxiosError(err)) {
     if (err.response?.data?.erro) return err.response.data.erro;

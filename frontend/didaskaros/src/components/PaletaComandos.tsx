@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Icons, type IconName } from "./icons";
 
-/** Outros componentes abrem a paleta disparando este evento (ex.: botão de busca da barra superior). */
+/** os outros componentes abrem a paleta disparando esse evento (tipo o botao de busca la de cima) */
 export const EVENTO_ABRIR_PALETA = "didaskaros:abrir-paleta";
 
 interface Comando {
@@ -11,15 +11,15 @@ interface Comando {
   label: string;
   grupo: "Páginas" | "Ações" | "Conta";
   icon: IconName;
-  /** Palavras extras para a busca encontrar o comando */
+  /** palavras a mais pra busca achar o comando */
   termos?: string;
   executar: () => void;
 }
 
-/** Tira acento e caixa para a busca não depender de digitar "horário" com acento. */
+/** tira acento e maiuscula pra busca funcionar mesmo sem digitar "horário" com acento */
 const normalizar = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-/** Busca rápida de páginas e ações — Ctrl+K / ⌘K de qualquer tela do painel. */
+/** busca rapida de paginas e acoes, abre com Ctrl+K / Cmd+K em qualquer tela do painel */
 export function PaletaComandos() {
   const navigate = useNavigate();
   const { sair } = useAuth();
@@ -54,7 +54,7 @@ export function PaletaComandos() {
     return comandos.filter((c) => normalizar(`${c.label} ${c.termos ?? ""}`).includes(q));
   }, [busca, comandos]);
 
-  // Atalho global e evento vindo da barra superior
+  // atalho global + evento q vem da barra de cima
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -80,7 +80,7 @@ export function PaletaComandos() {
 
   useEffect(() => setIndice(0), [busca]);
 
-  // Mantém o item destacado visível ao navegar pelas setas
+  // deixa o item selecionado visivel qnd navega pelas setas
   useEffect(() => {
     lista.current?.querySelector<HTMLElement>(`[data-indice="${indice}"]`)?.scrollIntoView({ block: "nearest" });
   }, [indice]);

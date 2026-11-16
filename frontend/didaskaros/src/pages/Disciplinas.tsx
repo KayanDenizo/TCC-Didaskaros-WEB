@@ -16,15 +16,19 @@ export default function Disciplinas() {
       paraForm={({ id: _, ...d }) => d}
       validar={(f) => (!f.nome.trim() || !f.sigla.trim() ? "Informe nome e sigla." : null)}
       colunas={[
-        { titulo: "Disciplina", render: (d) => (
-          <span className="flex items-center gap-2 font-semibold text-gray-900">
-            <span className={`w-2 h-2 rounded-full ${corDisciplina(d.id).dot}`} />{d.nome}
-          </span>
-        ) },
+        {
+          titulo: "Disciplina", render: (d) => (
+            <span className="flex items-center gap-2 font-semibold text-gray-900">
+              <span className={`w-2 h-2 rounded-full ${corDisciplina(d.id).dot}`} />{d.nome}
+            </span>
+          )
+        },
         { titulo: "Sigla", render: (d) => d.sigla },
-        { titulo: "Sala", render: (d) => d.exigeLaboratorio
-          ? <Badge className="bg-violet-50 text-violet-700">Laboratório</Badge>
-          : <Badge className="bg-gray-100 text-gray-500">Comum</Badge> },
+        {
+          titulo: "Sala", render: (d) => d.exigeLaboratorio
+            ? <Badge className="bg-violet-50 text-violet-700">Laboratório</Badge>
+            : <Badge className="bg-gray-100 text-gray-500">Comum</Badge>
+        },
       ]}
       renderForm={(f, set) => (
         <>

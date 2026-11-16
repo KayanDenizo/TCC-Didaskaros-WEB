@@ -29,12 +29,12 @@
 }
 
 @layer components {
-  /* Destaque do menu lateral: desliza entre os itens */
+  /* destaque do menu lateral: desliza entre os itens */
   .nav-marker {
     transition: top 0.35s cubic-bezier(0.22, 1, 0.36, 1), height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* Logo: leve aumento ao passar o mouse */
+  /* logo: aumenta um pouco no hover */
   .brand-mark {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -42,7 +42,7 @@
     transform: scale(1.04);
   }
 
-  /* Barra de progresso da geração: faixa luminosa correndo sobre o preenchimento */
+  /* barra de progresso da geracao: faixa de luz correndo em cima do preenchimento */
   .progress-fill {
     transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     background-image: linear-gradient(90deg, #1e4da1, #2563eb 60%, #60a5fa);
@@ -71,7 +71,7 @@
   100% { transform: translateX(100%); }
 }
 
-/* Abertura depois do login */
+/* abertura dps do login */
 .abertura {
   background:
     radial-gradient(circle at 50% 45%, rgba(59, 130, 246, 0.35), transparent 55%),
@@ -79,7 +79,7 @@
   animation: abertura-some 0.7s cubic-bezier(0.7, 0, 0.84, 0) 1.9s forwards;
 }
 .abertura-logo {
-  transform-origin: 83.87% 58.18%; /* o zoom entra pelo relógio */
+  transform-origin: 83.87% 58.18%; /* o zoom entra pelo relogio */
   animation:
     abertura-entra 0.7s cubic-bezier(0.22, 1, 0.36, 1) both,
     abertura-zoom 0.8s cubic-bezier(0.7, 0, 0.84, 0) 1.8s forwards;
@@ -87,7 +87,7 @@
 .ponteiro-minuto,
 .ponteiro-hora {
   transform-box: fill-box;
-  transform-origin: 50% 100%; /* gira em torno do centro do relógio */
+  transform-origin: 50% 100%; /* gira em volta do centro do relogio */
 }
 .abertura-logo .ponteiro-minuto { animation: gira-minuto 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
 .abertura-logo .ponteiro-hora { animation: gira-hora 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both; }
@@ -112,7 +112,7 @@
   to { transform: rotate(-45deg); }
 }
 
-/* ---------------- Landing page ---------------- */
+/* ---------------- landing page ---------------- */
 html {
   scroll-behavior: smooth;
 }
@@ -181,7 +181,7 @@ html {
 
 }
 
-/* Aparece ao rolar a página (ver useReveal): sobe de leve inclinado para trás e assenta */
+/* aparece qnd rola a pagina (ver useReveal): sobe meio inclinado pra tras e assenta */
 .reveal {
   opacity: 0;
   transform: perspective(1200px) translateY(28px) rotateX(9deg);
@@ -197,7 +197,7 @@ html {
   opacity: 1;
   transform: none;
 }
-/* Títulos de seção chegam desfocados */
+/* titulos de secao chegam desfocados */
 .reveal-titulo {
   filter: blur(8px);
 }
@@ -206,7 +206,7 @@ html {
 }
 
 
-/* Logo da landing: ao passar o mouse o relógio dá uma volta e o lápis balança */
+/* logo da landing: no hover o relogio da uma volta e o lapis balanca */
 .logo-landing .ponteiro-hora { transform: rotate(-45deg); }
 .logo-landing .ponteiro-minuto { transform: rotate(180deg); }
 .logo-landing .ponteiro-hora,
@@ -226,7 +226,7 @@ html {
   60% { transform: rotate(6deg); }
 }
 
-/* Links da navbar: pílula de fundo + sublinhado que cresce do centro */
+/* links da navbar: pilula de fundo + sublinhado q cresce do meio */
 .nav-link {
   position: relative;
   border-radius: 0.75rem;
@@ -258,10 +258,10 @@ html {
 }
 
 /*
- * Imagens inclinando com o mouse. As variáveis vêm do <Inclinavel> (Landing.tsx),
- * já amortecidas quadro a quadro — por isso não há transition aqui.
- *   --rx/--ry  rotação em graus   --mx/--my  posição do cursor (0..1)
- *   --s        intensidade do hover (0 em repouso, 1 com o mouse em cima)
+ * imagens inclinando com o mouse. as variaveis vem do <Inclinavel> (Landing.tsx),
+ * ja suavizadas frame a frame, por isso nao tem transition aqui.
+ *   --rx/--ry  rotacao em graus   --mx/--my  posicao do mouse (0..1)
+ *   --s        forca do hover (0 parado, 1 com o mouse em cima)
  */
 .tilt-palco {
   --rx: 0;
@@ -279,7 +279,7 @@ html {
   transform-style: preserve-3d;
   will-change: transform;
 }
-/* Reflexo: um ponto de luz que segue o cursor + uma faixa diagonal que varre o vidro */
+/* reflexo: um ponto de luz q segue o mouse + uma faixa diagonal q passa pelo vidro */
 .tilt-brilho {
   background:
     radial-gradient(
@@ -299,11 +299,11 @@ html {
   opacity: var(--s);
   transform: translateZ(1px);
 }
-/* Etiquetas sobem em direção ao leitor conforme o hover ganha força */
+/* as etiquetas vem pra frente conforme o hover fica mais forte */
 .tilt-camada {
   transform: translateZ(calc(var(--z, 60px) * (0.55 + var(--s) * 0.45)));
 }
-/* Sombra no "chão": desliza para o lado oposto da inclinação e se afasta no hover */
+/* sombra no "chao": vai pro lado contrario da inclinacao e se afasta no hover */
 .tilt-sombra {
   left: 10%;
   right: 10%;
@@ -318,7 +318,7 @@ html {
     scale(calc(1 + var(--s) * 0.06), calc(1 - var(--s) * 0.1));
 }
 
-/* Prints do app dentro de uma janela de navegador */
+/* prints do app dentro de uma janela de navegador */
 .janela-app img {
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -326,7 +326,7 @@ html {
   transform: scale(1.015);
 }
 
-/* Botão de voltar ao topo */
+/* botao de voltar pro topo */
 .voltar-topo {
   transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -336,7 +336,7 @@ html {
   pointer-events: none;
 }
 
-/* Brilho que atravessa o botão ao passar o mouse */
+/* brilho q atravessa o botao no hover */
 .shine-on-hover {
   position: relative;
   overflow: hidden;
@@ -360,7 +360,7 @@ html {
   100% { transform: translateX(220%) skewX(-12deg); }
 }
 
-/* Caixa de confirmação de exclusão */
+/* caixa de confirmacao de excluir */
 @keyframes dialogo-fundo {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -374,13 +374,13 @@ html {
 .dialogo-celula { transition: opacity 0.25s ease, transform 0.25s ease; }
 .apagando .dialogo-celula { opacity: 0.08; transform: scale(0.4); }
 
-/* ================= Landing: efeitos interativos (ver useEfeitosLanding) ================= */
+/* ================= landing: efeitos interativos (o js ta no useEfeitosLanding) ================= */
 :root {
   --curva-suave: cubic-bezier(0.22, 1, 0.36, 1);
   --curva-mola: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Barra fina no topo mostrando o quanto da página já foi lido */
+/* barrinha no topo mostrando quanto da pagina ja foi lido */
 .barra-rolagem {
   position: fixed;
   inset: 0 0 auto 0;
@@ -391,7 +391,7 @@ html {
   pointer-events: none;
 }
 
-/* Hero: título entra palavra por palavra */
+/* hero: titulo entra palavra por palavra */
 .titulo-hero {
   perspective: 900px;
 }
@@ -416,7 +416,7 @@ html {
   }
 }
 
-/* Hero: a janela "pousa" ao carregar e deita para trás conforme a página rola */
+/* hero: a janela "pousa" qnd carrega e deita pra tras conforme rola a pagina */
 .hero-pouso {
   animation: hero-pouso 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
 }
@@ -439,13 +439,13 @@ html {
   transform-origin: 50% 100%;
 }
 
-/* Hero: camadas do fundo se deslocam com o mouse em profundidades diferentes */
+/* hero: as camadas do fundo mexem com o mouse em profundidades diferentes */
 .paralaxe {
   translate: calc(var(--hx, 0) * var(--prof, 20px)) calc(var(--hy, 0) * var(--prof, 20px));
   transition: translate 1.6s var(--curva-suave);
 }
 
-/* ---------- Cartões: luz que segue o cursor + inclinação 3D com profundidade ---------- */
+/* ---------- cards: luz q segue o mouse + inclinacao 3D com profundidade ---------- */
 .palco-3d {
   perspective: 1100px;
 }
@@ -480,12 +480,12 @@ html {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-/* Luz difusa no fundo do cartão */
+/* luz difusa no fundo do card */
 .cartao::before {
   z-index: -1;
   background: radial-gradient(320px circle at var(--cx, 50%) var(--cy, 50%), var(--spot), transparent 65%);
 }
-/* Borda que acende só perto do cursor */
+/* borda q acende so perto do mouse */
 .cartao::after {
   padding: 1px;
   background: radial-gradient(200px circle at var(--cx, 50%) var(--cy, 50%), var(--spot-borda), transparent 70%);
@@ -497,9 +497,9 @@ html {
 .cartao:hover::after {
   opacity: 1;
 }
-/* Ícone se descola do cartão em direção ao leitor.
- * Fica sempre um pouco à frente do fundo (1px) e volta sem efeito mola: se passasse
- * de 0 na volta, cairia atrás do fundo do cartão e "piscaria". */
+/* o icone descola do card e vem pra frente.
+ * fica sempre um pouco na frente do fundo (1px) e volta sem efeito mola, pq se passasse
+ * de 0 na volta ia cair atras do fundo do card e "piscar" */
 .cartao-icone {
   transform: translateZ(1px);
   transition: transform 0.6s var(--curva-suave), box-shadow 0.6s var(--curva-suave), background-color 0.3s ease, color 0.3s ease;
@@ -517,7 +517,7 @@ html {
   border-color: rgba(116, 192, 252, 0.25);
 }
 
-/* ---------- Fluxo da solução: cada etapa "carrega" em sequência ---------- */
+/* ---------- fluxo da solucao: cada etapa "carrega" uma dps da outra ---------- */
 .passo-trilho {
   position: absolute;
   left: 1.5rem;
@@ -526,7 +526,7 @@ html {
   height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, #3b5bdb, #74c0fc);
-  /* --p vem da lista (data-rolagem): cada etapa enche depois da anterior */
+  /* o --p vem da lista (data-rolagem): cada etapa enche dps da anterior */
   transform: scaleX(clamp(0, calc((var(--p, 0) - 0.2) / 0.3 * 7 - var(--i, 0)), 1));
   transform-origin: 0 50%;
 }
@@ -550,7 +550,7 @@ html {
   30% { translate: 4px 0; opacity: 1; }
 }
 
-/* ---------- Seções escuras: brilho acompanha o mouse ---------- */
+/* ---------- secoes escuras: brilho segue o mouse ---------- */
 .luz-cursor {
   position: absolute;
   inset: 0;
@@ -563,7 +563,7 @@ html {
   opacity: 1;
 }
 
-/* ---------- CTA: piso em perspectiva deslizando em direção ao leitor ---------- */
+/* ---------- cta: piso em perspectiva deslizando na direcao de quem ta vendo ---------- */
 .piso-3d {
   position: absolute;
   inset: 45% -50% 0 -50%;
@@ -588,7 +588,7 @@ html {
   to { background-position: 0 56px; }
 }
 
-/* ---------- Prints do produto: giram em 3D enquanto atravessam a tela ---------- */
+/* ---------- prints do produto: giram em 3D enquanto passam pela tela ---------- */
 .rola-3d {
   --p: 0.5;
   transform:
@@ -598,11 +598,11 @@ html {
     rotateX(calc((var(--p) - 0.5) * 22deg));
 }
 
-/* ---------- Vista explodida (seção fixa enquanto rola) ----------
- * --f (0..1) vem do data-fixo. Fase A (--a): a pilha isométrica se separa em camadas.
- * Fase B (--b): a pilha gira para a frente e as telas se abrem lado a lado.
- * Com --b em 1 (EXPLOSAO_ABERTA no Landing.tsx) vira carrossel: cada tela fica num
- * ângulo do anel (--ang) e só esse ângulo muda ao navegar.
+/* ---------- vista explodida (secao fica fixa enquanto rola) ----------
+ * o --f (0..1) vem do data-fixo. fase A (--a): a pilha isometrica separa em camadas.
+ * fase B (--b): a pilha gira pra frente e as telas abrem uma do lado da outra.
+ * com --b em 1 (EXPLOSAO_ABERTA no Landing.tsx) vira carrossel: cada tela fica num
+ * angulo do anel (--ang) e so esse angulo muda qnd navega
  */
 @property --ang {
   syntax: "<angle>";
@@ -636,7 +636,7 @@ html {
   pointer-events: auto;
 }
 .explosao-camada {
-  /* posição no anel: --seno espalha para os lados, --perto vale 1 na frente, 0 nas laterais e negativo atrás */
+  /* posicao no anel: --seno espalha pros lados, --perto vale 1 na frente, 0 nas laterais e negativo atras */
   --seno: sin(var(--ang));
   --perto: calc((cos(var(--ang)) + 0.5) / 1.5);
   transform-style: preserve-3d;
@@ -655,7 +655,7 @@ html {
   box-shadow: 0 40px 80px -30px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.04);
   transition: box-shadow 0.4s ease;
 }
-/* Telas fora do centro ficam apagadas; acendem ao passar o mouse quando dá para clicar */
+/* tela fora do centro fica apagada, acende no hover qnd da pra clicar */
 .explosao-veu {
   background: #f8fafd;
   opacity: calc(var(--b) * (1 - var(--perto)) * 0.5);
@@ -701,7 +701,7 @@ html {
   transform: scaleX(var(--f));
 }
 
-/* ---------- Problemas: lista editorial ---------- */
+/* ---------- problemas: lista estilo editorial ---------- */
 .problema::before {
   content: "";
   position: absolute;
@@ -735,7 +735,7 @@ html {
   box-shadow: 0 10px 24px -10px rgba(59, 91, 219, 0.6);
 }
 
-/* ---------- Funcionalidades: mini-interfaces animadas (rodam quando o bloco aparece) ---------- */
+/* ---------- funcionalidades: mini-interfaces animadas (rodam qnd o bloco aparece) ---------- */
 .is-visible .demo-celula {
   animation: celula-ciclo 9s var(--curva-suave) calc(var(--ordem) * 80ms) infinite both;
 }
@@ -809,7 +809,7 @@ html {
   to { transform: scaleY(1); }
 }
 
-/* ---------- Granulação sutil: tira o aspecto "chapado" dos degradês ---------- */
+/* ---------- granulado sutil: tira aquela cara "chapada" dos degrades ---------- */
 .grao::after {
   content: "";
   position: absolute;
@@ -821,15 +821,15 @@ html {
   mix-blend-mode: soft-light;
 }
 
-/* ======================= Painel interno (dashboard) ======================= */
+/* ======================= painel de dentro (dashboard) ======================= */
 
-/* Fundo: cinza-azulado com um halo suave no topo, em vez de cinza chapado */
+/* fundo: cinza-azulado com um halo suave no topo, pra nao ficar cinza chapado */
 .painel-fundo {
   position: relative;
   isolation: isolate;
   background: #f4f7fc;
 }
-/* Manchas de cor desfocadas e fixas atrás de tudo: é o que faz o vidro dos cartões aparecer */
+/* manchas de cor desfocadas e fixas atras de tudo, sao elas q fazem o vidro dos cards aparecer */
 .painel-fundo::before {
   content: "";
   position: fixed;
@@ -851,8 +851,8 @@ html {
   .painel-fundo::before { display: none; }
 }
 
-/* Vidro claro: base de todos os cartões do painel (Card e StatCard).
- * Em @layer components para utilitários como border-blue-200 ou print:border-0 continuarem valendo. */
+/* vidro claro: base de todos os cards do painel (Card e StatCard).
+ * ta no @layer components pra utilitarios tipo border-blue-200 ou print:border-0 continuarem funcionando */
 @layer components {
   .vidro {
     background: rgba(255, 255, 255, 0.72);
@@ -865,7 +865,7 @@ html {
       0 1px 2px rgba(15, 23, 42, 0.04),
       0 12px 32px -20px rgba(15, 36, 86, 0.18);
   }
-  /* Vidro sobre fundo escuro (faixa de boas-vindas) */
+  /* vidro em fundo escuro (faixa de boas-vindas) */
   .vidro-escuro {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
     -webkit-backdrop-filter: blur(16px) saturate(150%);
@@ -875,15 +875,15 @@ html {
   }
 }
 
-/* Cartão da faixa que inclina de leve seguindo o mouse (--px/--py vêm da faixa).
- * Único 3D do painel: é decorativo, não um dado que precisa ser lido. */
+/* card da faixa q inclina um pouco seguindo o mouse (--px/--py vem da faixa).
+ * unico 3D do painel, ta ai so de enfeite, nao tem dado pra ler nele */
 .inclina-3d {
   transform: rotateX(calc(var(--py, 0) * -4deg)) rotateY(calc(var(--px, 0) * 5deg)) translateZ(0);
   transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
-/* Menu lateral: degradê profundo com brilho discreto no topo */
+/* menu lateral: degrade escuro com um brilho discreto no topo */
 .sidebar {
   background:
     radial-gradient(420px 260px at 0% 0%, rgba(96, 165, 250, 0.18), transparent 70%),
@@ -891,7 +891,7 @@ html {
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Teclas de atalho (Ctrl, K, Esc…) */
+/* teclas de atalho (Ctrl, K, Esc...) */
 .tecla {
   display: inline-grid;
   place-items: center;
@@ -906,9 +906,9 @@ html {
   color: #6b7280;
 }
 
-/* Cartões do painel (StatCard): sobem de leve, luz e borda acendem perto do cursor.
- * Sem inclinação de propósito — é tela de trabalho diário, o número precisa ficar legível.
- * hover usa `translate` (não `transform`) porque a animação de entrada ocupa o transform. */
+/* cards do painel (StatCard): sobem um pouco, luz e borda acendem perto do mouse.
+ * sem inclinacao de proposito: essa tela a pessoa usa todo dia e o numero tem q ficar legivel.
+ * o hover usa `translate` (e nao `transform`) pq a animacao de entrada ja usa o transform */
 .painel-cartao {
   transition:
     translate 0.45s cubic-bezier(0.22, 1, 0.36, 1),
@@ -924,7 +924,7 @@ html {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-/* Borda que acende perto do cursor */
+/* borda q acende perto do mouse */
 .painel-cartao::after {
   content: "";
   position: absolute;
@@ -954,7 +954,7 @@ html {
 .painel-cartao > * {
   position: relative;
 }
-/* Único movimento interno: o ícone dá um leve pulo */
+/* unico movimento dentro: o icone da um pulinho */
 .cartao-3d-icone {
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease;
 }
@@ -963,7 +963,7 @@ html {
   box-shadow: 0 10px 18px -10px currentColor;
 }
 
-/* Carregando: brilho correndo sobre o bloco */
+/* carregando: brilho passando em cima do bloco */
 .esqueleto {
   position: relative;
   overflow: hidden;
@@ -978,7 +978,7 @@ html {
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
-/* Faixa de boas-vindas do Painel Principal */
+/* faixa de boas-vindas do painel principal */
 .boas-vindas {
   background:
     radial-gradient(600px 300px at 100% 0%, rgba(34, 211, 238, 0.18), transparent 60%),
@@ -998,7 +998,7 @@ html {
   transition: background 0.2s;
 }
 
-/* Brilho que atravessa um botão no hover (painel) */
+/* brilho q atravessa o botao no hover (painel) */
 .brilho-botao {
   position: relative;
   overflow: hidden;
@@ -1016,7 +1016,7 @@ html {
   animation: shine 0.9s ease forwards;
 }
 
-/* Linha do tempo das aulas de hoje */
+/* linha do tempo das aulas de hoje */
 .linha-tempo {
   animation: fadeUpPainel 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -1043,7 +1043,7 @@ html {
   to { opacity: 1; transform: none; }
 }
 
-/* Barras de carga crescem da esquerda ao aparecer */
+/* barras de carga crescem da esquerda qnd aparecem */
 .barra-carga {
   transform-origin: 0 50%;
   animation: barraCresce 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1053,7 +1053,7 @@ html {
   to { transform: scaleX(1); }
 }
 
-/* Gerar Grade: botão principal com halo pulsando para chamar a ação */
+/* gerar grade: botao principal com halo pulsando pra chamar atencao */
 .botao-gerar:not(:disabled) {
   animation: haloGerar 2.6s ease-in-out infinite;
 }
@@ -1062,7 +1062,7 @@ html {
   50% { box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35), 0 0 0 8px rgba(59, 130, 246, 0); }
 }
 
-/* Selo do resultado: entra com mola e solta um anel */
+/* selo do resultado: entra com efeito mola e solta um anel */
 .resultado-selo {
   animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
@@ -1087,7 +1087,7 @@ html {
   to { opacity: 0; transform: scale(1.9); }
 }
 
-/* Barra de ações do Gerar Grade entra subindo */
+/* barra de acoes do gerar grade entra subindo */
 .barra-acoes {
   animation: fadeUpPainel 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

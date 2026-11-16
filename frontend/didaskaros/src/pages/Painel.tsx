@@ -9,9 +9,9 @@ import { useApi } from "../hooks/useApi";
 import { dataCurta, dataLonga, iniciais, nomeGrade } from "../lib/format";
 
 const ICONE_TURNO: Record<Turno, IconName> = { MANHA: "Sun", TARDE: "Sunset", NOITE: "Moon" };
-const DURACAO_PADRAO = 50; // minutos de uma aula quando não dá para deduzir pelo próximo horário
+const DURACAO_PADRAO = 50; // minutos de uma aula qnd nao da pra descobrir pelo proximo horario
 
-/** Hora atual que se atualiza a cada 30s — o suficiente para "agora" e "próxima" aula. */
+/** hora atual q atualiza a cada 30s, ja da pra saber a aula de "agora" e a "proxima" */
 function useAgora() {
   const [agora, setAgora] = useState(() => new Date());
   useEffect(() => {
@@ -34,7 +34,7 @@ function saudacao(d: Date) {
 type Situacao = "passada" | "agora" | "futura";
 type Aula = PainelData["aulasHoje"][number];
 
-/** Agrupa as aulas de hoje por horário e marca o que já passou, o que está rolando e o que vem. */
+/** junta as aulas de hoje por horario e marca o q ja passou, o q ta rolando e o q vem */
 function agruparPorHorario(aulas: Aula[], agora: Date) {
   const horarios = [...new Set(aulas.map((a) => a.horario))].sort((a, b) => minutos(a) - minutos(b));
   const atual = agora.getHours() * 60 + agora.getMinutes();
@@ -47,7 +47,7 @@ function agruparPorHorario(aulas: Aula[], agora: Date) {
   });
 }
 
-/* ---------------- Carregando ---------------- */
+/* ---------------- carregando ---------------- */
 function PainelEsqueleto() {
   return (
     <div className="space-y-6">
@@ -63,7 +63,7 @@ function PainelEsqueleto() {
   );
 }
 
-/* ---------------- Faixa de boas-vindas ---------------- */
+/* ---------------- faixa de boas-vindas ---------------- */
 function BoasVindas({ nome, data, agora }: { nome: string; data: PainelData; agora: Date }) {
   const { totais, aulasHoje } = data;
   const blocos = agruparPorHorario(aulasHoje, agora);
@@ -143,7 +143,7 @@ function BoasVindas({ nome, data, agora }: { nome: string; data: PainelData; ago
   );
 }
 
-/* ---------------- Primeiros passos ---------------- */
+/* ---------------- primeiros passos ---------------- */
 function PrimeirosPassos({ totais }: { totais: PainelData["totais"] }) {
   const passos = [
     { label: "Disciplinas", desc: "O que é ensinado", to: "/disciplinas", feito: totais.disciplinas > 0, icon: "Book" as IconName },
@@ -188,7 +188,7 @@ function PrimeirosPassos({ totais }: { totais: PainelData["totais"] }) {
   );
 }
 
-/* ---------------- Aulas de hoje (linha do tempo) ---------------- */
+/* ---------------- aulas de hoje (linha do tempo) ---------------- */
 function AulasHoje({ data, agora }: { data: PainelData; agora: Date }) {
   const blocos = agruparPorHorario(data.aulasHoje, agora);
   return (
@@ -247,7 +247,7 @@ function AulasHoje({ data, agora }: { data: PainelData; agora: Date }) {
   );
 }
 
-/* ---------------- Grades recentes ---------------- */
+/* ---------------- grades recentes ---------------- */
 function GradesRecentes({ data }: { data: PainelData }) {
   return (
     <Card className="overflow-hidden animate-fade-up">
@@ -297,7 +297,7 @@ function GradesRecentes({ data }: { data: PainelData }) {
   );
 }
 
-/* ---------------- Equipe docente ---------------- */
+/* ---------------- equipe docente ---------------- */
 const CORES_AVATAR = [
   "from-blue-500 to-cyan-400",
   "from-violet-500 to-indigo-400",
@@ -358,7 +358,7 @@ function EquipeDocente({ data }: { data: PainelData }) {
   );
 }
 
-/* ---------------- Página ---------------- */
+/* ---------------- pagina ---------------- */
 export default function Painel() {
   const { usuario } = useAuth();
   const { data, erro, carregando } = useApi<PainelData>("/painel");

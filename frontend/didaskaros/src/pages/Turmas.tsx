@@ -9,7 +9,7 @@ import { TURNOS, TURNO_LABEL } from "../lib/format";
 type Form = Omit<Turma, "id">;
 const total = (cargas: Carga[]) => cargas.reduce((s, c) => s + c.aulasSemanais, 0);
 
-/** Tabela editável de carga horária: disciplina × aulas semanais × professor (opcional). */
+/** tabela editavel da carga horaria: disciplina x aulas por semana x professor (opcional) */
 function EditorCargas({ cargas, onChange, disciplinas, professores }: {
   cargas: Carga[]; onChange: (c: Carga[]) => void; disciplinas: Disciplina[]; professores: Professor[];
 }) {

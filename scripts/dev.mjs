@@ -1,4 +1,4 @@
-// Sobe backend e frontend juntos; o Vite abre o navegador na landing page (/).
+// sobe o backend e o front juntos, o vite abre o navegador na landing (/)
 import { spawn } from "node:child_process";
 
 const apps = [
