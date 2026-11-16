@@ -1,7 +1,7 @@
 // PROVISÓRIO: a tela Meu Perfil é da Julia (protótipo de alta no Figma, página
 // Dashboard Coordenador). Fica em branco até ela implementar.
 import { ReactNode } from "react";
-import type { InputHTMLAttributes } from "react";
+import { useState } from "react";
 
 export default function Perfil() {
   return <ProfilePage />;
@@ -107,15 +107,28 @@ export function InfosCard({ title, subtitle }: InfosCardProps) {
 interface NavegationProps {
   icon: string;
   title: string;
+  selected?: boolean;
+  onClick?: () => void;
 }
 
-export function Navegation({ icon, title }: NavegationProps) {
+export function Navegation({ icon, title, selected = false, onClick }: NavegationProps) {
   return (
-    <div className=" text-[#a3a3a3]">
-      <div className="focus:bg-[#1d4ed8]/30">
-        <span className="material-symbols-outlined focus:text-[#1d4ed8]">{icon}</span>
-        <div className="focus:text-bold focus:text-[#1d4ed8]">{title}</div>
-      </div>
+    <div className="rounded-[15px] my-[5px]">
+      <button
+        onClick={onClick}
+        className={`relative container flex gap-3 w-full h-[43px] items-center
+      ${selected
+            ? "font-bold text-[#1d4ed8] bg-[#1d4ed8]/20 "
+            : "text-[#00000]"
+          }
+        
+        `} >
+        {selected && (
+          <span className=" absolute left-0 top-0 bottom-0 bg-[#3b82f6] h-[full] w-[4px]"></span>
+        )}
+
+        <span className="material-symbols-outlined focus:text-[#1d4ed8] mx-2">{icon}</span>
+        {title}</button>
     </div>
   )
 }
@@ -155,7 +168,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   wClassName?: string;
 }
 
-export function InputF({ label, disabled, wClassName,...props }: InputProps) {
+export function InputF({ label, disabled, children, wClassName, ...props }: InputProps) {
   return (
     <div className={`flex flex-col gap-1 w-full ${wClassName}`}>
       <label className="uppercase font-bold text-[#4b5563]">
@@ -179,30 +192,157 @@ export function InputF({ label, disabled, wClassName,...props }: InputProps) {
   );
 }
 
-interface BoxProps {
-  box: string;
-  selected?: string;
-  label: string;
+interface TurnoProps {
+  turno: string;
+  selected?: boolean;
 }
 
-export function Box ({box, selected, label}: BoxProps) {
+export function Turno({ turno, selected = false }: TurnoProps) {
   return (
-
-    <div className="">
-       <label className="uppercase font-bold text-[#4b5563]">
-        {label}
-      </label>
-      
+    <div
+      className={`
+        px-4 py-2 rounded-xl border text-sm cursor-default
+        ${selected
+          ? "bg-[#eff6ff] text-[#2563eb] border-[#bfdbfe]"
+          : "bg-[#f9fafb] text-[#9ca3af] border-[#e5e7eb]"
+        }
+      `}
+    >
+      {turno}
     </div>
-
-  )
+  );
 }
 
+
+interface SenhaProps {
+  senha: string;
+}
+
+export function Senha({ senha }: SenhaProps) {
+
+  const requisitos = [
+    {
+      label: "8 caracteres ou mais",
+      valido: senha.length >= 8
+    },
+    {
+      label: "Uma letra maiúscula",
+      valido: /[A-Z]/.test(senha)
+    },
+    {
+      label: "Um número",
+      valido: /[0-9]/.test(senha)
+    },
+    {
+      label: "Um símbolo (!@#)",
+      valido: /[^a-zA-Z0-9]/.test(senha)
+    }
+  ];
+
+  const quantidade = requisitos.filter(
+    (item) => item.valido
+  ).length;
+
+  const forte = quantidade >= 3;
+
+  return (
+    <div className="w-full flex flex-col gap-3">
+
+      <div className="grid grid-cols-4 gap-1.5">
+        {requisitos.map((item, index) => (
+          <div
+            key={index}
+            className={`h-1.5 rounded-full ${item.valido
+              ? "bg-[#10b981]"
+              : "bg-[#e5e7eb]"
+              }`}
+          />
+        ))}
+      </div>
+
+      <span
+        className={`text-xs font-semibold text-right ${forte ? "text-[#059669]" : "text-red-500"
+          }`}
+      >
+        {forte ? "Senha forte" : "Senha fraca"}
+      </span>
+
+      <div className="flex flex-wrap gap-x-5 gap-y-2">
+        {requisitos.map((item, index) => (
+          <div
+            key={index}
+            className={`flex items-center gap-2 text-xs ${item.valido
+              ? "text-[#111827]"
+              : "text-[#9ca3af]"
+              }`}
+          >
+            <span className={
+              item.valido
+                ? "text-[#10b981]"
+                : "text-[#cbd5e1]"
+            }>
+              {item.valido ? "✓" : "○"}
+            </span>
+
+            {item.label}
+          </div>
+        ))}
+      </div>
+
+    </div>
+  );
+}
+
+
+interface InteProps {
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  title: string;
+  description: string;
+}
+
+export function Inte({ defaultChecked = true, onChange, title, description }: InteProps) {
+  const [ativo, setAtivo] = useState(defaultChecked);
+
+  function alternar() {
+    const novoValor = !ativo;
+
+    setAtivo(novoValor);
+    onChange?.(novoValor);
+  }
+
+  return (
+    <div className="flex items-center justify-between p-5">
+
+      <div className="">
+        <h1 className="font-bold text-[20px]">{title}</h1>
+        <p className="text-[#a3a3a3] text-[17px]">{description}</p>
+      </div>
+
+      <button
+        type="button"
+        onClick={alternar}
+        className={`w-[70px] h-[30px] rounded-full flex items-center px-1 py-4 transition-colors ${ativo ? "bg-[#2563eb]" : "bg-[#e5e7eb]"
+          }`}
+      >
+        <span
+          className={`w-6 h-6 bg-white rounded-full transition-transform ${ativo ? "translate-x-9" : "translate-x-0"
+            }`}
+        />
+      </button>
+
+    </div>
+  );
+}
 
 export function ProfilePage() {
+
+  const [novaSenha, setNovaSenha] = useState("");
+  const [itemSelecionado, setItemSelecionado] = useState('pessoais');
+
   return (
 
-    <div>
+    <div className="cursor-default">
 
       <div className="flex justify-between w-full">
         <Header
@@ -246,11 +386,12 @@ export function ProfilePage() {
 
           </CardProfile>
 
-          <Navegation icon="person" title="Dados pessoais" />
-          <Navegation icon="domain" title="Dados institucionais" />
-          <Navegation icon="lock" title="Segurança" />
-          <Navegation icon="setttings" title="Preferências" />
-
+          <div className="my-[15px] bg-white rounded-[15px] border-2 border-[#a3a3a3]/20">
+            <Navegation icon="person" title="Dados pessoais" selected={itemSelecionado === 'pessoais'} onClick={() => setItemSelecionado('pessoais')} />
+            <Navegation icon="domain" title="Dados institucionais" selected={itemSelecionado === 'institucionais'} onClick={() => setItemSelecionado('institucionais')} />
+            <Navegation icon="lock" title="Segurança" selected={itemSelecionado === 'seguranca'} onClick={() => setItemSelecionado('seguranca')} />
+            <Navegation icon="setttings" title="Preferências" selected={itemSelecionado === 'preferencias'} onClick={() => setItemSelecionado('preferencias')} />
+          </div>
         </div>
 
         <div className="flex flex-col gap-6 w-full">
@@ -284,10 +425,76 @@ export function ProfilePage() {
               <InputF label="Categoria" defaultValue="Coordenador de Curso" disabled wClassName="col-span-2" />
               <InputF label="Na coordenação desde" defaultValue="01/02/2022" disabled wClassName="col-span-2" />
 
+              <div className="flex-col items-center">
+
+                <label className="uppercase font-bold text-[#4b5563] ">Turnos em que coordena</label>
+
+                <div className="flex gap-2">
+                  <Turno turno="Manhã" selected={true} />
+                  <Turno turno="Tarde" />
+                  <Turno turno="Noite" selected={true} />
+                </div>
+              </div>
               <div className="text-[#1e40af] text-[15px] font-semibold bg-[#93c5fd]/20 border-2 border-[#1d4ed8]/10 p-3 col-span-6 rounded-[15px]">Algum dado está errado? Peça correção à direção da unidade.</div>
             </div>
 
           </SectionContainer>
+
+          <SectionContainer
+            title="Segurança"
+            description="Altere sua senha e controle onde sua conta está conectada.">
+            <hr />
+            <div className="grid-cols-6 flex gap-5 p-5">
+              <InputF label="Senha atual" wClassName="col-span-2" type="password" />
+              <InputF label="Nova senha" wClassName="col-span-2" type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} />
+              <InputF label="Confirmar nova senha" wClassName="col-span-2" type="password" />
+            </div>
+
+            <div className="px-5 pb-5">
+              <Senha senha={novaSenha} />
+            </div>
+            <hr />
+
+            <div className="flex justify-between w-full">
+              <SectionContainer className="flex"
+                title="Conectada em 2 dispositivos"
+                description="Este navegador (Chrome, Windows) e navegador Safari, IOS.">
+              </SectionContainer>
+              <div className="gap-3 flex items-center">
+                <div className="">
+                  <button className="text-[#dc2626] font-bold border-2 border-[#dc2626]/30 p-3 rounded-[17px]">Sair de outros dispositivos</button>
+                </div>
+                <div className="">
+                  <button className="font-bold border-2 border-[#a3a3a3]/50 p-3 rounded-[17px]">Atualizar senha</button>
+                </div>
+              </div>
+            </div>
+          </SectionContainer>
+
+          <SectionContainer
+            title="Preferêcias"
+            description="Como a Didaskaros se comporta para você.">
+            <hr />
+
+            <div className="p-5">
+              <Inte
+                title="Avisos da Didaskaros IA"
+                description="Mostrar o que falta ou está inscosistente nos cadastros antes de gerar uma grade" />
+              <hr />
+              <Inte
+                title="Confirmar antes de publicar"
+                description="Pedir confirmação antes de publicar uma grade, pois a grade é substituída assim que renovada." />
+              <hr />
+              <Inte
+                title="Animações da interface"
+                description="Desligue se desejar a interface sem movimento." />
+              <hr />
+              <Inte
+                title="Manter esta conta conectada a esse navegador"
+                description="Continuar com a sessão aberta depois de fechar o navegador." />
+            </div>
+          </SectionContainer>
+
         </div>
 
       </div>
