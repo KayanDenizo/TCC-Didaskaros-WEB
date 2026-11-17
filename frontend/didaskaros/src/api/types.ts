@@ -124,7 +124,34 @@ export interface JobGeracao {
   segundos: number;
   gradeId?: number;
   resposta?: string;
+  analise?: AnaliseEdicao;
   erro?: string;
+}
+
+/* ---------- edicao manual da grade (arrastar e soltar) ---------- */
+
+/** POST /grades/:id/verificar: como a grade editada ta agora */
+export interface Verificacao {
+  violacoes: Violacao[];
+  metricas: GradeDetalhe["metricas"];
+  /** indice da aula -> conflitos em q ela aparece */
+  porAula: Record<number, string[]>;
+}
+
+/** como a grade ficaria com a aula solta nesse horario */
+export interface Destino {
+  dia: number;
+  ordem: number;
+  conflitos: number;
+  novos: string[];
+}
+
+/** opiniao da IA sobre as mudancas feitas a mao */
+export interface AnaliseEdicao {
+  avaliacao: "boa" | "atencao" | "ruim";
+  resumo: string;
+  avisos: string[];
+  sugestoes: string[];
 }
 
 /** o q ta faltando ou inconsistente nos cadastros de um turno */

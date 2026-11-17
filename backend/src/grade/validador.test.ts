@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { descreverMudancas, moverAula, simularDestinos } from "./edicao.js";
 import { metricas, validarGrade, verificarViabilidade } from "./validador.js";
 import { horarios, type Aula, type DadosGeracao, type Ocupacao } from "./tipos.js";
 
@@ -139,4 +140,43 @@ test("viabilidade: aulas atribuídas acima do limite semanal", () => {
 
 test("hora-aula da noite tem 45 minutos", () => {
   assert.deepEqual(horarios("NOITE", 4), ["19:00", "19:45", "20:30", "21:25"]);
+});
+
+// edicao manual (arrastar e soltar)
+
+test("marca as duas aulas envolvidas num conflito", () => {
+  const porAula = new Map<number, string[]>();
+  validarGrade(dados, trocar(3, { ordem: 0, salaId: 2000 }), porAula);
+  assert.deepEqual([...porAula.keys()].sort(), [0, 3]);
+  assert.match(porAula.get(0)!.join(), /João está em 2DS e 1DS ao mesmo tempo/);
+});
+
+test("mover para horário vago só muda a aula arrastada", () => {
+  const movida = moverAula(valida, 1, 2, 0, "turmaId");
+  assert.deepEqual(movida[1], { ...valida[1], dia: 2, ordem: 0 });
+  assert.deepEqual(movida.filter((_, i) => i !== 1), valida.filter((_, i) => i !== 1));
+  assert.equal(moverAula(valida, 1, 1, 0, "turmaId"), valida);
+});
+
+test("soltar sobre outra aula do mesmo quadro troca as duas", () => {
+  const trocada = moverAula(valida, 0, 0, 1, "turmaId");
+  assert.deepEqual([trocada[0].dia, trocada[0].ordem], [0, 1]);
+  assert.deepEqual([trocada[2].dia, trocada[2].ordem], [0, 0]);
+  assert.deepEqual(trocada[3], valida[3]); // a 2DS tb ta nesse horario, mas eh outro quadro
+});
+
+test("simula os destinos de uma aula e aponta só os conflitos novos", () => {
+  const { conflitosAtuais, destinos } = simularDestinos(dados, valida, 1, "turmaId");
+  const em = (dia: number, ordem: number) => destinos.find((d) => d.dia === dia && d.ordem === ordem)!;
+  assert.equal(conflitosAtuais, 0);
+  assert.equal(destinos.length, 9); // 10 horarios menos o atual
+  assert.deepEqual(em(2, 0).novos, []);
+  assert.match(em(4, 0).novos.join(), /indisponível/);
+  assert.match(em(0, 1).novos.join(), /João está em/); // troca com BD e choca com a 2DS
+});
+
+test("descreve as mudanças com nomes e horários", () => {
+  assert.deepEqual(descreverMudancas(dados, valida, moverAula(valida, 1, 2, 0, "turmaId")),
+    ["1DS · Matemática (João): de Terça, 1ª aula (07:30) para Quarta, 1ª aula (07:30)"]);
+  assert.deepEqual(descreverMudancas(dados, valida, valida), []);
 });

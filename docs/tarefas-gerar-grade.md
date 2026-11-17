@@ -125,7 +125,7 @@ Documento antes de código: é o coração do TCC e o que a banca vai cobrar.
 - [x] Rodar o validador em cima de toda saída do solver, sempre.
       Solver e validador escritos separadamente é o que garante que um bug de modelagem
       não passe silencioso — e é o número que você mostra na defesa.
-- [ ] Usar o validador também para conferir grades editadas à mão pelo coordenador.
+- [x] Usar o validador também para conferir grades editadas à mão pelo coordenador.
 
 ---
 
@@ -143,7 +143,8 @@ Documento antes de código: é o coração do TCC e o que a banca vai cobrar.
       com 40+ turmas eles deixam de ser enfeite e viram a navegação principal.
 - [ ] Tela de conflitos e inviabilidade: mostrar o que impediu a grade de fechar e
       o que dá para afrouxar.
-- [ ] Edição manual de célula, com o validador rodando a cada alteração.
+- [x] Edição manual de célula, com o validador rodando a cada alteração (arrastar e soltar,
+      com a IA avisando quando a mudança deixa a grade pior).
 - [x] Ligar os botões "Ver Grades" e "Ver grade completa" do Painel Principal, que hoje
       estão inertes.
 

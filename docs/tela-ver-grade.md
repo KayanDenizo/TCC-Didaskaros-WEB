@@ -14,7 +14,7 @@ O arquivo de design original não foi alterado. A implementação está em `fron
 - Cartões de aula coloridos, com borda grossa à esquerda, mostrando disciplina, professor e sala.
 - Horários vagos com borda tracejada.
 - Legenda de cores das disciplinas abaixo da grade.
-- Coluna da direita com **Disponibilidade Hoje** (indicador "Ao vivo", avatar com iniciais e status Disponível / Em aula) e **Outras Grades** (nome, resumo e status de cada grade).
+- Coluna da direita com **Outras Grades** (nome, resumo e status de cada grade).
 - **Resumo da Grade** com os quatro blocos: aulas semanais, professores, disciplinas e conflitos.
 
 ## O que foi alterado
@@ -29,14 +29,13 @@ O arquivo de design original não foi alterado. A implementação está em `fron
 | Posição do Resumo da Grade | Largura total, abaixo de tudo | Abaixo da grade, na coluna da esquerda | Manter a coluna da direita visível ao lado |
 | Cores do Resumo | Fundos mais fortes (tons 200) | Fundos mais suaves (tons 50) | Seguir o padrão dos outros cards do app |
 | Nome em Outras Grades | "Grade 2ºDS — 2025" | "Grade #2 — Manhã · 2º sem. 2026" | No sistema, cada grade é de um turno inteiro, não de uma turma |
-| Subtítulo em Disponibilidade Hoje | Disciplina do professor | Turma e sala da aula atual, ou o horário da próxima aula | Informação mais útil durante o dia |
+| Painel Disponibilidade Hoje | Lista de professores com indicador "Ao vivo" e status Disponível / Em aula | Removido | O sistema não tem como saber em tempo real se o professor está disponível; a grade só mostra o que foi planejado |
 | Arredondamento dos cards | 30px | 24px | Padrão do app |
 
 ## O que foi acrescentado
 
 - **Data em cada dia** da grade, com o dia de hoje destacado em azul.
 - **Aula acontecendo agora** com contorno azul.
-- **Disponibilidade calculada pelo horário real:** quem está em aula aparece primeiro, e a lista atualiza a cada 30 segundos. No fim de semana aparece "Sem aulas no fim de semana".
 - **Observações da IA** e **lista de conflitos** no card de resumo. A página antiga já tinha essas duas partes.
 - **Barra de ações** com Publicar, Arquivar, Voltar para rascunho, Revalidar conflitos e Excluir. A página antiga também já tinha essas ações.
 - **Caixa de confirmação de exclusão** (`components/ExcluirGradeDialog.tsx`), no lugar do aviso padrão do navegador. Ela mostra a grade em miniatura nas cores das disciplinas. Ao confirmar, as aulas se apagam uma a uma. Se a grade estiver publicada, aparece um aviso.
@@ -52,7 +51,7 @@ A rota `GET /api/grades/:id` passou a devolver também `intervalos`, com o horá
 ]
 ```
 
-É isso que permite saber quem está em aula agora. O resto da tela usa rotas que já existiam:
+É isso que permite destacar a aula do horário atual. O resto da tela usa rotas que já existiam:
 
 | Rota | Uso na tela |
 |---|---|

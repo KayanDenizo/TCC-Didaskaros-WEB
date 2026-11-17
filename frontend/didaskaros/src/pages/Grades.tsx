@@ -1,23 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, mensagemErro } from "../api/client";
 import type { Aula, GradeDetalhe, GradeResumo, StatusGrade } from "../api/types";
+import { BarraEdicao, BotaoEditar, MarcaEdicao, PainelEdicao, tituloObservacoes } from "../components/EdicaoGrade";
 import { ExcluirGradeDialog } from "../components/ExcluirGradeDialog";
 import { Select } from "../components/form";
 import { Icons } from "../components/icons";
 import { Alert, Button, Card, Empty, LinkButton, Loading, PageHeader, StatusBadge } from "../components/ui";
 import { useApi } from "../hooks/useApi";
+import { useEdicaoGrade, type EdicaoGrade } from "../hooks/useEdicaoGrade";
+import type { Agrupar } from "../lib/edicaoGrade";
 import { corDisciplina } from "../lib/cores";
-import { DIAS, TURNO_LABEL, dataCurta, iniciais, nomeGrade } from "../lib/format";
+import { DIAS, TURNO_LABEL, dataCurta, nomeGrade } from "../lib/format";
 
 type Modo = "turma" | "professor" | "sala";
-const MODOS: { id: Modo; label: string; chave: keyof Aula; rotulo: string }[] = [
+const MODOS: { id: Modo; label: string; chave: Agrupar; rotulo: string }[] = [
   { id: "turma", label: "Por Turma", chave: "turmaId", rotulo: "Turma" },
   { id: "professor", label: "Por Professor", chave: "professorId", rotulo: "Professor" },
   { id: "sala", label: "Por Sala", chave: "salaId", rotulo: "Sala" },
 ];
 
-const AVATARES = ["bg-blue-500", "bg-violet-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-indigo-500", "bg-gray-500"];
 const minutos = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
 
 /** segunda-feira da semana de `d` */
@@ -35,7 +37,7 @@ function rotuloSemana(segunda: Date) {
   return `${ini}–${sexta.getDate()} ${mes(sexta)} ${sexta.getFullYear()}`;
 }
 
-/** relogio q atualiza a cada 30s, pro "ao vivo" */
+/** relogio q atualiza a cada 30s, pra destacar o dia de hoje e a aula do horario atual */
 function useAgora() {
   const [agora, setAgora] = useState(() => new Date());
   useEffect(() => {
@@ -78,6 +80,12 @@ export default function Grades() {
     await lista.recarregar();
   }
 
+  // salvou a edicao manual: abre a versao nova
+  async function abrirVersao(nova: GradeDetalhe) {
+    setParams({ id: String(nova.id) });
+    await lista.recarregar();
+  }
+
   if (lista.carregando && !grades.length) return <Loading />;
 
   const semestre = grade ? `${grade.semestre}º Semestre ${grade.ano}` : "";
@@ -98,12 +106,10 @@ export default function Grades() {
       {grades.length > 0 && (
         <div className="grid grid-cols-[minmax(0,1fr)_320px] gap-5 items-start print:block">
           <div className="flex flex-col gap-5 min-w-0">
-            <Card className="rounded-3xl overflow-hidden print:border-0 print:shadow-none">
-              {!grade ? <Loading /> : <QuadroGrade key={grade.id} grade={grade} />}
-            </Card>
-
-            {grade && (
-              <>
+            {!grade ? (
+              <Card className="rounded-3xl overflow-hidden"><Loading /></Card>
+            ) : (
+              <GradeAberta key={grade.id} grade={grade} onSalva={abrirVersao}>
                 <ResumoGradeCard grade={grade} />
                 <Card className="rounded-3xl px-6 py-4 flex flex-wrap items-center gap-2 print:hidden">
                   <p className="text-[12px] text-gray-400 mr-auto">Grade #{grade.id} · gerada em {dataCurta(grade.criadoEm)}</p>
@@ -119,12 +125,11 @@ export default function Grades() {
                 {confirmandoExclusao && (
                   <ExcluirGradeDialog grade={grade} onCancelar={() => setConfirmandoExclusao(false)} onConfirmar={excluir} />
                 )}
-              </>
+              </GradeAberta>
             )}
           </div>
 
           <div className="flex flex-col gap-5 sticky top-[76px] print:hidden">
-            {grade && <DisponibilidadeHoje grade={grade} />}
             <Card className="rounded-3xl overflow-hidden">
               <div className="px-6 pt-5 pb-3">
                 <p className="text-[16px] font-bold text-gray-900">Outras Grades</p>
@@ -153,8 +158,21 @@ export default function Grades() {
   );
 }
 
+/** grade aberta: o quadro e embaixo o resumo e as acoes, ou o painel da edicao enquanto edita */
+function GradeAberta({ grade, onSalva, children }: { grade: GradeDetalhe; onSalva: (nova: GradeDetalhe) => void; children: ReactNode }) {
+  const edicao = useEdicaoGrade(grade, onSalva);
+  return (
+    <>
+      <Card className="rounded-3xl overflow-hidden print:border-0 print:shadow-none">
+        <QuadroGrade grade={grade} edicao={edicao} />
+      </Card>
+      {edicao.editando ? <Card className="rounded-3xl p-6 print:hidden"><PainelEdicao edicao={edicao} /></Card> : children}
+    </>
+  );
+}
+
 /** quadro da semana (design da Julia): filtros, navegar entre semanas, grade e legenda */
-function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
+function QuadroGrade({ grade, edicao }: { grade: GradeDetalhe; edicao: EdicaoGrade }) {
   const [modo, setModo] = useState<Modo>("turma");
   const listas = {
     turma: grade.turmas.map((t) => ({ value: t.id, label: `${t.codigo} — ${t.curso}` })),
@@ -164,7 +182,8 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
   const [selecionado, setSelecionado] = useState<Record<Modo, number | undefined>>({ turma: undefined, professor: undefined, sala: undefined });
   const atual = selecionado[modo] ?? listas[modo][0]?.value;
   const { chave, rotulo } = MODOS.find((m) => m.id === modo)!;
-  const aulas = grade.aulas.filter((a) => a[chave] === atual);
+  // editando, mostra a versao da tela; o indice eh o da aula na lista (eh por ele q a edicao identifica)
+  const aulas = (edicao.editando ? edicao.aulas : grade.aulas).flatMap((a, i) => (a[chave] === atual ? [{ ...a, i }] : []));
   const agora = useAgora();
   const [segunda, setSegunda] = useState(() => segundaDaSemana(new Date()));
   const mudarSemana = (n: number) => setSegunda((s) => new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7 * n));
@@ -202,7 +221,10 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
             {rotulo} · {TURNO_LABEL[grade.turno]} · {aulas.length} aulas semanais
           </p>
         </div>
-        <StatusBadge status={grade.status} />
+        <div className="flex items-center gap-3 shrink-0">
+          <BotaoEditar edicao={edicao} />
+          <StatusBadge status={grade.status} />
+        </div>
       </div>
 
       <div className="-mx-7 my-4 border-t border-gray-100" />
@@ -211,14 +233,14 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex border border-gray-200 rounded-xl p-1">
             {MODOS.map((m) => (
-              <button key={m.id} onClick={() => setModo(m.id)}
+              <button key={m.id} onClick={() => { edicao.cancelarSelecao(); setModo(m.id); }}
                 className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${modo === m.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
                 {m.label}
               </button>
             ))}
           </div>
           <div className="w-64">
-            <Select value={atual ?? ""} options={listas[modo]} onChange={(v) => setSelecionado({ ...selecionado, [modo]: Number(v) })} />
+            <Select value={atual ?? ""} options={listas[modo]} onChange={(v) => { edicao.cancelarSelecao(); setSelecionado({ ...selecionado, [modo]: Number(v) }); }} />
           </div>
         </div>
 
@@ -234,6 +256,8 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
       </div>
 
       <div className="-mx-7 my-4 border-t border-gray-100" />
+
+      <BarraEdicao edicao={edicao} />
 
       <div className="overflow-x-auto">
         <table className="w-full table-fixed border-separate border-spacing-x-2 border-spacing-y-2 min-w-[760px]">
@@ -253,21 +277,31 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
               <tr key={hora}>
                 <td className="text-right pr-2 text-[13px] font-bold text-gray-400 tabular-nums align-middle">{hora}</td>
                 {DIAS.map((_, dia) => {
-                  const a = aulas.find((x) => x.dia === dia && x.ordem === ordem);
+                  // normalmente eh uma aula so; com conflito na edicao podem ser duas no mesmo horario
+                  const aqui = aulas.filter((x) => x.dia === dia && x.ordem === ordem);
                   const intervalo = grade.intervalos?.[ordem];
                   const acontecendo = dia === hoje && !!intervalo && minAgora >= minutos(intervalo.inicio) && minAgora < minutos(intervalo.fim);
                   return (
                     <td key={dia} className="p-0">
-                      {a ? (
-                        <div className={`rounded-xl px-3 py-2 border border-gray-200 border-l-4 shadow-sm h-[74px] overflow-hidden transition-transform hover:-translate-y-0.5
-                          ${corDisciplina(a.disciplinaId).cell} ${acontecendo ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}>
-                          <p className="text-[13px] font-semibold leading-tight truncate">{nome.disciplina(a.disciplinaId)}</p>
-                          <p className="text-[11px] opacity-75 mt-1 leading-tight truncate">{detalhe(a)}</p>
-                          <p className="text-[11px] opacity-60 mt-0.5 leading-tight truncate">{local(a)}</p>
-                        </div>
-                      ) : (
-                        <div className="h-[74px] rounded-xl border-2 border-dashed border-gray-200" />
-                      )}
+                      <div {...edicao.propsCelula(dia, ordem)}
+                        className={`h-[74px] rounded-xl flex flex-col gap-1 transition-colors ${edicao.classeCelula(dia, ordem)}`}>
+                        {aqui.length ? aqui.map((a) => {
+                          const conflitos = edicao.conflitosDaAula(a.i);
+                          return (
+                            <div key={a.i} {...edicao.propsAula(a.i, chave)}
+                              title={conflitos.length ? conflitos.join("\n") : undefined}
+                              className={`relative flex-1 min-h-0 rounded-xl px-3 py-2 border border-gray-200 border-l-4 shadow-sm overflow-hidden transition-transform hover:-translate-y-0.5
+                                ${corDisciplina(a.disciplinaId).cell} ${acontecendo ? "ring-2 ring-blue-500 ring-offset-1" : ""} ${edicao.classeAula(a.i)}`}>
+                              <p className="text-[13px] font-semibold leading-tight truncate pr-4">{nome.disciplina(a.disciplinaId)}</p>
+                              <p className="text-[11px] opacity-75 mt-1 leading-tight truncate">{detalhe(a)}</p>
+                              <p className="text-[11px] opacity-60 mt-0.5 leading-tight truncate">{local(a)}</p>
+                              <MarcaEdicao conflito={conflitos.length > 0} movida={edicao.foiMovida(a.i)} />
+                            </div>
+                          );
+                        }) : (
+                          <div className="h-full rounded-xl border-2 border-dashed border-gray-200" />
+                        )}
+                      </div>
                     </td>
                   );
                 })}
@@ -287,67 +321,6 @@ function QuadroGrade({ grade }: { grade: GradeDetalhe }) {
         </div>
       )}
     </div>
-  );
-}
-
-/** quem da grade ta em aula agora e quem ta livre hoje */
-function DisponibilidadeHoje({ grade }: { grade: GradeDetalhe }) {
-  const agora = useAgora();
-  const dia = (agora.getDay() + 6) % 7; // 0 = segunda
-  const minAgora = agora.getHours() * 60 + agora.getMinutes();
-  const diaLetivo = dia < 5;
-  const ordemAtual = grade.intervalos?.findIndex((i) => minAgora >= minutos(i.inicio) && minAgora < minutos(i.fim)) ?? -1;
-
-  const professores = grade.professores.map((p, i) => {
-    const minhas = grade.aulas.filter((a) => a.professorId === p.id);
-    const hoje = diaLetivo ? minhas.filter((a) => a.dia === dia) : [];
-    const agoraAula = ordemAtual >= 0 ? hoje.find((a) => a.ordem === ordemAtual) : undefined;
-    const proxima = hoje.filter((a) => minAgora < minutos(grade.intervalos?.[a.ordem]?.inicio ?? "00:00"))
-      .sort((a, b) => a.ordem - b.ordem)[0];
-    const disciplinas = [...new Set(minhas.map((a) => grade.disciplinas.find((d) => d.id === a.disciplinaId)?.nome))].join(", ");
-    return { ...p, avatar: AVATARES[i % AVATARES.length], disciplinas, agoraAula, proxima };
-  }).sort((a, b) => Number(!!b.agoraAula) - Number(!!a.agoraAula));
-
-  const turma = (id: number) => grade.turmas.find((t) => t.id === id)?.codigo ?? "";
-
-  return (
-    <Card className="rounded-3xl overflow-hidden">
-      <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <p className="text-[16px] font-bold text-gray-900">Disponibilidade Hoje</p>
-          <span className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-500">
-            <span className="relative flex w-2 h-2">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-              <span className="relative w-2 h-2 rounded-full bg-emerald-400" />
-            </span>
-            Ao vivo
-          </span>
-        </div>
-        <p className="text-[12px] text-gray-400">
-          {diaLetivo ? `Para esta grade · ${DIAS[dia]}, ${agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : "Sem aulas no fim de semana"}
-        </p>
-      </div>
-      <div className="px-5 py-2 max-h-[360px] overflow-y-auto divide-y divide-gray-50">
-        {professores.map((p) => (
-          <div key={p.id} className="flex items-center gap-3 py-3">
-            <span className={`w-10 h-10 rounded-full ${p.avatar} text-white text-[12px] font-bold flex items-center justify-center shrink-0`}>
-              {iniciais(p.nome)}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-gray-800 truncate">{p.nome}</p>
-              <p className="text-[11px] text-gray-400 truncate">
-                {p.agoraAula ? `${turma(p.agoraAula.turmaId)} · ${grade.salas.find((s) => s.id === p.agoraAula!.salaId)?.nome ?? ""}`
-                  : p.proxima ? `Próxima aula às ${grade.horarios[p.proxima.ordem]}` : p.disciplinas}
-              </p>
-            </div>
-            {p.agoraAula
-              ? <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 whitespace-nowrap">Em aula</span>
-              : <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 whitespace-nowrap">Disponível</span>}
-          </div>
-        ))}
-        {!professores.length && <Empty>Nenhum professor nesta grade.</Empty>}
-      </div>
-    </Card>
   );
 }
 
@@ -374,7 +347,7 @@ function ResumoGradeCard({ grade }: { grade: GradeDetalhe }) {
 
       {grade.observacoes && (
         <div className="mt-5 rounded-2xl bg-blue-50/60 border border-blue-100 px-5 py-4">
-          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1">✨ Observações da IA</p>
+          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1">{tituloObservacoes(grade)}</p>
           <p className="text-[12px] text-gray-700 leading-relaxed whitespace-pre-line">{grade.observacoes}</p>
         </div>
       )}

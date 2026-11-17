@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { api, mensagemErro } from "../api/client";
 import type { Diagnostico, GradeDetalhe, JobGeracao, Turma, Turno } from "../api/types";
+import { atualizarGrade, iniciarGeracao, marcarVisto, mostrarErro, segundosPorTurma, useGeracao } from "../lib/geracao";
 import { Link } from "react-router-dom";
 import { ChatAjuste } from "../components/ChatAjuste";
+import { PainelEdicao } from "../components/EdicaoGrade";
 import { inputClass } from "../components/form";
 import { GradeViewer } from "../components/GradeViewer";
 import { Icons, type IconName } from "../components/icons";
 import { ResumoGrade } from "../components/ResumoGrade";
 import { Alert, Button, Card, LinkButton, PageHeader } from "../components/ui";
 import { useApi } from "../hooks/useApi";
+import { useEdicaoGrade } from "../hooks/useEdicaoGrade";
 import { corDisciplina } from "../lib/cores";
 import { DIAS_CURTOS, TURNOS, TURNO_LABEL } from "../lib/format";
 import { NOME_IA } from "../lib/ia";
@@ -82,28 +84,6 @@ function Stepper({ step, onIr }: { step: Step; onIr: (s: Step) => void }) {
       </ol>
     </Card>
   );
-}
-
-/* ---------------- estimativa de tempo ----------------
- * comeca com um chute por turma e vai aprendendo com as geracoes anteriores
- * (segundos por turma, fica salvo no navegador) */
-const CHAVE_DURACAO = "didaskaros.segundosPorTurma";
-
-function segundosPorTurma(): number {
-  try {
-    const salvo = Number(localStorage.getItem(CHAVE_DURACAO));
-    if (salvo > 0) return salvo;
-  } catch { /* sem localStorage: usa o padrão */ }
-  return 25;
-}
-
-function registrarDuracao(segundos: number, turmas: number) {
-  if (!turmas || segundos <= 0) return;
-  try {
-    const novo = segundos / turmas;
-    const anterior = Number(localStorage.getItem(CHAVE_DURACAO));
-    localStorage.setItem(CHAVE_DURACAO, String(anterior > 0 ? (anterior + novo) / 2 : novo));
-  } catch { /* ignora */ }
 }
 
 function formatarTempo(seg: number) {
@@ -297,7 +277,13 @@ function Rotulo({ children, extra }: { children: React.ReactNode; extra?: React.
 
 /* ---------------- pagina ---------------- */
 export default function GerarGrade() {
-  const [step, setStep] = useState<Step>(1);
+  // a geracao vive fora da pagina (lib/geracao): se ainda tem uma rodando ou pronta, volta direto no resultado
+  const { ativa, job, grade, erro, inicio, estimativa, aulasPorDia: aulasGeradas } = useGeracao();
+  const [step, setStep] = useState<Step>(ativa ? 4 : 1);
+  // depois de um F5 a geracao e retomada de forma assincrona: leva pro resultado qnd ela volta
+  useEffect(() => { if (ativa) setStep(4); }, [ativa]);
+  // viu o resultado (ou o erro): some o aviso da sidebar
+  useEffect(() => { if (step === 4 && (grade || erro)) marcarVisto(); }, [step, grade, erro]);
   const [turno, setTurno] = useState<Turno>("MANHA");
   const [ano, setAno] = useState(anoAtual);
   const [semestre, setSemestre] = useState(new Date().getMonth() < 6 ? 1 : 2);
@@ -305,12 +291,9 @@ export default function GerarGrade() {
   const [preferencias, setPreferencias] = useState<string[]>([PREFERENCIAS[0].label, PREFERENCIAS[2].label]);
   const [orientacoes, setOrientacoes] = useState("");
 
-  const [job, setJob] = useState<JobGeracao | null>(null);
-  const [grade, setGrade] = useState<GradeDetalhe | null>(null);
-  const [erro, setErro] = useState<{ mensagem: string; problemas?: string[] } | null>(null);
   const [publicando, setPublicando] = useState(false);
-  const [inicio, setInicio] = useState(0);
-  const [estimativa, setEstimativa] = useState(60);
+  // editando a grade a mao: publicar/gerar de novo esperam salvar ou cancelar
+  const [editandoGrade, setEditandoGrade] = useState(false);
 
   const todasTurmas = useApi<Turma[]>("/turmas").data ?? [];
   const turmas = todasTurmas.filter((t) => t.turno === turno);
@@ -322,52 +305,20 @@ export default function GerarGrade() {
   const todasPreferencias = [...preferencias, ...(orientacoes.trim() ? [orientacoes.trim()] : [])];
   const estimativaPrevia = Math.max(45, Math.round(segundosPorTurma() * Math.max(turmas.length, 1)));
 
-  async function gerar() {
+  function gerar() {
     setStep(4);
-    setErro(null);
-    setGrade(null);
-    setJob(null);
-    setInicio(Date.now());
-    setEstimativa(estimativaPrevia);
-    try {
-      const { data } = await api.post<{ jobId: string }>("/grades/gerar", { turno, ano, semestre, aulasPorDia, preferencias: todasPreferencias });
-      setJob({ id: data.jobId, status: "executando", etapa: "Preparando dados", tentativa: 0, segundos: 0 });
-    } catch (err) {
-      const problemas = axios.isAxiosError(err) ? err.response?.data?.problemas : undefined;
-      setErro({ mensagem: mensagemErro(err), problemas });
-    }
+    // roda no store, entao continua mesmo se o usuario sair da pagina
+    void iniciarGeracao({ turno, ano, semestre, aulasPorDia, preferencias: todasPreferencias }, turmas.length, estimativaPrevia);
   }
-
-  // fica acompanhando o job da geracao ate terminar
-  useEffect(() => {
-    if (job?.status !== "executando") return;
-    const timer = setTimeout(async () => {
-      try {
-        const { data } = await api.get<JobGeracao>(`/grades/jobs/${job.id}`);
-        if (data.status === "concluido") {
-          const { data: nova } = await api.get<GradeDetalhe>(`/grades/${data.gradeId}`);
-          registrarDuracao((Date.now() - inicio) / 1000, turmas.length);
-          // deixa a barra chegar em 100% antes de mostrar a grade
-          setTimeout(() => setGrade(nova), 900);
-        }
-        if (data.status === "erro") setErro({ mensagem: data.erro ?? "Falha na geração." });
-        setJob(data);
-      } catch (err) {
-        setErro({ mensagem: mensagemErro(err) });
-        setJob(null);
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [job]);
 
   async function publicar() {
     if (!grade) return;
     setPublicando(true);
     try {
       await api.patch(`/grades/${grade.id}/status`, { status: "PUBLICADA" });
-      setGrade({ ...grade, status: "PUBLICADA" });
+      atualizarGrade({ ...grade, status: "PUBLICADA" });
     } catch (err) {
-      setErro({ mensagem: mensagemErro(err) });
+      mostrarErro(mensagemErro(err));
     } finally {
       setPublicando(false);
     }
@@ -634,7 +585,7 @@ export default function GerarGrade() {
         <div key="passo4" className="animate-fade-in-up space-y-5">
           {!erro && !grade && (
             <ProgressoGeracao job={job ?? { id: "", status: "executando", etapa: "Preparando dados", tentativa: 0, segundos: 0 }}
-              inicio={inicio} estimativa={estimativa} concluido={job?.status === "concluido"} aulasPorDia={aulasPorDia} />
+              inicio={inicio} estimativa={estimativa} concluido={job?.status === "concluido"} aulasPorDia={aulasGeradas} />
           )}
 
           {erro && (
@@ -643,28 +594,7 @@ export default function GerarGrade() {
             </Alert>
           )}
 
-          {grade && (
-            <Card className="overflow-hidden animate-scale-in">
-              <div className={`relative overflow-hidden px-6 py-5 flex items-center gap-4 border-b ${grade.violacoes.length ? "bg-gradient-to-r from-red-50 to-white border-red-100" : "bg-gradient-to-r from-emerald-50 to-white border-emerald-100"}`}>
-                <span className={`resultado-selo relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white ${grade.violacoes.length ? "bg-red-500" : "bg-emerald-500"}`}>
-                  <span className="scale-125">{grade.violacoes.length ? <Icons.AlertTriangle /> : <Icons.Check />}</span>
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[16px] font-bold text-gray-900">
-                    {grade.violacoes.length ? `Grade gerada com ${grade.violacoes.length} conflito(s)` : "Grade gerada sem conflitos"}
-                  </p>
-                  <p className="text-[12px] text-gray-500 mt-0.5">Grade #{grade.id} · {grade.aulas.length} aulas · {grade.tentativas} tentativa(s) · {NOME_IA}</p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${grade.status === "PUBLICADA" ? "bg-emerald-100 text-emerald-700" : "bg-white text-gray-600 ring-1 ring-gray-200"}`}>
-                  {grade.status === "PUBLICADA" ? "Publicada" : "Rascunho"}
-                </span>
-              </div>
-              <GradeViewer grade={grade} />
-              <ResumoGrade grade={grade} />
-            </Card>
-          )}
-
-          {grade && <ChatAjuste grade={grade} onNovaVersao={setGrade} />}
+          {grade && <GradeGerada grade={grade} onEditando={setEditandoGrade} />}
         </div>
       )}
 
@@ -687,11 +617,12 @@ export default function GerarGrade() {
               <>
                 <Button onClick={() => setStep(3)}><Icons.ChevronLeft /> Ajustar parâmetros</Button>
                 <div className="flex gap-2.5">
-                  <Button onClick={gerar}><Icons.Refresh /> Gerar novamente</Button>
+                  <Button onClick={gerar} disabled={editandoGrade}><Icons.Refresh /> Gerar novamente</Button>
                   {grade && <LinkButton to={`/grades?id=${grade.id}`}>Abrir em Grades Horárias</LinkButton>}
                   {grade && grade.status !== "PUBLICADA" && (
-                    <Button variant="primary" onClick={publicar} loading={publicando} disabled={grade.violacoes.length > 0}
-                      title={grade.violacoes.length ? "Grades com conflitos não podem ser publicadas" : undefined}>
+                    <Button variant="primary" onClick={publicar} loading={publicando} disabled={grade.violacoes.length > 0 || editandoGrade}
+                      title={editandoGrade ? "Salve ou cancele a edição antes de publicar"
+                        : grade.violacoes.length ? "Grades com conflitos não podem ser publicadas" : undefined}>
                       <Icons.Upload /> Publicar grade
                     </Button>
                   )}
@@ -702,5 +633,46 @@ export default function GerarGrade() {
         </div>
       )}
     </div>
+  );
+}
+
+/* ---------------- grade gerada ----------------
+ * quadro + resumo + chat. editando a mao, o painel da edicao toma o lugar do resumo e o chat
+ * so fica escondido (sem desmontar), pra conversa continuar la qnd voltar */
+function GradeGerada({ grade, onEditando }: { grade: GradeDetalhe; onEditando: (editando: boolean) => void }) {
+  const edicao = useEdicaoGrade(grade, atualizarGrade);
+  useEffect(() => { onEditando(edicao.editando); }, [edicao.editando, onEditando]);
+  useEffect(() => () => onEditando(false), [onEditando]);
+  const manual = grade.modelo === "manual";
+
+  return (
+    <>
+      <Card className="overflow-hidden animate-scale-in">
+        <div className={`relative overflow-hidden px-6 py-5 flex items-center gap-4 border-b ${grade.violacoes.length ? "bg-gradient-to-r from-red-50 to-white border-red-100" : "bg-gradient-to-r from-emerald-50 to-white border-emerald-100"}`}>
+          <span className={`resultado-selo relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white ${grade.violacoes.length ? "bg-red-500" : "bg-emerald-500"}`}>
+            <span className="scale-125">{grade.violacoes.length ? <Icons.AlertTriangle /> : <Icons.Check />}</span>
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[16px] font-bold text-gray-900">
+              {`${manual ? "Grade editada" : "Grade gerada"} ${grade.violacoes.length ? `com ${grade.violacoes.length} conflito(s)` : "sem conflitos"}`}
+            </p>
+            <p className="text-[12px] text-gray-500 mt-0.5">
+              Grade #{grade.id} · {grade.aulas.length} aulas · {manual ? "editada à mão" : `${grade.tentativas} tentativa(s) · ${NOME_IA}`}
+            </p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${grade.status === "PUBLICADA" ? "bg-emerald-100 text-emerald-700" : "bg-white text-gray-600 ring-1 ring-gray-200"}`}>
+            {grade.status === "PUBLICADA" ? "Publicada" : "Rascunho"}
+          </span>
+        </div>
+        <GradeViewer grade={grade} edicao={edicao} />
+        {edicao.editando
+          ? <div className="border-t border-gray-100 px-5 py-4"><PainelEdicao edicao={edicao} /></div>
+          : <ResumoGrade grade={grade} />}
+      </Card>
+
+      <div className={edicao.editando ? "hidden" : ""}>
+        <ChatAjuste grade={grade} onNovaVersao={atualizarGrade} />
+      </div>
+    </>
   );
 }

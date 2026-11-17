@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { iniciais } from "../lib/format";
+import { restaurarGeracao, statusDe, useGeracao, type StatusGeracao } from "../lib/geracao";
 import logo from "../assets/logo-didaskaros.png";
 import { Icons, type IconName } from "./icons";
 
@@ -26,9 +27,41 @@ const NAV: { section: string; items: { label: string; icon: IconName; to: string
   { section: "Sistema", items: [{ label: "Configurações", icon: "Settings", to: "/configuracoes" }] },
 ];
 
+/** selo do item "Gerar Grade": mostra o andamento da geracao mesmo em outras paginas */
+function SeloGeracao({ status }: { status: StatusGeracao }) {
+  const base = "ml-auto inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 ring-inset";
+  if (status === "gerando") {
+    return (
+      <span role="status" title="Gerando a grade em segundo plano" className={`${base} bg-blue-400/25 text-blue-100 ring-blue-300/30`}>
+        <span className="h-2.5 w-2.5 animate-spin rounded-full border-[1.5px] border-blue-200/40 border-t-blue-100" />
+        Gerando
+      </span>
+    );
+  }
+  if (status === "pronta") {
+    return (
+      <span role="status" title="A grade ficou pronta" className={`${base} animate-pop-in bg-emerald-400/25 text-emerald-100 ring-emerald-300/40`}>
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-300" />
+        </span>
+        Pronta
+      </span>
+    );
+  }
+  if (status === "erro") {
+    return <span role="status" title="A geração falhou" className={`${base} animate-pop-in bg-red-400/25 text-red-100 ring-red-300/40`}>Erro</span>;
+  }
+  return <span className={`${base} bg-gradient-to-r from-blue-400/30 to-cyan-300/30 text-blue-100 ring-white/10`}>IA</span>;
+}
+
 export function Sidebar() {
   const { usuario, sair } = useAuth();
   const { pathname } = useLocation();
+  const statusGeracao = statusDe(useGeracao());
+
+  // retoma a geracao guardada, se der F5 no meio dela
+  useEffect(() => { void restaurarGeracao(); }, []);
   const links = useRef(new Map<string, HTMLAnchorElement>());
   const [marcador, setMarcador] = useState<{ top: number; height: number } | null>(null);
 
@@ -68,9 +101,7 @@ export function Sidebar() {
                     <>
                       <span className={`transition-all duration-300 ${isActive ? "text-blue-200" : "group-hover:scale-110"} ${item.icon === "Settings" ? (isActive ? "rotate-90" : "group-hover:rotate-90") : ""}`}><Icon /></span>
                       <span className="transition-transform duration-200 group-hover:translate-x-0.5">{item.label}</span>
-                      {item.to === "/gerar-grade" && (
-                        <span className="ml-auto rounded-md bg-gradient-to-r from-blue-400/30 to-cyan-300/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-100 ring-1 ring-inset ring-white/10">IA</span>
-                      )}
+                      {item.to === "/gerar-grade" && <SeloGeracao status={statusGeracao} />}
                     </>
                   )}
                 </NavLink>

@@ -34,6 +34,7 @@ export const Icons = {
   Minus: icon(<path d="M5 12h14" />),
   ArrowRight: icon(<><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></>),
   Edit: icon(<><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z" /></>),
+  Undo: icon(<><path d="M3 7v6h6" /><path d="M21 17a9 9 0 00-15-6.7L3 13" /></>),
   Refresh: icon(<><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></>),
   Shield: icon(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></>),
   Upload: icon(<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><path d="M12 3v12" /></>),

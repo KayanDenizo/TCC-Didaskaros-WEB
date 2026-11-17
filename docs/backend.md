@@ -24,6 +24,7 @@ backend/src/
 ├── grade/
 │   ├── claude.ts         → integração com a API da Claude
 │   ├── validador.ts      → confere os conflitos (independente da IA)
+│   ├── edicao.ts         → edição manual: mover/trocar aulas, simular destinos, descrever mudanças
 │   ├── validador.test.ts → testes automatizados do validador
 │   └── tipos.ts          → tipos compartilhados e cálculo dos horários do turno
 └── scripts/setup-db.ts   → cria o banco e insere dados de exemplo
@@ -182,8 +183,9 @@ Janelas na grade do professor não têm regra oficial: são tratadas como restri
 Além disso, calcula **métricas de qualidade** (restrições moles): número de janelas nas
 grades das turmas e dos professores.
 
-**Testes:** `validador.test.ts` tem 20 testes automatizados (um caso válido e um caso para
-cada tipo de violação, incluindo as regras de jornada, além de viabilidade, métricas e horários). Rodar com `npm test`.
+**Testes:** `validador.test.ts` tem 25 testes automatizados (um caso válido e um caso para
+cada tipo de violação, incluindo as regras de jornada, além de viabilidade, métricas, horários e
+edição manual). Rodar com `npm test`.
 
 ---
 
@@ -198,6 +200,26 @@ cada tipo de violação, incluindo as regras de jornada, além de viabilidade, m
 | DELETE | `/api/grades/:id` | Exclui a grade. |
 | GET | `/api/grades/diagnostico?turno=&aulasPorDia=` | O que falta nos cadastros do turno: `problemas` (impedem gerar) e `avisos`. |
 | POST | `/api/grades/:id/ajustar` | Conversa com a Didáskaros IA sobre a grade (`mensagem`, `historico`). Responde com um job; se a IA alterar a grade, o job traz `gradeId` da nova versão (rascunho) e `resposta`. |
+| POST | `/api/grades/:id/verificar` | Confere uma grade editada na tela (`aulas`) sem salvar: conflitos, janelas e `porAula` (quais aulas estão em cada conflito). |
+| POST | `/api/grades/:id/destinos` | Ao pegar uma aula (`aulas`, `indice`, `agrupar`): para cada horário da semana, quantos conflitos a grade teria com a aula solta ali e quais seriam novos. |
+| POST | `/api/grades/:id/analisar` | A Didáskaros IA avalia as mudanças feitas à mão (`aulas`). Responde com um job; o job traz `analise` com `avaliacao` (boa / atencao / ruim), `resumo`, `avisos` e `sugestoes`. |
+| POST | `/api/grades/:id/versoes` | Salva a grade editada (`aulas`, `resumoIA` opcional) como uma versão nova em rascunho. A original não muda. |
+
+### Edição manual (arrastar e soltar)
+
+Depois de gerar, o coordenador pode clicar em **Editar arrastando** (em Grades Horárias ou no
+resultado do Gerar Grade) e mudar aulas de horário. Soltar uma aula sobre outra do mesmo quadro
+troca as duas de lugar (`grade/edicao.ts`, mesma regra no front em `lib/edicaoGrade.ts`).
+
+- **Conflitos na hora:** ao pegar uma aula, os horários ficam verdes (não cria conflito) ou
+  vermelhos (cria). A cada mudança o validador confere a grade inteira e marca as aulas em conflito.
+- **Opinião da IA:** quando o coordenador para de mexer por 2,5 s, a IA analisa as mudanças com
+  esforço `medium` (para responder em segundos). Quem decide se há conflito é o validador; a IA
+  explica, sugere como resolver e avalia a qualidade (janelas, preferências dos professores e da
+  coordenação, disciplina concentrada num dia). Com conflito, a avaliação é sempre "ruim".
+- **Salvar:** vira uma versão nova em rascunho (`modelo = "manual"`), com a lista de mudanças nas
+  observações. Turma, disciplina, professor ou sala que não são do turno são recusados (HTTP 400).
+  A grade salva com conflito não pode ser publicada, igual às geradas pela IA.
 
 Regras de publicação:
 - **Grade com conflito não pode ser publicada** (HTTP 409).

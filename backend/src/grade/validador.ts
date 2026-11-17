@@ -1,9 +1,18 @@
 import { DIAS, REGRAS_CPS, hhmm, intervaloAula, type Aula, type DadosGeracao, type Violacao } from "./tipos.js";
 
-// confere a grade sem depender da IA e lista toda restricao dura q foi quebrada
-export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
+type Registrar = (regra: string, mensagem: string, ...aulas: number[]) => void;
+
+/**
+ * confere a grade sem depender da IA e lista toda restricao dura q foi quebrada.
+ * se passar `porAula`, anota nele quais aulas (pelo indice em `aulas`) estao em cada problema,
+ * pra tela de edicao marcar os cards com conflito
+ */
+export function validarGrade(dados: DadosGeracao, aulas: Aula[], porAula?: Map<number, string[]>): Violacao[] {
   const v: Violacao[] = [];
-  const add = (regra: string, mensagem: string) => v.push({ regra, mensagem });
+  const add: Registrar = (regra, mensagem, ...indices) => {
+    v.push({ regra, mensagem });
+    if (porAula) for (const i of new Set(indices)) porAula.set(i, [...(porAula.get(i) ?? []), mensagem]);
+  };
 
   const turmas = new Map(dados.turmas.map((t) => [t.id, t]));
   const disciplinas = new Map(dados.disciplinas.map((d) => [d.id, d]));
@@ -11,32 +20,33 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
   const salas = new Map(dados.salas.map((s) => [s.id, s]));
   const quando = (a: Aula) => `${DIAS[a.dia] ?? `dia ${a.dia}`}, ${a.ordem + 1}ª aula`;
 
-  const ocupado = { turma: new Map<string, Aula>(), professor: new Map<string, Aula>(), sala: new Map<string, Aula>() };
+  // turma/professor/sala@horario -> indice da primeira aula q ocupou
+  const ocupado = { turma: new Map<string, number>(), professor: new Map<string, number>(), sala: new Map<string, number>() };
   const contagem = new Map<string, number>();            // turma:disciplina -> qtd de aulas alocadas
   const professorDaDisciplina = new Map<string, number>(); // turma:disciplina -> professor
 
-  for (const a of aulas) {
+  for (const [i, a] of aulas.entries()) {
     const turma = turmas.get(a.turmaId);
     const disc = disciplinas.get(a.disciplinaId);
     const prof = professores.get(a.professorId);
     const sala = salas.get(a.salaId);
 
     if (!turma || !disc || !prof || !sala) {
-      add("referencia", `Aula com turma/disciplina/professor/sala inexistente (${JSON.stringify(a)}).`);
+      add("referencia", `Aula com turma/disciplina/professor/sala inexistente (${JSON.stringify(a)}).`, i);
       continue;
     }
     if (a.dia < 0 || a.dia > 4 || a.ordem < 0 || a.ordem >= dados.aulasPorDia) {
-      add("horario", `${turma.codigo}: ${disc.nome} fora da grade de horários (dia ${a.dia}, ordem ${a.ordem}).`);
+      add("horario", `${turma.codigo}: ${disc.nome} fora da grade de horários (dia ${a.dia}, ordem ${a.ordem}).`, i);
       continue;
     }
 
     const carga = turma.cargas.find((c) => c.disciplinaId === a.disciplinaId);
-    if (!carga) add("carga", `${turma.codigo} não tem ${disc.nome} na carga horária.`);
+    if (!carga) add("carga", `${turma.codigo} não tem ${disc.nome} na carga horária.`, i);
     if (!prof.disciplinaIds.includes(a.disciplinaId)) {
-      add("habilitacao", `${prof.nome} não é habilitado(a) para ${disc.nome} (${turma.codigo}, ${quando(a)}).`);
+      add("habilitacao", `${prof.nome} não é habilitado(a) para ${disc.nome} (${turma.codigo}, ${quando(a)}).`, i);
     }
     if (carga?.professorId && carga.professorId !== a.professorId) {
-      add("atribuicao", `${disc.nome} da ${turma.codigo} é atribuída a ${professores.get(carga.professorId)?.nome}, não a ${prof.nome}.`);
+      add("atribuicao", `${disc.nome} da ${turma.codigo} é atribuída a ${professores.get(carga.professorId)?.nome}, não a ${prof.nome}.`, i);
     }
 
     const chaveDisc = `${a.turmaId}:${a.disciplinaId}`;
@@ -44,15 +54,15 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
     const profAnterior = professorDaDisciplina.get(chaveDisc);
     if (profAnterior === undefined) professorDaDisciplina.set(chaveDisc, a.professorId);
     else if (profAnterior !== a.professorId) {
-      add("professor-unico", `${disc.nome} da ${turma.codigo} está dividida entre mais de um professor.`);
+      add("professor-unico", `${disc.nome} da ${turma.codigo} está dividida entre mais de um professor.`, i);
     }
 
     const slot = `${a.dia}:${a.ordem}`;
     const conflito = (tipo: keyof typeof ocupado, id: number, msg: (outra: Aula) => string) => {
       const chave = `${id}@${slot}`;
       const outra = ocupado[tipo].get(chave);
-      if (outra) add(`conflito-${tipo}`, msg(outra));
-      else ocupado[tipo].set(chave, a);
+      if (outra !== undefined) add(`conflito-${tipo}`, msg(aulas[outra]), i, outra);
+      else ocupado[tipo].set(chave, i);
     };
     conflito("turma", a.turmaId, () => `${turma.codigo} tem duas aulas ao mesmo tempo (${quando(a)}).`);
     conflito("professor", a.professorId, (o) =>
@@ -60,14 +70,14 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
     conflito("sala", a.salaId, (o) =>
       `${sala.nome} recebe ${turma.codigo} e ${turmas.get(o.turmaId)?.codigo} ao mesmo tempo (${quando(a)}).`);
 
-    if (prof.indisponiveis.some((i) => i.dia === a.dia && i.ordem === a.ordem)) {
-      add("indisponibilidade", `${prof.nome} está indisponível em ${quando(a)} (${turma.codigo}).`);
+    if (prof.indisponiveis.some((x) => x.dia === a.dia && x.ordem === a.ordem)) {
+      add("indisponibilidade", `${prof.nome} está indisponível em ${quando(a)} (${turma.codigo}).`, i);
     }
     if (disc.exigeLaboratorio && sala.tipo !== "LABORATORIO") {
-      add("laboratorio", `${disc.nome} exige laboratório, mas foi para ${sala.nome} (${turma.codigo}, ${quando(a)}).`);
+      add("laboratorio", `${disc.nome} exige laboratório, mas foi para ${sala.nome} (${turma.codigo}, ${quando(a)}).`, i);
     }
     if (sala.capacidade < turma.qtdAlunos) {
-      add("capacidade", `${sala.nome} (${sala.capacidade} lugares) não comporta a ${turma.codigo} (${turma.qtdAlunos} alunos).`);
+      add("capacidade", `${sala.nome} (${sala.capacidade} lugares) não comporta a ${turma.codigo} (${turma.qtdAlunos} alunos).`, i);
     }
   }
 
@@ -81,13 +91,13 @@ export function validarGrade(dados: DadosGeracao, aulas: Aula[]): Violacao[] {
     }
   }
 
-  validarJornada(dados, aulas.filter((a) => professores.has(a.professorId) && a.dia >= 0 && a.dia <= 4), add);
+  validarJornada(dados, aulas.flatMap((a, indice) => (professores.has(a.professorId) && a.dia >= 0 && a.dia <= 4 ? [{ ...a, indice }] : [])), add);
   return v;
 }
 
 // jornada do CPS (choque de horario, 8h/dia, refeicao, interjornada e limite semanal),
 // contando tb as aulas dos outros turnos e das outras unidades
-function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string, mensagem: string) => void) {
+function validarJornada(dados: DadosGeracao, aulas: (Aula & { indice: number })[], add: Registrar) {
   const R = REGRAS_CPS;
   for (const prof of dados.professores) {
     const minhas = aulas.filter((a) => a.professorId === prof.id);
@@ -98,13 +108,14 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
       add("limite-semanal", `${prof.nome} ficou com ${totalSemana} aulas na semana (máximo ${R.aulasSemanaisMax}).`);
     }
 
-    // o q o professor trabalha em cada dia: aulas dessa grade + ocupacoes q ja existiam
+    // o q o professor trabalha em cada dia: aulas dessa grade + ocupacoes q ja existiam (indice -1)
     const dias = Array.from({ length: 5 }, (_, dia) => [
       ...minhas.filter((a) => a.dia === dia).map((a) => ({
-        ...intervaloAula(dados.turno, a.ordem), minutosContados: R.minutosPorAula, origem: "", ordem: a.ordem,
+        ...intervaloAula(dados.turno, a.ordem), minutosContados: R.minutosPorAula, origem: "", ordem: a.ordem, indice: a.indice,
       })),
-      ...prof.ocupacoes.filter((o) => o.dia === dia).map((o) => ({ ...o, ordem: -1 })),
+      ...prof.ocupacoes.filter((o) => o.dia === dia).map((o) => ({ ...o, ordem: -1, indice: -1 })),
     ].sort((x, y) => x.inicio - y.inicio));
+    const aulasDoDia = (periodos: { indice: number }[]) => periodos.flatMap((p) => (p.indice >= 0 ? [p.indice] : []));
 
     for (const [dia, periodos] of dias.entries()) {
       if (!periodos.length) continue;
@@ -112,12 +123,12 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
 
       for (const a of periodos.filter((p) => p.ordem >= 0)) {
         const choque = periodos.find((o) => o.ordem < 0 && o.inicio < a.fim && a.inicio < o.fim);
-        if (choque) add("compromisso-externo", `${prof.nome} tem ${choque.origem} (${hhmm(choque.inicio)}–${hhmm(choque.fim)}) na ${nomeDia}, mas recebeu a ${a.ordem + 1}ª aula.`);
+        if (choque) add("compromisso-externo", `${prof.nome} tem ${choque.origem} (${hhmm(choque.inicio)}–${hhmm(choque.fim)}) na ${nomeDia}, mas recebeu a ${a.ordem + 1}ª aula.`, a.indice);
       }
 
       const contados = periodos.reduce((s, p) => s + p.minutosContados, 0);
       if (contados > R.jornadaDiariaMaxMin) {
-        add("jornada-diaria", `${prof.nome} trabalha ${(contados / 60).toFixed(1).replace(".0", "")}h na ${nomeDia} (máximo ${R.jornadaDiariaMaxMin / 60}h).`);
+        add("jornada-diaria", `${prof.nome} trabalha ${(contados / 60).toFixed(1).replace(".0", "")}h na ${nomeDia} (máximo ${R.jornadaDiariaMaxMin / 60}h).`, ...aulasDoDia(periodos));
       }
 
       if (contados > R.jornadaSemRefeicaoMin) {
@@ -128,7 +139,7 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
           fim = Math.max(fim, p.fim);
         }
         if (maiorPausa < R.refeicaoMin) {
-          add("refeicao", `${prof.nome} trabalha mais de ${R.jornadaSemRefeicaoMin / 60}h na ${nomeDia} sem pausa de ${R.refeicaoMin} min para refeição.`);
+          add("refeicao", `${prof.nome} trabalha mais de ${R.jornadaSemRefeicaoMin / 60}h na ${nomeDia} sem pausa de ${R.refeicaoMin} min para refeição.`, ...aulasDoDia(periodos));
         }
       }
 
@@ -137,8 +148,9 @@ function validarJornada(dados: DadosGeracao, aulas: Aula[], add: (regra: string,
         const fimHoje = Math.max(...periodos.map((p) => p.fim));
         const descanso = 24 * 60 - fimHoje + amanha[0].inicio;
         if (descanso < R.interjornadaMin) {
+          const ultima = periodos.find((p) => p.fim === fimHoje)!;
           add("interjornada", `${prof.nome} termina às ${hhmm(fimHoje)} na ${nomeDia} e volta às ${hhmm(amanha[0].inicio)} na ${DIAS[dia + 1]}: ` +
-            `${hhmm(descanso)} de descanso (mínimo ${R.interjornadaMin / 60}h).`);
+            `${hhmm(descanso)} de descanso (mínimo ${R.interjornadaMin / 60}h).`, ...aulasDoDia([ultima, amanha[0]]));
         }
       }
     }

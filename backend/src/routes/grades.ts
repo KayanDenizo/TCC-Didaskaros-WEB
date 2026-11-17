@@ -3,7 +3,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { exec, select, transaction } from "../db.js";
 import { HttpError, idParam, parse } from "../http.js";
-import { GeracaoError, ajustarComClaude, gerarComClaude } from "../grade/claude.js";
+import { GeracaoError, ajustarComClaude, analisarEdicaoComClaude, gerarComClaude, type AnaliseEdicao } from "../grade/claude.js";
+import { descreverMudancas, simularDestinos } from "../grade/edicao.js";
 import { REGRAS_CPS, hhmm, horarios, intervaloAula, type Aula, type DadosGeracao, type Turno } from "../grade/tipos.js";
 import { metricas, validarGrade, verificarViabilidade } from "../grade/validador.js";
 import { TURNOS } from "./cadastros.js";
@@ -121,6 +122,7 @@ interface Job {
   tentativa: number;
   gradeId?: number;
   resposta?: string; // texto da IA (ajuste pelo chat)
+  analise?: AnaliseEdicao; // opiniao da IA sobre a edicao manual
   erro?: string;
   iniciadoEm: number;
 }
@@ -135,7 +137,7 @@ function limparJobsAntigos() {
 /** cria o job, responde 202 com o id e roda a tarefa em segundo plano */
 function iniciarJob(
   res: import("express").Response, unidadeId: number,
-  tarefa: (progresso: (etapa: string, tentativa: number) => void) => Promise<{ gradeId?: number; resposta?: string }>,
+  tarefa: (progresso: (etapa: string, tentativa: number) => void) => Promise<Pick<Job, "gradeId" | "resposta" | "analise">>,
 ) {
   limparJobsAntigos();
   const job: Job = { id: randomUUID(), unidadeId, status: "executando", etapa: "Preparando dados", tentativa: 0, iniciadoEm: Date.now() };
@@ -383,4 +385,99 @@ gradesRouter.post("/:id/ajustar", async (req, res) => {
     const gradeId = await salvarGrade(unidadeId, coordenadorId, params, { ...r, observacoes: r.resposta });
     return { gradeId, resposta: r.resposta };
   });
+});
+
+// ---------------- edicao manual (arrastar e soltar) ----------------
+// o front manda a grade inteira como ta na tela. nada eh salvo ate o coordenador pedir
+
+const aulasSchema = z.array(z.object({
+  turmaId: z.number().int(),
+  disciplinaId: z.number().int(),
+  professorId: z.number().int(),
+  salaId: z.number().int(),
+  dia: z.number().int().min(0).max(4),
+  ordem: z.number().int().min(0).max(7),
+})).max(5000);
+
+const agruparSchema = z.enum(["turmaId", "professorId", "salaId"]);
+
+/** a grade salva (a q ta sendo editada) e os dados atuais do turno dela */
+async function carregarParaEdicao(id: number, unidadeId: number) {
+  const [grade] = await select<{ turno: Turno; aulasPorDia: number; ano: number; semestre: 1 | 2; restricoes: unknown }>(
+    "SELECT turno, aulas_por_dia AS aulasPorDia, ano, semestre, restricoes FROM grade WHERE id = ? AND escola_id = ?",
+    [id, unidadeId],
+  );
+  if (!grade) throw new HttpError(404, "Grade não encontrada.");
+  const salvas = await select<Aula>(
+    `SELECT turma_id AS turmaId, disciplina_id AS disciplinaId, professor_id AS professorId, sala_id AS salaId, dia, ordem
+     FROM grade_aula WHERE grade_id = ?`, [id],
+  );
+  const preferencias = jsonArray(grade.restricoes).map(String);
+  const dados = await carregarDados(unidadeId, grade.turno, grade.aulasPorDia, grade.ano, grade.semestre, preferencias);
+  return { grade, salvas, preferencias, dados };
+}
+
+// confere a grade editada a cada mudanca: conflitos, janelas e quais aulas estao em cada conflito
+gradesRouter.post("/:id/verificar", async (req, res) => {
+  const { id } = parse(idParam, req.params);
+  const { aulas } = parse(z.object({ aulas: aulasSchema }), req.body);
+  const { dados } = await carregarParaEdicao(id, req.sessao.unidadeId);
+  const porAula = new Map<number, string[]>();
+  const violacoes = validarGrade(dados, aulas, porAula);
+  res.json({ violacoes, metricas: metricas(aulas), porAula: Object.fromEntries(porAula) });
+});
+
+// qnd o coordenador pega uma aula: como a grade ficaria se ela fosse solta em cada horario
+gradesRouter.post("/:id/destinos", async (req, res) => {
+  const { id } = parse(idParam, req.params);
+  const { aulas, indice, agrupar } = parse(
+    z.object({ aulas: aulasSchema, indice: z.number().int().min(0), agrupar: agruparSchema }), req.body,
+  );
+  if (indice >= aulas.length) throw new HttpError(400, "indice: aula inexistente.");
+  const { dados } = await carregarParaEdicao(id, req.sessao.unidadeId);
+  res.json(simularDestinos(dados, aulas, indice, agrupar));
+});
+
+// a IA avalia as mudancas (roda em segundo plano, igual a geracao)
+gradesRouter.post("/:id/analisar", async (req, res) => {
+  const { id } = parse(idParam, req.params);
+  const { aulas } = parse(z.object({ aulas: aulasSchema }), req.body);
+  const unidadeId = req.sessao.unidadeId;
+  exigirChave();
+
+  const { salvas, dados } = await carregarParaEdicao(id, unidadeId);
+  const mudancas = descreverMudancas(dados, salvas, aulas);
+  if (!mudancas.length) throw new HttpError(400, "Nenhuma aula mudou de horário.");
+  const conflitos = validarGrade(dados, aulas);
+  const janelas = { antes: metricas(salvas), depois: metricas(aulas) };
+
+  iniciarJob(res, unidadeId, async (progresso) => ({
+    analise: await analisarEdicaoComClaude(dados, aulas, mudancas, conflitos, janelas, progresso),
+  }));
+});
+
+// salva a grade editada como uma versao nova (rascunho). a original continua igual
+gradesRouter.post("/:id/versoes", async (req, res) => {
+  const { id } = parse(idParam, req.params);
+  const { aulas, resumoIA } = parse(z.object({ aulas: aulasSchema.min(1), resumoIA: z.string().trim().max(1000).optional() }), req.body);
+  const { unidadeId, coordenadorId } = req.sessao;
+
+  const { grade, salvas, preferencias, dados } = await carregarParaEdicao(id, unidadeId);
+  const violacoes = validarGrade(dados, aulas);
+  // conflito de horario pode (vira rascunho com conflito), aula q nao eh desse turno/escola nao
+  const invalida = violacoes.find((v) => v.regra === "referencia" || v.regra === "horario");
+  if (invalida) throw new HttpError(400, invalida.mensagem);
+
+  const mudancas = descreverMudancas(dados, salvas, aulas);
+  if (!mudancas.length) throw new HttpError(400, "Nenhuma aula mudou de horário.");
+  const observacoes = [
+    `Versão editada à mão a partir da grade #${id} (${mudancas.length} aula(s) mudaram de horário):`,
+    ...mudancas.slice(0, 15).map((m) => `• ${m}`),
+    ...(mudancas.length > 15 ? [`• … e mais ${mudancas.length - 15}.`] : []),
+    ...(resumoIA ? ["", `Análise da Didáskaros IA: ${resumoIA}`] : []),
+  ].join("\n");
+
+  const params = { turno: grade.turno, ano: grade.ano, semestre: grade.semestre, aulasPorDia: grade.aulasPorDia, preferencias };
+  const novaId = await salvarGrade(unidadeId, coordenadorId, params, { aulas, observacoes, violacoes, tentativas: 0, modelo: "manual" });
+  res.status(201).json({ id: novaId, conflitos: violacoes.length });
 });

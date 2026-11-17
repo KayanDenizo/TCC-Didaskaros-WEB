@@ -5,8 +5,8 @@
 git clone https://github.com/KayanDenizo/TCC-Didaskaros-WEB.git
 cd TCC-Didaskaros-WEB
 3. Instale as dependências:
-cd backend; npm install; cd ..
-cd frontend/didaskaros; npm install; cd ../..
+npm run setup   (na raiz, instala backend e frontend)
+   Dica: clone num disco local (ex.: C:\dev). Em drive de rede (Z:) o npm install leva minutos em vez de segundos.
 4. Crie o arquivo backend/.env só com esta linha:
 ANTHROPIC_API_KEY=sua-chave
 5. Crie o banco:

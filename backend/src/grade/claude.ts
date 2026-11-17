@@ -81,6 +81,39 @@ function traduzirErroApi(err: unknown) {
   return err;
 }
 
+/**
+ * chamada padrao a Claude: usa stream pq a resposta demora e senao da timeout no http
+ * (o finalMessage() junta tudo no final), saida em JSON no formato do schema e,
+ * se o modelo recusar por engano (falso positivo de seguranca), a api tenta de novo com o modelo reserva
+ */
+async function chamarClaude(
+  system: string,
+  messages: Anthropic.Beta.BetaMessageParam[],
+  schema: z.ZodType,
+  { effort = env.claudeEffort, msgCortada = "A resposta da Didáskaros IA foi cortada por tamanho." } = {},
+) {
+  let resposta: Anthropic.Beta.BetaMessage;
+  try {
+    resposta = await new Anthropic().beta.messages
+      .stream({
+        model: env.claudeModel,
+        max_tokens: 64000,
+        system,
+        messages,
+        output_config: { effort, format: zodOutputFormat(schema) },
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+      })
+      .finalMessage();
+  } catch (err) {
+    throw traduzirErroApi(err);
+  }
+  if (resposta.stop_reason === "refusal") throw new GeracaoError("A Didáskaros IA recusou a solicitação.");
+  if (resposta.stop_reason === "max_tokens") throw new GeracaoError(msgCortada);
+  const texto = resposta.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+  return { resposta, texto };
+}
+
 function montarEntrada(dados: DadosGeracao) {
   return JSON.stringify({
     turno: dados.turno,
@@ -113,7 +146,6 @@ export async function gerarComClaude(
   dados: DadosGeracao,
   onProgresso: (etapa: string, tentativa: number) => void,
 ): Promise<ResultadoGeracao> {
-  const client = new Anthropic();
   const messages: Anthropic.Beta.BetaMessageParam[] = [
     { role: "user", content: `Monte a grade deste turno:\n\n${montarEntrada(dados)}` },
   ];
@@ -122,29 +154,9 @@ export async function gerarComClaude(
   for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
     onProgresso(tentativa === 1 ? "Montando a grade" : "Corrigindo os conflitos apontados", tentativa);
 
-    let resposta: Anthropic.Beta.BetaMessage;
-    try {
-      // usa stream pq a resposta demora e senao da timeout no http. o finalMessage() junta tudo no final
-      resposta = await client.beta.messages
-        .stream({
-          model: env.claudeModel,
-          max_tokens: 64000,
-          system: SYSTEM,
-          messages,
-          output_config: { effort: env.claudeEffort, format: zodOutputFormat(RespostaSchema) },
-          // se o modelo recusar por engano (falso positivo de seguranca) a api tenta de novo com o modelo reserva
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-        })
-        .finalMessage();
-    } catch (err) {
-      throw traduzirErroApi(err);
-    }
-
-    if (resposta.stop_reason === "refusal") throw new GeracaoError("A Didáskaros IA recusou a solicitação.");
-    if (resposta.stop_reason === "max_tokens") throw new GeracaoError("A resposta da Didáskaros IA foi cortada por tamanho. Reduza o número de turmas do turno.");
-
-    const texto = resposta.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+    const { resposta, texto } = await chamarClaude(SYSTEM, messages, RespostaSchema, {
+      msgCortada: "A resposta da Didáskaros IA foi cortada por tamanho. Reduza o número de turmas do turno.",
+    });
     messages.push({ role: "assistant", content: resposta.content });
 
     let parsed: z.infer<typeof RespostaSchema>;
@@ -221,7 +233,6 @@ export async function ajustarComClaude(
   problemasNosCadastros: string[],
   onProgresso: (etapa: string, tentativa: number) => void,
 ): Promise<ResultadoAjuste> {
-  const client = new Anthropic();
   const conversa = historico.map((m) => `${m.papel === "coordenador" ? "Coordenador" : "IA"}: ${m.texto}`).join("\n");
   const messages: Anthropic.Beta.BetaMessageParam[] = [{
     role: "user",
@@ -237,27 +248,7 @@ export async function ajustarComClaude(
   for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
     onProgresso(tentativa === 1 ? "Analisando o pedido" : "Corrigindo os conflitos apontados", tentativa);
 
-    let resposta: Anthropic.Beta.BetaMessage;
-    try {
-      resposta = await client.beta.messages
-        .stream({
-          model: env.claudeModel,
-          max_tokens: 64000,
-          system: SYSTEM_AJUSTE,
-          messages,
-          output_config: { effort: env.claudeEffort, format: zodOutputFormat(AjusteSchema) },
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-        })
-        .finalMessage();
-    } catch (err) {
-      throw traduzirErroApi(err);
-    }
-
-    if (resposta.stop_reason === "refusal") throw new GeracaoError("A Didáskaros IA recusou a solicitação.");
-    if (resposta.stop_reason === "max_tokens") throw new GeracaoError("A resposta da Didáskaros IA foi cortada por tamanho.");
-
-    const texto = resposta.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+    const { resposta, texto } = await chamarClaude(SYSTEM_AJUSTE, messages, AjusteSchema);
     messages.push({ role: "assistant", content: resposta.content });
 
     let parsed: z.infer<typeof AjusteSchema>;
@@ -282,4 +273,88 @@ export async function ajustarComClaude(
 
   if (!melhor) throw new GeracaoError("A Didáskaros IA não conseguiu responder. Tente reformular o pedido.");
   return melhor;
+}
+
+// analise da edicao manual: o coordenador arrastou aulas na tela e a IA diz se ficou ruim.
+// quem diz se tem conflito eh o validador; a IA explica, sugere como resolver e olha a qualidade
+
+const AnaliseSchema = z.object({
+  avaliacao: z.enum(["boa", "atencao", "ruim"]),
+  resumo: z.string(),
+  avisos: z.array(z.string()),
+  sugestoes: z.array(z.string()),
+});
+
+export type AnaliseEdicao = z.infer<typeof AnaliseSchema>;
+
+/** a analise roda a cada pausa na edicao, entao vai com menos esforco pra responder rapido */
+const EFFORT_ANALISE = "medium";
+
+const SYSTEM_ANALISE = `Você revisa grades horárias de unidades do Centro Paula Souza (ETECs e FATECs).
+
+O coordenador gerou a grade de um turno e depois mudou aulas de horário à mão, arrastando-as na tela. Sua tarefa é
+avisar se essas mudanças criaram conflito ou deixaram a grade pior. Você não altera a grade: só avalia e sugere.
+
+Você recebe em JSON:
+- os dados do turno: turmas com a carga horária, disciplinas, professores (disciplinas habilitadas, horários
+  indisponíveis, "preferidos", "evitar" e "ocupacoes" em outros turnos ou unidades), salas, os horários do turno e as
+  preferências da coordenação. Dia 0 = segunda … 4 = sexta; ordem 0 = primeira aula do turno;
+- "gradeEditada": a grade inteira depois das mudanças, uma entrada por aula;
+- "mudancas": as aulas que o coordenador mudou de horário;
+- "conflitos": as violações de restrições duras que o validador automático encontrou na grade editada;
+- "janelas": horários vagos entre aulas no mesmo dia, antes e depois das mudanças, para turmas e professores.
+
+"conflitos" é a fonte da verdade sobre as restrições duras: não conteste e não invente outros conflitos duros.
+
+Como avaliar:
+- Se "conflitos" não estiver vazio, a avaliação é "ruim". Explique cada conflito em linguagem simples e sugira um
+  movimento concreto que o resolve (qual aula, de qual dia e horário para qual). Antes de sugerir, confira nos dados
+  que o novo horário não cria outro conflito: turma, professor e sala livres, professor disponível e sem ocupação.
+- Depois, avalie a qualidade do que mudou (restrições moles): janelas novas para turmas ou professores; disciplina
+  concentrada demais num dia ou com aulas seguidas demais; aula em horário que o professor quer evitar ou tirada de
+  um horário preferido; preferências da coordenação que deixaram de ser atendidas.
+- "boa": as mudanças não criaram conflito nem pioraram nada que importe. "atencao": sem conflitos, mas alguma
+  restrição mole piorou. "ruim": há conflitos ou a grade ficou claramente pior.
+- Fale só do que as mudanças afetaram. Não critique partes da grade que o coordenador não mexeu, a não ser que uma
+  mudança tenha piorado essas partes.
+
+Escreva em português, direto ao coordenador, usando nomes (turmas, disciplinas, professores, dias e horários), nunca ids.
+- "resumo": uma ou duas frases curtas com o veredito.
+- "avisos": até 5 itens, um problema por item. Lista vazia se não houver problema.
+- "sugestoes": até 3 movimentos concretos que resolvem os problemas ou melhoram a grade. Lista vazia se não houver.`;
+
+export async function analisarEdicaoComClaude(
+  dados: DadosGeracao,
+  gradeEditada: Aula[],
+  mudancas: string[],
+  conflitos: Violacao[],
+  janelas: { antes: { janelasTurmas: number; janelasProfessores: number }; depois: { janelasTurmas: number; janelasProfessores: number } },
+  onProgresso: (etapa: string, tentativa: number) => void,
+): Promise<AnaliseEdicao & { modelo: string }> {
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{
+    role: "user",
+    content:
+      `Dados do turno:\n${montarEntrada(dados)}\n\n` +
+      `gradeEditada:\n${JSON.stringify(gradeEditada)}\n\n` +
+      `mudancas:\n${JSON.stringify(mudancas)}\n\n` +
+      `conflitos:\n${JSON.stringify(conflitos.map((c) => c.mensagem))}\n\n` +
+      `janelas:\n${JSON.stringify(janelas)}`,
+  }];
+
+  for (let tentativa = 1; tentativa <= 2; tentativa++) {
+    onProgresso("Analisando as mudanças", tentativa);
+    const { resposta, texto } = await chamarClaude(SYSTEM_ANALISE, messages, AnaliseSchema, { effort: EFFORT_ANALISE });
+    try {
+      const analise = AnaliseSchema.parse(JSON.parse(texto));
+      // com conflito do validador a grade nunca eh "boa", mesmo q a IA ache q eh
+      if (conflitos.length) analise.avaliacao = "ruim";
+      return { ...analise, modelo: resposta.model };
+    } catch {
+      messages.push(
+        { role: "assistant", content: resposta.content },
+        { role: "user", content: "A resposta não era um JSON válido no formato pedido. Responda novamente." },
+      );
+    }
+  }
+  throw new GeracaoError("A Didáskaros IA não conseguiu analisar as mudanças.");
 }

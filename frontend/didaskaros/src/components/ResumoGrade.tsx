@@ -1,4 +1,5 @@
 import type { GradeDetalhe } from "../api/types";
+import { tituloObservacoes } from "./EdicaoGrade";
 
 /** numeros da grade, explicacao da IA e os conflitos q o validador achou */
 export function ResumoGrade({ grade }: { grade: GradeDetalhe }) {
@@ -23,7 +24,7 @@ export function ResumoGrade({ grade }: { grade: GradeDetalhe }) {
 
       {grade.observacoes && (
         <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-4 py-3">
-          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1">✨ Observações da IA</p>
+          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wide mb-1">{tituloObservacoes(grade)}</p>
           <p className="text-[12px] text-gray-700 leading-relaxed whitespace-pre-line">{grade.observacoes}</p>
         </div>
       )}

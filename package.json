@@ -2,6 +2,7 @@
   "name": "didaskaros",
   "private": true,
   "scripts": {
+    "setup": "npm --prefix backend install && npm --prefix frontend/didaskaros install",
     "dev": "node scripts/dev.mjs"
   }
 }
