@@ -63,13 +63,13 @@ export function CardProfile({ nome, iniciais, categoria, unidade, children }: Ca
         <div
           className="pfp absolute shadow-[0 0 8px rgba(0, 0, 0, 0.4)] top-0 border-8 border-white w-[140px] h-[140px] rounded-full bg-gradient-to-r from-[#2d6ced] to-[#579bf8] flex items-center justify-center text-white text-[50px] my-2 font-bold">
           {iniciais}
-          <div
-            className="shadow-[0 0 8px rgba(0, 0, 0, 0.4)] bottom-0 top-0 translate-x-[18%] translate-y-[25%] bg-white w-[45px] h-[45px] rounded-full flex justify-center items-center">
-            {/* <span className="material-symbols-outlined text-[#5b8af0]">
-              photo_camera
-              </span> */}
-          </div>
         </div>
+          <div
+            className="shadow-[0_0_15px_rgba(0,0,0,0.7)]  translate-x-[85%] bg-white w-[45px] h-[45px] rounded-full flex justify-center items-center">
+            {<span className="material-symbols-outlined text-[#5b8af0]">
+              photo_camera
+              </span>}
+          </div>
       </div>
 
       <div className="infoNames flex flex-col items-center text-[14px] gap-1 mt-[65px]">
