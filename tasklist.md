@@ -93,6 +93,7 @@ que vem depois. Por isso a API de leitura já tem que ficar pronta e documentada
 - [ ] Tipos novos em `src/api/types.ts`.
 
 - [  ] Adicionar funcionalidade de clicar no perfil canto inferior esquerdo vai pra tela de perfil
+- [  ] Deixar responsivo web
 
 ### Mobile (depois)
 
