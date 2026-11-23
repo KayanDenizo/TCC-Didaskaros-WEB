@@ -84,7 +84,6 @@ que vem depois. Por isso a API de leitura já tem que ficar pronta e documentada
 
 ### Frontend web (`frontend/didaskaros/src/pages/Notificacoes.tsx`)
 
-- [ ] Nova página no menu do coordenador.
 - [ ] Formulário: seletor de **tipo de aviso** (com cor ou ícone por tipo), escolha de
       **destinatários** (professores / alunos / todos + turma opcional), título e uma **box de
       mensagem** (textarea com contador de caracteres) e botão **Enviar**.
@@ -92,6 +91,8 @@ que vem depois. Por isso a API de leitura já tem que ficar pronta e documentada
 - [ ] Lista dos avisos já enviados ao lado/abaixo: tipo, título, destinatários, data e
       contagem de leitura quando o mobile existir.
 - [ ] Tipos novos em `src/api/types.ts`.
+
+- [  ] Adicionar funcionalidade de clicar no perfil canto inferior esquerdo vai pra tela de perfil
 
 ### Mobile (depois)
 

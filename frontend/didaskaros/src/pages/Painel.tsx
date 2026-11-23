@@ -401,7 +401,7 @@ export default function Painel() {
         </StatCard>
       </div>
 
-      <div className="grid grid-cols-[1fr_340px] items-start gap-5">
+      <div className="grid grid-cols-1 items-start gap-5 min-[920px]:grid-cols-[1fr_340px]">
         <div className="flex min-w-0 flex-col gap-5">
           <AulasHoje data={data} agora={agora} />
           <GradesRecentes data={data} />
